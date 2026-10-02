@@ -1,32 +1,38 @@
 import { useState } from 'react';
 import { signInWithPopup, signOut } from 'firebase/auth';
 import { auth, googleProvider } from './firebase';
+import api from './api';
 
 function App() {
-    const [email, setEmail] = useState('');
+    const [user, setUser] = useState(null);
     const [error, setError] = useState('');
 
     const handleLogin = async () => {
         try {
             const result = await signInWithPopup(auth, googleProvider);
-            setEmail(result.user.email);
+            await api.post('/register', {
+                name: result.user.displayName || 'New User',
+            });
+            const { data } = await api.get('/me');
+            setUser(data.user);
             setError('');
         } catch (err) {
-            setError(err.code);
+            setError(err.response?.data?.message || err.code || err.message);
         }
     };
 
     const handleLogout = async () => {
         await signOut(auth);
-        setEmail('');
+        setUser(null);
     };
 
     return (
         <div>
-            <h1>OOTD Firebase test</h1>
-            {email ? (
+            <h1>OOTD backend test</h1>
+            {user ? (
                 <>
-                    <p>Signed in as: {email}</p>
+                    <p>Signed in as: {user.email} (role: {user.role})</p>
+                    <pre>{JSON.stringify(user, null, 2)}</pre>
                     <button onClick={handleLogout}>Sign out</button>
                 </>
             ) : (
