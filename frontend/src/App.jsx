@@ -9,6 +9,9 @@ import Home from './Components/Home';
 import Login from './Components/User/Login';
 import Register from './Components/User/Register';
 import Dashboard from './Components/Admin/Dashboard';
+import ProductsList from './Components/Admin/ProductsList';
+import NewProduct from './Components/Admin/NewProduct';
+import UpdateProduct from './Components/Admin/UpdateProduct';
 
 function App() {
     const dispatch = useDispatch();
@@ -31,6 +34,9 @@ function App() {
             <Route element={<ProtectedRoute adminOnly />}>
                 <Route element={<AdminLayout />}>
                     <Route path="/admin" element={<Dashboard />} />
+                    <Route path="/admin/products" element={<ProductsList />} />
+                    <Route path="/admin/product/new" element={<NewProduct />} />
+                    <Route path="/admin/product/:id" element={<UpdateProduct />} />
                 </Route>
             </Route>
         </Routes>

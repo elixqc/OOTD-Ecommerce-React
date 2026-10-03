@@ -12,6 +12,19 @@ const Toast = Swal.mixin({
 export const notifySuccess = (title) => Toast.fire({ icon: 'success', title });
 export const notifyError = (title) => Toast.fire({ icon: 'error', title });
 
+// Returns true if the admin confirms
+export const confirmDelete = async (text) => {
+    const result = await Swal.fire({
+        title: 'Are you sure?',
+        text,
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#c8553d',
+        confirmButtonText: 'Yes, delete',
+    });
+    return result.isConfirmed;
+};
+
 const FIREBASE_MESSAGES = {
     'auth/invalid-credential': 'Invalid email or password',
     'auth/user-not-found': 'Invalid email or password',
