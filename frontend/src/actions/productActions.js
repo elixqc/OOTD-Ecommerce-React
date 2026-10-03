@@ -19,6 +19,9 @@ import {
     PRODUCTS_REQUEST,
     PRODUCTS_SUCCESS,
     PRODUCTS_FAIL,
+    RELATED_PRODUCTS_REQUEST,
+    RELATED_PRODUCTS_SUCCESS,
+    RELATED_PRODUCTS_FAIL,
 } from '../constants/productConstants';
 
 export const getAdminProducts = () => async (dispatch) => {
@@ -113,4 +116,21 @@ export const loadMoreProducts = (filters) => (dispatch, getState) => {
     const { loading, hasMore, page } = getState().catalog;
     if (loading || !hasMore || page === 0) return;
     return dispatch(getProducts(filters, page + 1));
+};
+
+let latestRelatedRequest = 0;
+
+export const getRelatedProducts = (id) => async (dispatch) => {
+    // Ignore an older response if the shopper already moved to another product
+    const requestId = ++latestRelatedRequest;
+
+    try {
+        dispatch({ type: RELATED_PRODUCTS_REQUEST });
+        const { data } = await api.get(`/product/${id}/related`);
+        if (requestId !== latestRelatedRequest) return;
+        dispatch({ type: RELATED_PRODUCTS_SUCCESS, payload: data.products });
+    } catch (error) {
+        if (requestId !== latestRelatedRequest) return;
+        dispatch({ type: RELATED_PRODUCTS_FAIL, payload: getErrorMessage(error) });
+    }
 };

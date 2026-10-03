@@ -3,8 +3,9 @@ const router = express.Router();
 
 const {
     newProduct,
-    getSingleProduct,
     getProducts,
+    getSingleProduct,
+    getRelatedProducts,
     getAdminProducts,
     updateProduct,
     deleteProduct,
@@ -15,6 +16,7 @@ const { isAuthenticatedUser, authorizeRoles } = require('../middlewares/auth');
 const adminOnly = [isAuthenticatedUser, authorizeRoles('admin')];
 
 router.get('/products', getProducts);
+router.get('/product/:id/related', getRelatedProducts);
 router.get('/product/:id', getSingleProduct);
 
 router.get('/admin/products', adminOnly, getAdminProducts);

@@ -8,6 +8,7 @@ import ProtectedRoute from './Components/Route/ProtectedRoute';
 import Home from './Components/Home';
 import Login from './Components/User/Login';
 import Register from './Components/User/Register';
+import ProductDetails from './Components/Product/ProductDetails';
 import Dashboard from './Components/Admin/Dashboard';
 import ProductsList from './Components/Admin/ProductsList';
 import NewProduct from './Components/Admin/NewProduct';
@@ -26,6 +27,7 @@ function App() {
         <Routes>
             <Route element={<CustomerLayout />}>
                 <Route path="/" element={<Home />} />
+                <Route path="/product/:id" element={<ProductDetails />} />
                 <Route path="/login" element={<Login />} />
                 <Route path="/register" element={<Register />} />
                 <Route path="*" element={<h2>Page not found</h2>} />

@@ -242,3 +242,19 @@ exports.getProducts = async (req, res) => {
         hasMore: page * limit < total,
     });
 };
+
+// GET /api/v1/product/:id/related   (public)
+// Other products in the same category, best rated first
+exports.getRelatedProducts = async (req, res) => {
+    const product = await Product.findById(req.params.id).select('category');
+    if (!product) {
+        return res.status(404).json({ success: false, message: 'Product not found' });
+    }
+
+    const products = await Product.find({ category: product.category, _id: { $ne: product._id } })
+        .select('-user')
+        .sort({ ratings: -1, createdAt: -1 })
+        .limit(4);
+
+    return res.status(200).json({ success: true, products });
+};

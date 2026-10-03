@@ -20,6 +20,9 @@ import {
     PRODUCTS_REQUEST,
     PRODUCTS_SUCCESS,
     PRODUCTS_FAIL,
+    RELATED_PRODUCTS_REQUEST,
+    RELATED_PRODUCTS_SUCCESS,
+    RELATED_PRODUCTS_FAIL,
 } from '../constants/productConstants';
 import { CLEAR_ERRORS } from '../constants/userConstants';
 
@@ -123,6 +126,20 @@ export const catalogReducer = (
             // hasMore false stops the scroll from retrying in a loop
             return { ...state, loading: false, hasMore: false, error: action.payload };
 
+        default:
+            return state;
+    }
+};
+
+// "You May Also Like" on the product detail page
+export const relatedProductsReducer = (state = { products: [], loading: false }, action) => {
+    switch (action.type) {
+        case RELATED_PRODUCTS_REQUEST:
+            return { products: [], loading: true };
+        case RELATED_PRODUCTS_SUCCESS:
+            return { loading: false, products: action.payload };
+        case RELATED_PRODUCTS_FAIL:
+            return { loading: false, products: [], error: action.payload };
         default:
             return state;
     }

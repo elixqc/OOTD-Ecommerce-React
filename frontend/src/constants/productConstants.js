@@ -21,13 +21,19 @@ export const DELETE_PRODUCT_SUCCESS = 'DELETE_PRODUCT_SUCCESS';
 export const DELETE_PRODUCT_FAIL = 'DELETE_PRODUCT_FAIL';
 export const DELETE_PRODUCT_RESET = 'DELETE_PRODUCT_RESET';
 
+// Public catalog (homepage)
+export const PRODUCTS_REQUEST = 'PRODUCTS_REQUEST';
+export const PRODUCTS_SUCCESS = 'PRODUCTS_SUCCESS';
+export const PRODUCTS_FAIL = 'PRODUCTS_FAIL';
+
+// "You May Also Like"
+export const RELATED_PRODUCTS_REQUEST = 'RELATED_PRODUCTS_REQUEST';
+export const RELATED_PRODUCTS_SUCCESS = 'RELATED_PRODUCTS_SUCCESS';
+export const RELATED_PRODUCTS_FAIL = 'RELATED_PRODUCTS_FAIL';
+
 // These must match backend/utils/constants.js
 export const CATEGORIES = ['Tops', 'Bottoms', 'Dresses', 'Outerwear', 'Shoes', 'Accessories'];
 export const GENDERS = ['Men', 'Women', 'Unisex'];
 
 export const MAX_IMAGES = 5;
 export const MAX_FILE_SIZE = 2 * 1024 * 1024; // 2 MB per image
-
-export const PRODUCTS_REQUEST = 'PRODUCTS_REQUEST';
-export const PRODUCTS_SUCCESS = 'PRODUCTS_SUCCESS';
-export const PRODUCTS_FAIL = 'PRODUCTS_FAIL';
