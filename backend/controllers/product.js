@@ -2,10 +2,12 @@ const cloudinary = require('../config/cloudinary');
 const Product = require('../models/product');
 const Review = require('../models/review');
 const User = require('../models/user');
+const { CATEGORIES } = require('../utils/constants');
 
 const MAX_IMAGES = 5;
 const MAX_IMAGE_LENGTH = 4000000;
 const PRODUCT_FIELDS = ['name', 'description', 'price', 'category', 'brand', 'gender', 'material', 'variants'];
+
 
 // Only these fields can be set from the request, so a client can't send ratings, user, etc.
 const pickProductFields = (body) => {
@@ -186,4 +188,57 @@ exports.deleteProducts = async (req, res) => {
     await cleanupProducts(productIds);
 
     return res.status(200).json({ success: true, deletedCount: products.length });
+};
+
+// Escapes regex characters so a keyword like "(" can't break the search
+const escapeRegex = (text) => text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
+const toNumber = (value) => (value === undefined || value === '' || Array.isArray(value) ? NaN : Number(value));
+
+// GET /api/v1/products?keyword=&category=&minPrice=&maxPrice=&rating=&page=&limit=   (public)
+exports.getProducts = async (req, res) => {
+    const { keyword, category, minPrice, maxPrice, rating } = req.query;
+    const page = Math.max(parseInt(req.query.page, 10) || 1, 1);
+    const limit = Math.min(Math.max(parseInt(req.query.limit, 10) || 8, 1), 24);
+
+    const filter = {};
+
+    if (typeof keyword === 'string' && keyword.trim()) {
+        const pattern = new RegExp(escapeRegex(keyword.trim()), 'i');
+        filter.$or = [{ name: pattern }, { category: pattern }, { brand: pattern }];
+    }
+
+    if (CATEGORIES.includes(category)) {
+        filter.category = category;
+    }
+
+    const min = toNumber(minPrice);
+    const max = toNumber(maxPrice);
+    if (Number.isFinite(min) || Number.isFinite(max)) {
+        filter.price = {};
+        if (Number.isFinite(min)) filter.price.$gte = min;
+        if (Number.isFinite(max)) filter.price.$lte = max;
+    }
+
+    const minRating = toNumber(rating);
+    if (Number.isFinite(minRating) && minRating > 0) {
+        filter.ratings = { $gte: minRating };
+    }
+
+    // Count before skip/limit, so total is the real number of matches
+    const total = await Product.countDocuments(filter);
+
+    const products = await Product.find(filter)
+        .select('-user')
+        .sort({ createdAt: -1, _id: -1 })
+        .skip((page - 1) * limit)
+        .limit(limit);
+
+    return res.status(200).json({
+        success: true,
+        products,
+        total,
+        page,
+        hasMore: page * limit < total,
+    });
 };

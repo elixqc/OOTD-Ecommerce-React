@@ -16,6 +16,9 @@ import {
     DELETE_PRODUCT_REQUEST,
     DELETE_PRODUCT_SUCCESS,
     DELETE_PRODUCT_FAIL,
+    PRODUCTS_REQUEST,
+    PRODUCTS_SUCCESS,
+    PRODUCTS_FAIL,
 } from '../constants/productConstants';
 
 export const getAdminProducts = () => async (dispatch) => {
@@ -77,4 +80,37 @@ export const deleteProducts = (ids) => async (dispatch) => {
     } catch (error) {
         dispatch({ type: DELETE_PRODUCT_FAIL, payload: getErrorMessage(error) });
     }
+};
+
+let latestRequest = 0;
+
+// Page 1 starts a fresh list (new filters). Later pages are appended.
+export const getProducts = (filters, page) => async (dispatch) => {
+    // If filters change while a request is running, the older response is ignored
+    const requestId = ++latestRequest;
+
+    const params = { page, limit: 8 };
+    Object.entries(filters).forEach(([key, value]) => {
+        if (value !== '' && value !== 'All') params[key] = value;
+    });
+
+    try {
+        dispatch({ type: PRODUCTS_REQUEST, payload: page });
+        const { data } = await api.get('/products', { params });
+        if (requestId !== latestRequest) return;
+        dispatch({
+            type: PRODUCTS_SUCCESS,
+            payload: { products: data.products, page: data.page, hasMore: data.hasMore, total: data.total },
+        });
+    } catch (error) {
+        if (requestId !== latestRequest) return;
+        dispatch({ type: PRODUCTS_FAIL, payload: getErrorMessage(error) });
+    }
+};
+
+// Called when the bottom of the list scrolls into view. Reads the latest state, so it can't double-load.
+export const loadMoreProducts = (filters) => (dispatch, getState) => {
+    const { loading, hasMore, page } = getState().catalog;
+    if (loading || !hasMore || page === 0) return;
+    return dispatch(getProducts(filters, page + 1));
 };

@@ -17,6 +17,9 @@ import {
     DELETE_PRODUCT_SUCCESS,
     DELETE_PRODUCT_FAIL,
     DELETE_PRODUCT_RESET,
+    PRODUCTS_REQUEST,
+    PRODUCTS_SUCCESS,
+    PRODUCTS_FAIL,
 } from '../constants/productConstants';
 import { CLEAR_ERRORS } from '../constants/userConstants';
 
@@ -86,6 +89,40 @@ export const productReducer = (state = {}, action) => {
             return { ...state, isDeleted: false, deletedCount: 0 };
         case CLEAR_ERRORS:
             return { ...state, error: null };
+        default:
+            return state;
+    }
+};
+
+// Public catalog with infinite scroll: pages are appended to the list
+export const catalogReducer = (
+    state = { products: [], loading: false, page: 0, hasMore: true, total: 0, error: null },
+    action
+) => {
+    switch (action.type) {
+        case PRODUCTS_REQUEST:
+            // Page 1 means new filters, so start the list over
+            return action.payload === 1
+                ? { products: [], loading: true, page: 0, hasMore: true, total: 0, error: null }
+                : { ...state, loading: true, error: null };
+
+        case PRODUCTS_SUCCESS:
+            return {
+                loading: false,
+                error: null,
+                products:
+                    action.payload.page === 1
+                        ? action.payload.products
+                        : [...state.products, ...action.payload.products],
+                page: action.payload.page,
+                hasMore: action.payload.hasMore,
+                total: action.payload.total,
+            };
+
+        case PRODUCTS_FAIL:
+            // hasMore false stops the scroll from retrying in a loop
+            return { ...state, loading: false, hasMore: false, error: action.payload };
+
         default:
             return state;
     }

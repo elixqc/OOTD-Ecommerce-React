@@ -27,3 +27,7 @@ export const GENDERS = ['Men', 'Women', 'Unisex'];
 
 export const MAX_IMAGES = 5;
 export const MAX_FILE_SIZE = 2 * 1024 * 1024; // 2 MB per image
+
+export const PRODUCTS_REQUEST = 'PRODUCTS_REQUEST';
+export const PRODUCTS_SUCCESS = 'PRODUCTS_SUCCESS';
+export const PRODUCTS_FAIL = 'PRODUCTS_FAIL';
