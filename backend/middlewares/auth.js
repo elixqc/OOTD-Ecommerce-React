@@ -1,4 +1,4 @@
-const admin = require('../config/firebase');
+const firebaseAuth = require('../config/firebase');
 const User = require('../models/user');
 
 // Reads "Authorization: Bearer <token>" and verifies it with Firebase
@@ -7,7 +7,7 @@ const decodeToken = async (req) => {
     if (!header.startsWith('Bearer ')) return null;
 
     try {
-        return await admin.auth().verifyIdToken(header.split(' ')[1]);
+        return await firebaseAuth.verifyIdToken(header.split(' ')[1]);
     } catch (error) {
         return null;
     }

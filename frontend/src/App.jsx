@@ -5,6 +5,7 @@ import api from './api';
 
 function App() {
     const [user, setUser] = useState(null);
+    const [token, setToken] = useState('');
     const [error, setError] = useState('');
 
     const handleLogin = async () => {
@@ -24,6 +25,13 @@ function App() {
     const handleLogout = async () => {
         await signOut(auth);
         setUser(null);
+        setToken('');
+    };
+
+    // Temporary: for testing in Insomnia. Tokens expire after about 1 hour.
+    const handleGetToken = async () => {
+        const freshToken = await auth.currentUser.getIdToken(true);
+        setToken(freshToken);
     };
 
     return (
@@ -32,8 +40,9 @@ function App() {
             {user ? (
                 <>
                     <p>Signed in as: {user.email} (role: {user.role})</p>
-                    <pre>{JSON.stringify(user, null, 2)}</pre>
+                    <button onClick={handleGetToken}>Show ID token</button>{' '}
                     <button onClick={handleLogout}>Sign out</button>
+                    {token && <textarea readOnly rows={6} cols={80} value={token} />}
                 </>
             ) : (
                 <button onClick={handleLogin}>Sign in with Google</button>
