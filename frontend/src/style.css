@@ -1,0 +1,132 @@
+:root {
+    --brand-dark: #1f1f1f;
+    --brand-accent: #c8553d;
+    --brand-bg: #faf8f5;
+}
+
+body {
+    margin: 0;
+    background: var(--brand-bg);
+}
+
+.loading-screen {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Customer layout */
+.brand-link {
+    color: inherit;
+    text-decoration: none;
+    font-weight: 700;
+    letter-spacing: 3px;
+}
+
+.navbar-spacer {
+    flex: 1;
+}
+
+.navbar-user {
+    margin: 0 12px;
+}
+
+.page-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 24px 16px;
+}
+
+.home-hero {
+    text-align: center;
+    padding: 64px 16px;
+}
+
+.home-subtitle {
+    margin: 16px 0 24px;
+}
+
+/* Login and register */
+.auth-wrapper {
+    display: flex;
+    justify-content: center;
+    padding: 24px 0;
+}
+
+.auth-card {
+    width: 100%;
+    max-width: 420px;
+    padding: 32px;
+}
+
+.auth-title {
+    margin-bottom: 24px;
+    text-align: center;
+}
+
+.form-stack {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.auth-footer {
+    margin-top: 16px;
+    text-align: center;
+}
+
+/* Admin layout */
+.admin-shell {
+    display: flex;
+    min-height: 100vh;
+}
+
+.admin-sidebar {
+    width: 220px;
+    display: flex;
+    flex-direction: column;
+    padding: 16px;
+    background: var(--brand-dark);
+    color: #fff;
+}
+
+.admin-brand {
+    margin: 0 0 24px;
+    letter-spacing: 2px;
+}
+
+.admin-nav {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    flex: 1;
+}
+
+.admin-nav a {
+    padding: 10px 12px;
+    border-radius: 8px;
+    color: #fff;
+    text-decoration: none;
+}
+
+.admin-nav a:hover,
+.admin-nav a.active {
+    background: var(--brand-accent);
+}
+
+.admin-sidebar-footer {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.admin-main {
+    flex: 1;
+    padding: 24px;
+}
+
+/* SweetAlert toast */
+.ootd-toast {
+    border-left: 4px solid var(--brand-accent);
+}

@@ -1,54 +1,39 @@
-import { useState } from 'react';
-import { signInWithPopup, signOut } from 'firebase/auth';
-import { auth, googleProvider } from './firebase';
-import api from './api';
+import { useEffect } from 'react';
+import { Route, Routes } from 'react-router-dom';
+import { useDispatch } from 'react-redux';
+import { listenToAuthChanges } from './actions/userActions';
+import CustomerLayout from './Components/Layout/CustomerLayout';
+import AdminLayout from './Components/Admin/AdminLayout';
+import ProtectedRoute from './Components/Route/ProtectedRoute';
+import Home from './Components/Home';
+import Login from './Components/User/Login';
+import Register from './Components/User/Register';
+import Dashboard from './Components/Admin/Dashboard';
 
 function App() {
-    const [user, setUser] = useState(null);
-    const [token, setToken] = useState('');
-    const [error, setError] = useState('');
+    const dispatch = useDispatch();
 
-    const handleLogin = async () => {
-        try {
-            const result = await signInWithPopup(auth, googleProvider);
-            await api.post('/register', {
-                name: result.user.displayName || 'New User',
-            });
-            const { data } = await api.get('/me');
-            setUser(data.user);
-            setError('');
-        } catch (err) {
-            setError(err.response?.data?.message || err.code || err.message);
-        }
-    };
-
-    const handleLogout = async () => {
-        await signOut(auth);
-        setUser(null);
-        setToken('');
-    };
-
-    // Temporary: for testing in Insomnia. Tokens expire after about 1 hour.
-    const handleGetToken = async () => {
-        const freshToken = await auth.currentUser.getIdToken(true);
-        setToken(freshToken);
-    };
+    // Restore the login session when the app opens
+    useEffect(() => {
+        const unsubscribe = dispatch(listenToAuthChanges());
+        return unsubscribe;
+    }, [dispatch]);
 
     return (
-        <div>
-            <h1>OOTD backend test</h1>
-            {user ? (
-                <>
-                    <p>Signed in as: {user.email} (role: {user.role})</p>
-                    <button onClick={handleGetToken}>Show ID token</button>{' '}
-                    <button onClick={handleLogout}>Sign out</button>
-                    {token && <textarea readOnly rows={6} cols={80} value={token} />}
-                </>
-            ) : (
-                <button onClick={handleLogin}>Sign in with Google</button>
-            )}
-            {error && <p>Error: {error}</p>}
-        </div>
+        <Routes>
+            <Route element={<CustomerLayout />}>
+                <Route path="/" element={<Home />} />
+                <Route path="/login" element={<Login />} />
+                <Route path="/register" element={<Register />} />
+                <Route path="*" element={<h2>Page not found</h2>} />
+            </Route>
+
+            <Route element={<ProtectedRoute adminOnly />}>
+                <Route element={<AdminLayout />}>
+                    <Route path="/admin" element={<Dashboard />} />
+                </Route>
+            </Route>
+        </Routes>
     );
 }
 
