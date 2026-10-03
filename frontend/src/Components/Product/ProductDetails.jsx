@@ -1,17 +1,32 @@
 import { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
-import { Button, Chip, CircularProgress, Rating, ToggleButton, ToggleButtonGroup, Typography } from '@mui/material';
+import {
+    Button,
+    Chip,
+    CircularProgress,
+    IconButton,
+    Rating,
+    ToggleButton,
+    ToggleButtonGroup,
+    Typography,
+} from '@mui/material';
+import AddIcon from '@mui/icons-material/Add';
+import RemoveIcon from '@mui/icons-material/Remove';
 import { getProductDetails, getRelatedProducts } from '../../actions/productActions';
+import { addToCart } from '../../actions/cartActions';
+import { notifyError, notifySuccess } from '../../Utils/helpers';
 import ProductCard from './ProductCard';
 
-// Separate component so the selected image, size, and color reset whenever the product changes
+// Separate component so the selected image, size, color, and quantity reset whenever the product changes
 function ProductInfo({ product }) {
+    const dispatch = useDispatch();
     const firstAvailable = product.variants.find((v) => v.stock > 0) || product.variants[0];
 
     const [activeImage, setActiveImage] = useState(0);
     const [size, setSize] = useState(firstAvailable.size);
     const [color, setColor] = useState(firstAvailable.color);
+    const [quantity, setQuantity] = useState(1);
 
     const sizes = [...new Set(product.variants.map((v) => v.size))];
     const colorOptions = product.variants.filter((v) => v.size === size);
@@ -23,13 +38,30 @@ function ProductInfo({ product }) {
     const handleSize = (newSize) => {
         const options = product.variants.filter((v) => v.size === newSize);
         setSize(newSize);
+        setQuantity(1);
         if (!options.some((v) => v.color === color)) {
             setColor((options.find((v) => v.stock > 0) || options[0]).color);
         }
     };
 
+    const handleColor = (newColor) => {
+        setColor(newColor);
+        setQuantity(1);
+    };
+
+    const handleAddToCart = () => {
+        const message = dispatch(addToCart(product, size, color, quantity));
+        if (message) {
+            notifyError(message);
+        } else {
+            notifySuccess('Added to cart');
+        }
+    };
+
+    const outOfStock = !selected || selected.stock === 0;
+
     let stockLabel = <Chip label="In stock" size="small" color="success" />;
-    if (!selected || selected.stock === 0) {
+    if (outOfStock) {
         stockLabel = <Chip label="Out of stock" size="small" color="error" />;
     } else if (selected.stock <= 5) {
         stockLabel = <Chip label={`Only ${selected.stock} left`} size="small" color="warning" />;
@@ -98,7 +130,7 @@ function ProductInfo({ product }) {
                         size="small"
                         sx={{ flexWrap: 'wrap' }}
                         value={color}
-                        onChange={(e, value) => value && setColor(value)}
+                        onChange={(e, value) => value && handleColor(value)}
                     >
                         {colorOptions.map((v) => (
                             <ToggleButton key={v.color} value={v.color} disabled={v.stock === 0}>
@@ -109,6 +141,35 @@ function ProductInfo({ product }) {
                 </div>
 
                 <div>{stockLabel}</div>
+
+                <div className="option-group">
+                    <Typography variant="subtitle2">Quantity</Typography>
+                    <div className="qty-control">
+                        <IconButton
+                            size="small"
+                            aria-label="Decrease quantity"
+                            onClick={() => setQuantity((q) => q - 1)}
+                            disabled={quantity <= 1}
+                        >
+                            <RemoveIcon />
+                        </IconButton>
+                        <span className="qty-value">{quantity}</span>
+                        <IconButton
+                            size="small"
+                            aria-label="Increase quantity"
+                            onClick={() => setQuantity((q) => q + 1)}
+                            disabled={outOfStock || quantity >= selected.stock}
+                        >
+                            <AddIcon />
+                        </IconButton>
+                    </div>
+                </div>
+
+                <div>
+                    <Button variant="contained" size="large" onClick={handleAddToCart} disabled={outOfStock}>
+                        Add to cart
+                    </Button>
+                </div>
 
                 <ul className="product-meta">
                     <li>Category: {product.category}</li>
