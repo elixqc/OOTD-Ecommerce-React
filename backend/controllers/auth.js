@@ -19,6 +19,13 @@ exports.registerUser = async (req, res) => {
 
     let avatarData;
     if (avatar) {
+        if (typeof avatar !== 'string' || !avatar.startsWith('data:image/')) {
+            return res.status(400).json({ success: false, message: 'Avatar must be an image' });
+        }
+        if (avatar.length > 3000000) {
+            return res.status(400).json({ success: false, message: 'Avatar is too large (max about 2 MB)' });
+        }
+
         const result = await cloudinary.uploader.upload(avatar, {
             folder: 'ootd/avatars',
             width: 300,
@@ -29,6 +36,7 @@ exports.registerUser = async (req, res) => {
         avatarData = { public_id: result.public_id, url: result.secure_url };
     }
 
+    // Mongoose checks name length and required fields
     user = await User.create({
         firebaseUid: uid,
         name: name || tokenName,

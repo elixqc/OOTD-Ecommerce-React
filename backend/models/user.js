@@ -11,6 +11,7 @@ const userSchema = new mongoose.Schema(
             type: String,
             required: [true, 'Please enter your name'],
             trim: true,
+            minLength: [2, 'Name must be at least 2 characters'],
             maxLength: [50, 'Name cannot exceed 50 characters'],
         },
         email: {
@@ -23,6 +24,7 @@ const userSchema = new mongoose.Schema(
         phone: {
             type: String,
             trim: true,
+            maxLength: [20, 'Phone number is too long'],
             default: '',
         },
         shippingAddress: {

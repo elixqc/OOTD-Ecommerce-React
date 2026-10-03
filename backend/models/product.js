@@ -75,7 +75,19 @@ const productSchema = new mongoose.Schema(
         },
         variants: {
             type: [variantSchema],
-            validate: [(arr) => arr.length > 0, 'Please add at least one size/color variant'],
+            validate: [
+                {
+                    validator: (arr) => arr.length > 0,
+                    message: 'Please add at least one size/color variant',
+                },
+                {
+                    validator: (arr) =>
+                        new Set(
+                            arr.map((v) => `${String(v.size || '').toLowerCase()}|${String(v.color || '').toLowerCase()}`)
+                        ).size === arr.length,
+                    message: 'Each size and color combination can only appear once',
+                },
+            ],
         },
         ratings: {
             type: Number,
