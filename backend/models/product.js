@@ -20,6 +20,27 @@ const variantSchema = new mongoose.Schema({
     },
 });
 
+const imageSchema = new mongoose.Schema(
+    {
+        public_id: { type: String, required: true },
+        url: { type: String, required: true },
+    },
+    { _id: false }
+);
+
+// One gallery per color. The first image is the main one.
+const colorImagesSchema = new mongoose.Schema(
+    {
+        color: {
+            type: String,
+            required: [true, 'Color name is required'],
+            trim: true,
+        },
+        images: { type: [imageSchema], default: [] },
+    },
+    { _id: false }
+);
+
 const productSchema = new mongoose.Schema(
     {
         name: {
@@ -64,15 +85,10 @@ const productSchema = new mongoose.Schema(
             trim: true,
             default: '',
         },
-        images: {
-            type: [
-                {
-                    public_id: { type: String, required: true },
-                    url: { type: String, required: true },
-                },
-            ],
-            validate: [(arr) => arr.length > 0, 'Please add at least one product image'],
-        },
+        // Shared photos from before per-color galleries. Only used as a fallback
+        // for colors that have no photos of their own.
+        images: { type: [imageSchema], default: [] },
+        colorImages: { type: [colorImagesSchema], default: [] },
         variants: {
             type: [variantSchema],
             validate: [
@@ -111,6 +127,26 @@ const productSchema = new mongoose.Schema(
 
 productSchema.virtual('totalStock').get(function () {
     return this.variants.reduce((sum, v) => sum + v.stock, 0);
+});
+
+// Every color must have its own photos, unless the product still has legacy shared photos
+productSchema.pre('validate', function () {
+    const hasFallback = this.images.length > 0;
+    const colors = [...new Set(this.variants.map((v) => String(v.color || '').trim().toLowerCase()))];
+
+    colors.forEach((key) => {
+        const gallery = this.colorImages.find((c) => c.color.trim().toLowerCase() === key);
+        if (!hasFallback && (!gallery || gallery.images.length === 0)) {
+            const name = this.variants.find((v) => String(v.color).trim().toLowerCase() === key).color;
+            this.invalidate('colorImages', `Please add at least one image for ${name}`);
+        }
+    });
+});
+
+// Main image for cards and lists: first color's first photo
+productSchema.virtual('coverImage').get(function () {
+    const gallery = this.colorImages.find((c) => c.images.length > 0);
+    return gallery ? gallery.images[0].url : this.images[0]?.url || '';
 });
 
 module.exports = mongoose.model('Product', productSchema);

@@ -1,3 +1,4 @@
+import { getColorImageUrl } from '../Utils/productImages';
 import { ADD_TO_CART, REMOVE_FROM_CART, CLEAR_CART, SAVE_SHIPPING_INFO } from '../constants/cartConstants';
 
 const saveCart = (getState) => {
@@ -32,7 +33,7 @@ export const addToCart = (product, size, color, quantity) => (dispatch, getState
             key,
             product: product._id,
             name: product.name,
-            image: product.images[0]?.url,
+            image: getColorImageUrl(product, color),
             price: product.price,
             size,
             color,

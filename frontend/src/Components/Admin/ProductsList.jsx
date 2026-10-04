@@ -84,7 +84,7 @@ export default function ProductsList() {
             sortable: false,
             filterable: false,
             renderCell: (params) => (
-                <Avatar variant="rounded" src={params.row.images?.[0]?.url} alt={params.row.name} />
+                <Avatar variant="rounded" src={params.row.coverImage} alt={params.row.name} />
             ),
         },
         { field: 'name', headerName: 'Name', flex: 1, minWidth: 180 },

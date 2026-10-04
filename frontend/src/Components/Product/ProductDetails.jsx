@@ -5,6 +5,7 @@ import {
     Button,
     Chip,
     CircularProgress,
+    Drawer,
     IconButton,
     Rating,
     ToggleButton,
@@ -12,12 +13,39 @@ import {
     Typography,
 } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
+import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
+import ChevronRightIcon from '@mui/icons-material/ChevronRight';
+import CloseIcon from '@mui/icons-material/Close';
 import RemoveIcon from '@mui/icons-material/Remove';
 import { getProductDetails, getRelatedProducts } from '../../actions/productActions';
 import { addToCart } from '../../actions/cartActions';
 import { notifyError, notifySuccess } from '../../Utils/helpers';
+import { getColorImages, getColors } from '../../Utils/productImages';
 import ProductCard from './ProductCard';
 import ListReviews from '../Review/ListReviews';
+
+const VISIBLE_COLORS = 6;
+
+// One color tile: a photo of that color, crossed out when it can't be bought
+function ColorOption({ product, name, selected, unavailable, onSelect, showName = false }) {
+    const classes = ['color-option', selected && 'selected', unavailable && 'cross-out', showName && 'with-name'];
+
+    return (
+        <button
+            type="button"
+            className={classes.filter(Boolean).join(' ')}
+            onClick={() => onSelect(name)}
+            aria-pressed={selected}
+            aria-label={unavailable ? `${name} (unavailable)` : name}
+            title={unavailable ? `${name} - unavailable` : name}
+        >
+            <span className="color-thumb">
+                <img src={getColorImages(product, name)[0]?.url} alt="" />
+            </span>
+            {showName && <span className="color-name">{name}</span>}
+        </button>
+    );
+}
 
 // Separate component so the selected image, size, color, and quantity reset whenever the product changes
 function ProductInfo({ product }) {
@@ -28,26 +56,47 @@ function ProductInfo({ product }) {
     const [size, setSize] = useState(firstAvailable.size);
     const [color, setColor] = useState(firstAvailable.color);
     const [quantity, setQuantity] = useState(1);
+    const [colorsOpen, setColorsOpen] = useState(false);
 
     const sizes = [...new Set(product.variants.map((v) => v.size))];
-    const colorOptions = product.variants.filter((v) => v.size === size);
+    const colorNames = getColors(product);
     const selected = product.variants.find((v) => v.size === size && v.color === color);
 
-    const sizeSoldOut = (s) => product.variants.filter((v) => v.size === s).every((v) => v.stock === 0);
+    // Each color has its own photos. Picking a color swaps the whole gallery.
+    const images = getColorImages(product, color);
+    const mainImage = images[activeImage] || images[0];
 
-    // Keep the color if the new size has it, otherwise pick one that is in stock
+    // Load the first photo of every color up front so switching colors feels instant
+    useEffect(() => {
+        product.variants.forEach((v) => {
+            const url = getColorImages(product, v.color)[0]?.url;
+            if (url) new Image().src = url;
+        });
+    }, [product]);
+
+    // Unavailable options stay clickable so shoppers can still look at them, but they are crossed out
+    // and "Add to cart" is disabled. A color is unavailable in the chosen size, a size in the chosen color.
+    const inStock = (s, c) => product.variants.some((v) => v.size === s && v.color === c && v.stock > 0);
+    const colorUnavailable = (c) => !inStock(size, c);
+    const sizeUnavailable = (s) => !inStock(s, color);
+
+    // First six colors in the row; the rest are in the side panel. The chosen color is always visible.
+    let visibleColors = colorNames.slice(0, VISIBLE_COLORS);
+    if (!visibleColors.includes(color)) visibleColors = [...visibleColors.slice(0, VISIBLE_COLORS - 1), color];
+    const hasMoreColors = colorNames.length > VISIBLE_COLORS;
+
+    const showPhoto = (index) => setActiveImage((index + images.length) % images.length);
+
     const handleSize = (newSize) => {
-        const options = product.variants.filter((v) => v.size === newSize);
         setSize(newSize);
         setQuantity(1);
-        if (!options.some((v) => v.color === color)) {
-            setColor((options.find((v) => v.stock > 0) || options[0]).color);
-        }
     };
 
     const handleColor = (newColor) => {
         setColor(newColor);
+        setActiveImage(0);
         setQuantity(1);
+        setColorsOpen(false);
     };
 
     const handleAddToCart = () => {
@@ -69,16 +118,40 @@ function ProductInfo({ product }) {
     }
 
     return (
+        <>
         <div className="product-detail">
             <div className="product-gallery">
-                <img src={product.images[activeImage]?.url} alt={product.name} className="product-gallery-main" />
-                {product.images.length > 1 && (
+                <div className="product-gallery-frame">
+                    <img src={mainImage?.url} alt={`${product.name} in ${color}`} className="product-gallery-main" />
+                    {images.length > 1 && (
+                        <>
+                            <IconButton
+                                className="gallery-arrow gallery-arrow-left"
+                                aria-label="Previous photo"
+                                onClick={() => showPhoto(activeImage - 1)}
+                            >
+                                <ChevronLeftIcon />
+                            </IconButton>
+                            <IconButton
+                                className="gallery-arrow gallery-arrow-right"
+                                aria-label="Next photo"
+                                onClick={() => showPhoto(activeImage + 1)}
+                            >
+                                <ChevronRightIcon />
+                            </IconButton>
+                            <span className="gallery-counter">
+                                {activeImage + 1} / {images.length}
+                            </span>
+                        </>
+                    )}
+                </div>
+                {images.length > 1 && (
                     <div className="product-thumbs">
-                        {product.images.map((img, index) => (
+                        {images.map((img, index) => (
                             <img
                                 key={img.public_id}
                                 src={img.url}
-                                alt={`${product.name} ${index + 1}`}
+                                alt={`${product.name} ${color} ${index + 1}`}
                                 className={index === activeImage ? 'product-thumb active' : 'product-thumb'}
                                 onClick={() => setActiveImage(index)}
                             />
@@ -117,7 +190,7 @@ function ProductInfo({ product }) {
                         onChange={(e, value) => value && handleSize(value)}
                     >
                         {sizes.map((s) => (
-                            <ToggleButton key={s} value={s} disabled={sizeSoldOut(s)}>
+                            <ToggleButton key={s} value={s} className={sizeUnavailable(s) ? 'cross-out' : undefined}>
                                 {s}
                             </ToggleButton>
                         ))}
@@ -125,20 +198,24 @@ function ProductInfo({ product }) {
                 </div>
 
                 <div className="option-group">
-                    <Typography variant="subtitle2">Color</Typography>
-                    <ToggleButtonGroup
-                        exclusive
-                        size="small"
-                        sx={{ flexWrap: 'wrap' }}
-                        value={color}
-                        onChange={(e, value) => value && handleColor(value)}
-                    >
-                        {colorOptions.map((v) => (
-                            <ToggleButton key={v.color} value={v.color} disabled={v.stock === 0}>
-                                {v.color}
-                            </ToggleButton>
+                    <Typography variant="subtitle2">Select color: {color}</Typography>
+                    <div className="color-options">
+                        {visibleColors.map((name) => (
+                            <ColorOption
+                                key={name}
+                                product={product}
+                                name={name}
+                                selected={name === color}
+                                unavailable={colorUnavailable(name)}
+                                onSelect={handleColor}
+                            />
                         ))}
-                    </ToggleButtonGroup>
+                    </div>
+                    {hasMoreColors && (
+                        <button type="button" className="more-colors" onClick={() => setColorsOpen(true)}>
+                            More colours <ChevronRightIcon fontSize="small" />
+                        </button>
+                    )}
                 </div>
 
                 <div>{stockLabel}</div>
@@ -179,6 +256,31 @@ function ProductInfo({ product }) {
                 </ul>
             </div>
         </div>
+
+        <Drawer anchor="right" open={colorsOpen} onClose={() => setColorsOpen(false)}>
+            <div className="color-drawer">
+                <div className="color-drawer-header">
+                    <Typography variant="subtitle2">SELECT COLOR</Typography>
+                    <IconButton aria-label="Close" onClick={() => setColorsOpen(false)}>
+                        <CloseIcon />
+                    </IconButton>
+                </div>
+                <div className="color-drawer-grid">
+                    {colorNames.map((name) => (
+                        <ColorOption
+                            key={name}
+                            product={product}
+                            name={name}
+                            selected={name === color}
+                            unavailable={colorUnavailable(name)}
+                            onSelect={handleColor}
+                            showName
+                        />
+                    ))}
+                </div>
+            </div>
+        </Drawer>
+        </>
     );
 }
 

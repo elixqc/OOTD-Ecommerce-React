@@ -3,6 +3,8 @@ const router = express.Router();
 
 const {
     newProduct,
+    uploadProductImage,
+    removeUploadedImage,
     getProducts,
     getSingleProduct,
     getRelatedProducts,
@@ -21,6 +23,9 @@ router.get('/product/:id', getSingleProduct);
 
 router.get('/admin/products', adminOnly, getAdminProducts);
 router.post('/admin/product/new', adminOnly, newProduct);
+// Must come before /admin/product/:id so "image" isn't read as an id
+router.post('/admin/product/image', adminOnly, uploadProductImage);
+router.delete('/admin/product/image', adminOnly, removeUploadedImage);
 router.delete('/admin/products', adminOnly, deleteProducts);
 router
     .route('/admin/product/:id')

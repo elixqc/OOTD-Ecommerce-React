@@ -5,6 +5,7 @@ const User = require('../models/user');
 const { buildReceiptPdf } = require('../utils/receipt');
 const { sendOrderStatusEmail } = require('../utils/email');
 const { shortOrderId } = require('../utils/orderFormat');
+const { getColorImageUrl } = require('../utils/productImages');
 
 const SHIPPING_PRICE = 0;
 const MAX_QUANTITY_PER_ITEM = 20;
@@ -101,7 +102,7 @@ exports.newOrder = async (req, res) => {
         builtItems.push({
             product: product._id,
             name: product.name,
-            image: product.images[0].url,
+            image: getColorImageUrl(product, line.color),
             size: line.size,
             color: line.color,
             price: product.price,

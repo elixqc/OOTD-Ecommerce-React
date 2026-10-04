@@ -135,3 +135,18 @@ export const getRelatedProducts = (id) => async (dispatch) => {
         dispatch({ type: RELATED_PRODUCTS_FAIL, payload: getErrorMessage(error) });
     }
 };
+
+// Uploads one image right away (used by the product form). Not stored in Redux.
+// onProgress receives 0-100.
+export const uploadProductImage = async (image, onProgress) => {
+    const { data } = await api.post(
+        '/admin/product/image',
+        { image },
+        { onUploadProgress: (e) => e.total && onProgress?.(Math.round((e.loaded / e.total) * 100)) }
+    );
+    return data.image;
+};
+
+// Removes an upload that was never saved to a product. The server ignores images that are in use.
+export const discardUploadedImage = (publicId) =>
+    api.delete('/admin/product/image', { data: { public_id: publicId } }).catch(() => {});

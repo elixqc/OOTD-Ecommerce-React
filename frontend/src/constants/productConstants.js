@@ -35,5 +35,6 @@ export const RELATED_PRODUCTS_FAIL = 'RELATED_PRODUCTS_FAIL';
 export const CATEGORIES = ['Tops', 'Bottoms', 'Dresses', 'Outerwear', 'Shoes', 'Accessories'];
 export const GENDERS = ['Men', 'Women', 'Unisex'];
 
-export const MAX_IMAGES = 5;
-export const MAX_FILE_SIZE = 2 * 1024 * 1024; // 2 MB per image
+export const MAX_IMAGES_PER_COLOR = 5; // must match backend/utils/constants.js
+export const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10 MB picked from the device (it is resized before upload)
+export const ACCEPTED_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/webp'];

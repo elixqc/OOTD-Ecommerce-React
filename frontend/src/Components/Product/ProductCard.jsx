@@ -9,7 +9,7 @@ export default function ProductCard({ product }) {
             <CardActionArea component={Link} to={`/product/${product._id}`}>
                 <CardMedia
                     component="img"
-                    image={product.images[0]?.url}
+                    image={product.coverImage}
                     alt={product.name}
                     className="product-card-image"
                 />

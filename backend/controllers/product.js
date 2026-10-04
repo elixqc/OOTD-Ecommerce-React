@@ -2,12 +2,11 @@ const cloudinary = require('../config/cloudinary');
 const Product = require('../models/product');
 const Review = require('../models/review');
 const User = require('../models/user');
-const { CATEGORIES } = require('../utils/constants');
+const { CATEGORIES, MAX_IMAGES_PER_COLOR, IMAGE_FOLDER } = require('../utils/constants');
 
-const MAX_IMAGES = 5;
-const MAX_IMAGE_LENGTH = 4000000;
+const MAX_IMAGE_LENGTH = 4000000; // base64 characters, roughly 3 MB of image
+const ALLOWED_TYPES = /^data:image\/(jpeg|png|webp);base64,/;
 const PRODUCT_FIELDS = ['name', 'description', 'price', 'category', 'brand', 'gender', 'material', 'variants'];
-
 
 // Only these fields can be set from the request, so a client can't send ratings, user, etc.
 const pickProductFields = (body) => {
@@ -18,22 +17,6 @@ const pickProductFields = (body) => {
     return data;
 };
 
-// Returns an error message, or null if the images are fine
-const checkImages = (list) => {
-    if (!Array.isArray(list)) return 'Images must be sent as a list';
-    if (list.length > MAX_IMAGES) return `You can upload up to ${MAX_IMAGES} images`;
-
-    const invalid = list.some(
-        (img) =>
-            typeof img !== 'string' ||
-            !(img.startsWith('data:image/') || img.startsWith('https://')) ||
-            img.length > MAX_IMAGE_LENGTH
-    );
-    if (invalid) return 'Each image must be an image file (max about 3 MB) or an https link';
-
-    return null;
-};
-
 const deleteImages = async (publicIds) => {
     await Promise.all(
         publicIds.map((id) =>
@@ -42,24 +25,84 @@ const deleteImages = async (publicIds) => {
     );
 };
 
-// Uploads all images; if one fails, removes the ones already uploaded
-const uploadImages = async (images) => {
-    const uploaded = [];
-    try {
-        for (const image of images) {
-            const result = await cloudinary.uploader.upload(image, {
-                folder: 'ootd/products',
-                width: 1000,
-                height: 1000,
-                crop: 'limit',
-            });
-            uploaded.push({ public_id: result.public_id, url: result.secure_url });
+// A public_id is only accepted if it lives in our products folder
+const isProductImage = (img) =>
+    img &&
+    typeof img.public_id === 'string' &&
+    img.public_id.startsWith(`${IMAGE_FOLDER}/`) &&
+    typeof img.url === 'string' &&
+    img.url.startsWith('https://');
+
+// Builds one gallery per color from what the admin sent.
+// Returns { colorImages } or { error }.
+const buildColorImages = (variants, sent) => {
+    if (!Array.isArray(variants) || variants.length === 0) return { error: 'Please add at least one size/color variant' };
+    if (!Array.isArray(sent)) return { error: 'Color images must be sent as a list' };
+
+    const colorImages = [];
+    const seen = new Set();
+
+    for (const variant of variants) {
+        const name = String(variant?.color || '').trim();
+        const key = name.toLowerCase();
+        if (!name || seen.has(key)) continue;
+        seen.add(key);
+
+        const entry = sent.find((c) => String(c?.color || '').trim().toLowerCase() === key);
+        const images = Array.isArray(entry?.images) ? entry.images : [];
+
+        if (images.length > MAX_IMAGES_PER_COLOR) {
+            return { error: `${name} can have up to ${MAX_IMAGES_PER_COLOR} images` };
         }
-    } catch (error) {
-        await deleteImages(uploaded.map((i) => i.public_id));
-        throw error;
+        if (!images.every(isProductImage)) return { error: `Invalid image for ${name}` };
+
+        colorImages.push({ color: name, images: images.map(({ public_id, url }) => ({ public_id, url })) });
     }
-    return uploaded;
+    return { colorImages };
+};
+
+const collectIds = (colorImages = []) => colorImages.flatMap((c) => c.images.map((i) => i?.public_id));
+
+// POST /api/v1/admin/product/image   body: { image: "data:image/...;base64,..." }
+// Uploads one image right away so the form can show progress. The product only
+// stores the returned { public_id, url } when it is saved.
+exports.uploadProductImage = async (req, res) => {
+    const { image } = req.body;
+
+    if (typeof image !== 'string' || !ALLOWED_TYPES.test(image)) {
+        return res.status(400).json({ success: false, message: 'Only JPG, PNG or WebP images are allowed' });
+    }
+    if (image.length > MAX_IMAGE_LENGTH) {
+        return res.status(400).json({ success: false, message: 'Image is too large (max about 3 MB)' });
+    }
+
+    const result = await cloudinary.uploader.upload(image, {
+        folder: IMAGE_FOLDER,
+        width: 1200,
+        height: 1200,
+        crop: 'limit',
+    });
+    return res.status(201).json({ success: true, image: { public_id: result.public_id, url: result.secure_url } });
+};
+
+// DELETE /api/v1/admin/product/image   body: { public_id }
+// Removes an upload the admin abandoned. Images that belong to a product are never deleted here.
+exports.removeUploadedImage = async (req, res) => {
+    const { public_id } = req.body;
+
+    if (typeof public_id !== 'string' || !public_id.startsWith(`${IMAGE_FOLDER}/`)) {
+        return res.status(400).json({ success: false, message: 'Invalid image' });
+    }
+
+    const inUse = await Product.exists({
+        $or: [{ 'colorImages.images.public_id': public_id }, { 'images.public_id': public_id }],
+    });
+    if (inUse) {
+        return res.status(200).json({ success: true, deleted: false });
+    }
+
+    await deleteImages([public_id]);
+    return res.status(200).json({ success: true, deleted: true });
 };
 
 // Removes the products' reviews and wishlist entries
@@ -70,29 +113,23 @@ const cleanupProducts = async (productIds) => {
 
 // POST /api/v1/admin/product/new
 exports.newProduct = async (req, res) => {
-    const newImages = req.body.newImages || [];
-
-    const imageError = checkImages(newImages);
-    if (imageError) {
-        return res.status(400).json({ success: false, message: imageError });
-    }
-    if (newImages.length === 0) {
-        return res.status(400).json({ success: false, message: 'Please add at least one product image' });
+    const { colorImages, error } = buildColorImages(req.body.variants, req.body.colorImages);
+    if (error) {
+        return res.status(400).json({ success: false, message: error });
     }
 
-    const images = await uploadImages(newImages);
+    const product = await Product.create({
+        ...pickProductFields(req.body),
+        colorImages,
+        user: req.user._id,
+    });
 
-    try {
-        const product = await Product.create({
-            ...pickProductFields(req.body),
-            images,
-            user: req.user._id,
-        });
-        return res.status(201).json({ success: true, product });
-    } catch (error) {
-        await deleteImages(images.map((i) => i.public_id));
-        throw error;
-    }
+    // Images that were uploaded but belong to a color that was dropped
+    const submitted = Array.isArray(req.body.colorImages) ? collectIds(req.body.colorImages.filter((c) => Array.isArray(c?.images))) : [];
+    const used = new Set(collectIds(product.colorImages));
+    await deleteImages(submitted.filter((id) => !used.has(id) && typeof id === 'string' && id.startsWith(`${IMAGE_FOLDER}/`)));
+
+    return res.status(201).json({ success: true, product });
 };
 
 // GET /api/v1/product/:id  (public)
@@ -117,39 +154,29 @@ exports.updateProduct = async (req, res) => {
         return res.status(404).json({ success: false, message: 'Product not found' });
     }
 
-    const newImages = req.body.newImages || [];
-    const keepImageIds = Array.isArray(req.body.keepImageIds) ? req.body.keepImageIds : [];
-
-    const imageError = checkImages(newImages);
-    if (imageError) {
-        return res.status(400).json({ success: false, message: imageError });
+    const variants = req.body.variants !== undefined ? req.body.variants : product.variants;
+    const { colorImages, error } = buildColorImages(variants, req.body.colorImages);
+    if (error) {
+        return res.status(400).json({ success: false, message: error });
     }
 
-    const keptImages = product.images
-        .filter((img) => keepImageIds.includes(img.public_id))
-        .map((img) => ({ public_id: img.public_id, url: img.url }));
-    const removedImages = product.images.filter((img) => !keepImageIds.includes(img.public_id));
+    const before = [...collectIds(product.colorImages), ...product.images.map((i) => i.public_id)];
+    const submitted = Array.isArray(req.body.colorImages) ? collectIds(req.body.colorImages.filter((c) => Array.isArray(c?.images))) : [];
 
-    const totalImages = keptImages.length + newImages.length;
-    if (totalImages === 0) {
-        return res.status(400).json({ success: false, message: 'A product needs at least one image' });
-    }
-    if (totalImages > MAX_IMAGES) {
-        return res.status(400).json({ success: false, message: `A product can have up to ${MAX_IMAGES} images` });
-    }
+    product.set({ ...pickProductFields(req.body), colorImages });
 
-    const uploaded = await uploadImages(newImages);
+    // Legacy shared photos are only kept while some color still has no photos of its own
+    const everyColorHasImages = colorImages.every((c) => c.images.length > 0);
+    if (everyColorHasImages) product.images = [];
 
-    product.set({ ...pickProductFields(req.body), images: [...keptImages, ...uploaded] });
+    await product.save();
 
-    try {
-        await product.save();
-    } catch (error) {
-        await deleteImages(uploaded.map((i) => i.public_id));
-        throw error;
-    }
-
-    await deleteImages(removedImages.map((i) => i.public_id));
+    // Delete what is no longer used: photos the admin removed, dropped colors, and old shared photos
+    const used = new Set([...collectIds(product.colorImages), ...product.images.map((i) => i.public_id)]);
+    const leftovers = [...new Set([...before, ...submitted])].filter(
+        (id) => !used.has(id) && typeof id === 'string' && id.startsWith(`${IMAGE_FOLDER}/`)
+    );
+    await deleteImages(leftovers);
 
     return res.status(200).json({ success: true, product });
 };
@@ -161,7 +188,7 @@ exports.deleteProduct = async (req, res) => {
         return res.status(404).json({ success: false, message: 'Product not found' });
     }
 
-    await deleteImages(product.images.map((i) => i.public_id));
+    await deleteImages([...product.images.map((i) => i.public_id), ...collectIds(product.colorImages)]);
     await cleanupProducts([product._id]);
 
     return res.status(200).json({ success: true, message: 'Product deleted' });
@@ -183,7 +210,7 @@ exports.deleteProducts = async (req, res) => {
     const productIds = products.map((p) => p._id);
     await Product.deleteMany({ _id: { $in: productIds } });
 
-    const publicIds = products.flatMap((p) => p.images.map((i) => i.public_id));
+    const publicIds = products.flatMap((p) => [...p.images.map((i) => i.public_id), ...collectIds(p.colorImages)]);
     await deleteImages(publicIds);
     await cleanupProducts(productIds);
 
