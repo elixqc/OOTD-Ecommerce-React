@@ -1,18 +1,32 @@
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { Button, IconButton, Typography } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import DeleteIcon from '@mui/icons-material/Delete';
 import RemoveIcon from '@mui/icons-material/Remove';
 import { removeFromCart, updateCartQuantity } from '../../actions/cartActions';
-import { peso } from '../../Utils/helpers';
+import { notifyInfo, peso } from '../../Utils/helpers';
 
 export default function Cart() {
     const dispatch = useDispatch();
+    const navigate = useNavigate();
     const { cartItems } = useSelector((state) => state.cart);
+    const { user, loading } = useSelector((state) => state.auth);
 
     const totalQuantity = cartItems.reduce((sum, item) => sum + item.quantity, 0);
     const total = cartItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
+
+    const handleCheckout = () => {
+        // While the saved login is still being restored, let the checkout route decide
+        if (user || loading) {
+            navigate('/shipping');
+            return;
+        }
+
+        // After logging in, the login page sends them straight to checkout
+        notifyInfo('Please log in to check out');
+        navigate('/login', { state: { from: { pathname: '/shipping' } } });
+    };
 
     if (cartItems.length === 0) {
         return (
@@ -99,7 +113,7 @@ export default function Cart() {
                         <span>Total</span>
                         <span>{peso(total)}</span>
                     </div>
-                    <Button variant="contained" component={Link} to="/shipping">
+                    <Button variant="contained" onClick={handleCheckout}>
                         Proceed to checkout
                     </Button>
                     <Button component={Link} to="/">

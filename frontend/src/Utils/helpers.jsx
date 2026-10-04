@@ -11,6 +11,7 @@ const Toast = Swal.mixin({
 
 export const notifySuccess = (title) => Toast.fire({ icon: 'success', title });
 export const notifyError = (title) => Toast.fire({ icon: 'error', title });
+export const notifyInfo = (title) => Toast.fire({ icon: 'info', title });
 
 // Returns true if the admin confirms
 export const confirmDelete = async (text) => {

@@ -21,4 +21,11 @@ export const getColors = (product) => {
         });
 };
 
+// The two photos a catalog card shows: the cover, and the next photo of the same color for hover
+export const getCardImages = (product) => {
+    const gallery = product.colorImages?.find((c) => c.images?.length);
+    const photos = gallery ? gallery.images : product.images || [];
+    return { cover: photos[0]?.url || product.coverImage || '', hover: photos[1]?.url || '' };
+};
+
 export { sameColor };
