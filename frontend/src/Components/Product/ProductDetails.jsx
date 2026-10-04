@@ -17,6 +17,7 @@ import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
 import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 import CloseIcon from '@mui/icons-material/Close';
 import RemoveIcon from '@mui/icons-material/Remove';
+import MetaData from '../Layout/MetaData';
 import { getProductDetails, getRelatedProducts } from '../../actions/productActions';
 import { addToCart } from '../../actions/cartActions';
 import { notifyError, notifySuccess } from '../../Utils/helpers';
@@ -320,6 +321,7 @@ export default function ProductDetails() {
 
     return (
         <>
+            <MetaData title={product.name} />
             <Button component={Link} to="/" className="back-link">
                 ← Back to shop
             </Button>

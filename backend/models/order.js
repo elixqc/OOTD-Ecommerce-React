@@ -1,5 +1,5 @@
 const mongoose = require('mongoose');
-const { ORDER_STATUSES } = require('../utils/constants');
+const { ORDER_STATUSES, PAYMENT_METHODS } = require('../utils/constants');
 
 const orderSchema = new mongoose.Schema(
     {
@@ -32,8 +32,12 @@ const orderSchema = new mongoose.Schema(
         ],
         paymentMethod: {
             type: String,
+            enum: PAYMENT_METHODS,
             default: 'Cash on Delivery',
         },
+        // Card payments are a demo (no real gateway), so they are marked paid when the order is placed
+        isPaid: { type: Boolean, default: false },
+        paidAt: { type: Date },
         itemsPrice: { type: Number, required: true, default: 0 },
         shippingPrice: { type: Number, required: true, default: 0 },
         totalPrice: { type: Number, required: true, default: 0 },

@@ -24,6 +24,10 @@ import {
     USER_DETAILS_REQUEST,
     USER_DETAILS_SUCCESS,
     USER_DETAILS_FAIL,
+    UPDATE_PASSWORD_REQUEST,
+    UPDATE_PASSWORD_SUCCESS,
+    UPDATE_PASSWORD_FAIL,
+    UPDATE_PASSWORD_RESET,
     UPDATE_USER_REQUEST,
     UPDATE_USER_SUCCESS,
     UPDATE_USER_FAIL,
@@ -149,6 +153,23 @@ export const adminUserReducer = (state = {}, action) => {
         case UPDATE_USER_FAIL:
             return { loading: false, error: action.payload };
         case UPDATE_USER_RESET:
+            return { ...state, isUpdated: false };
+        case CLEAR_ERRORS:
+            return { ...state, error: null };
+        default:
+            return state;
+    }
+};
+
+export const updatePasswordReducer = (state = {}, action) => {
+    switch (action.type) {
+        case UPDATE_PASSWORD_REQUEST:
+            return { loading: true, error: null };
+        case UPDATE_PASSWORD_SUCCESS:
+            return { loading: false, isUpdated: true };
+        case UPDATE_PASSWORD_FAIL:
+            return { loading: false, error: action.payload };
+        case UPDATE_PASSWORD_RESET:
             return { ...state, isUpdated: false };
         case CLEAR_ERRORS:
             return { ...state, error: null };

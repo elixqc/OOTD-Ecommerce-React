@@ -9,7 +9,12 @@ import {
 import { auth, googleProvider } from '../firebase';
 import api from '../api';
 import { getErrorMessage } from '../Utils/helpers';
-import { sendPasswordResetEmail } from 'firebase/auth';
+import {
+    EmailAuthProvider,
+    reauthenticateWithCredential,
+    sendPasswordResetEmail,
+    updatePassword as firebaseUpdatePassword,
+} from 'firebase/auth';
 import {
     LOGIN_REQUEST,
     LOGIN_SUCCESS,
@@ -34,6 +39,9 @@ import {
     USER_DETAILS_REQUEST,
     USER_DETAILS_SUCCESS,
     USER_DETAILS_FAIL,
+    UPDATE_PASSWORD_REQUEST,
+    UPDATE_PASSWORD_SUCCESS,
+    UPDATE_PASSWORD_FAIL,
     UPDATE_USER_REQUEST,
     UPDATE_USER_SUCCESS,
     UPDATE_USER_FAIL,
@@ -185,5 +193,28 @@ export const updateUser = (id, isActive) => async (dispatch) => {
         dispatch({ type: UPDATE_USER_SUCCESS, payload: data.user });
     } catch (error) {
         dispatch({ type: UPDATE_USER_FAIL, payload: getErrorMessage(error) });
+    }
+};
+
+
+// Firebase wants a recent login before a password change, so the old password is checked first
+export const updatePassword = (oldPassword, newPassword) => async (dispatch) => {
+    try {
+        dispatch({ type: UPDATE_PASSWORD_REQUEST });
+        const current = auth.currentUser;
+        const credential = EmailAuthProvider.credential(current.email, oldPassword);
+        await reauthenticateWithCredential(current, credential);
+        await firebaseUpdatePassword(current, newPassword);
+        dispatch({ type: UPDATE_PASSWORD_SUCCESS });
+    } catch (error) {
+        let message = getErrorMessage(error);
+        if (['auth/wrong-password', 'auth/invalid-credential'].includes(error.code)) {
+            message = 'Your old password is incorrect';
+        } else if (error.code === 'auth/weak-password') {
+            message = 'The new password is too weak';
+        } else if (error.code === 'auth/too-many-requests') {
+            message = 'Too many attempts. Try again later';
+        }
+        dispatch({ type: UPDATE_PASSWORD_FAIL, payload: message });
     }
 };

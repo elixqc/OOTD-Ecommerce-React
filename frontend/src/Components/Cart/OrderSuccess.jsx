@@ -12,14 +12,16 @@ export default function OrderSuccess() {
 
     return (
         <>
-            <CheckoutSteps activeStep={3} />
+            <CheckoutSteps activeStep={4} />
             <div className="catalog-message">
                 <Typography variant="h4" component="h1">
                     Order placed!
                 </Typography>
                 <Typography>
-                    Thank you. Your order {shortOrderId(order._id)} totals {peso(order.totalPrice)}. Please prepare the
-                    exact amount, since payment is Cash on Delivery.
+                    Thank you. Your order {shortOrderId(order._id)} totals {peso(order.totalPrice)}.{' '}
+                    {order.isPaid
+                        ? 'Your card payment was received.'
+                        : 'Please prepare the exact amount, since payment is Cash on Delivery.'}
                 </Typography>
                 <Typography variant="body2" color="text.secondary">
                     We'll email you a receipt, and another email whenever your order status changes.

@@ -1,20 +1,15 @@
-import { useEffect, useRef } from 'react';
+import { useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { Button, Typography } from '@mui/material';
 import CheckoutSteps from './CheckoutSteps';
-import { clearCart } from '../../actions/cartActions';
-import { createOrder } from '../../actions/orderActions';
-import { clearErrors } from '../../actions/userActions';
 import { NEW_ORDER_RESET } from '../../constants/orderConstants';
-import { notifyError, notifySuccess, peso } from '../../Utils/helpers';
+import { peso } from '../../Utils/helpers';
 
 export default function ConfirmOrder() {
     const dispatch = useDispatch();
     const navigate = useNavigate();
     const { cartItems, shippingInfo } = useSelector((state) => state.cart);
-    const { loading, error } = useSelector((state) => state.newOrder);
-    const orderPlaced = useRef(false); // stops the "empty cart" redirect once the order goes through
 
     const itemsPrice = cartItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
     const shippingPrice = 0;
@@ -26,33 +21,9 @@ export default function ConfirmOrder() {
     }, [dispatch]);
 
     useEffect(() => {
-        if (orderPlaced.current) return;
         if (cartItems.length === 0) navigate('/cart', { replace: true });
         else if (!shippingInfo) navigate('/shipping', { replace: true });
     }, [cartItems.length, shippingInfo, navigate]);
-
-    useEffect(() => {
-        if (error) {
-            notifyError(error);
-            dispatch(clearErrors());
-        }
-    }, [error, dispatch]);
-
-    const handlePlaceOrder = async () => {
-        // The server reads names and prices from the database; it only needs these
-        const order = await dispatch(
-            createOrder({
-                orderItems: cartItems.map(({ product, size, color, quantity }) => ({ product, size, color, quantity })),
-                shippingInfo,
-            })
-        );
-        if (!order) return;
-
-        orderPlaced.current = true;
-        notifySuccess('Order placed successfully!');
-        dispatch(clearCart());
-        navigate('/order/success', { replace: true });
-    };
 
     if (!shippingInfo || cartItems.length === 0) return null;
 
@@ -111,11 +82,8 @@ export default function ConfirmOrder() {
                         <span>Total</span>
                         <span>{peso(totalPrice)}</span>
                     </div>
-                    <Typography variant="body2" color="text.secondary">
-                        Payment: Cash on Delivery
-                    </Typography>
-                    <Button variant="contained" onClick={handlePlaceOrder} disabled={loading}>
-                        {loading ? 'Placing order...' : 'Place order'}
+                    <Button variant="contained" component={Link} to="/payment">
+                        Continue to payment
                     </Button>
                     <Button component={Link} to="/cart">
                         Back to cart

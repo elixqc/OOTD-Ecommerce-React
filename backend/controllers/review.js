@@ -29,6 +29,13 @@ const readReviewInput = (body) => {
 // For lists shown to other people: bad words become ****
 const maskedComment = (review) => ({ ...review, comment: maskBadWords(review.comment) });
 
+// For the admin list: the masked comment as usual, plus the original text and a flag
+// saying whether anything was masked. Only used on the admin-only route.
+const withOriginal = (review) => {
+    const masked = maskBadWords(review.comment);
+    return { ...review, comment: masked, originalComment: review.comment, flagged: masked !== review.comment };
+};
+
 // Recalculates the product's average rating and review count from its reviews
 const refreshProductRating = async (productId) => {
     const [stats] = await Review.aggregate([
@@ -143,7 +150,7 @@ exports.getAdminReviews = async (req, res) => {
         .sort({ createdAt: -1 })
         .lean();
 
-    return res.status(200).json({ success: true, count: reviews.length, reviews: reviews.map(maskedComment) });
+    return res.status(200).json({ success: true, count: reviews.length, reviews: reviews.map(withOriginal) });
 };
 
 // GET /api/v1/reviews/me

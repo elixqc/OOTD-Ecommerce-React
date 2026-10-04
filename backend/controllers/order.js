@@ -6,6 +6,7 @@ const { buildReceiptPdf } = require('../utils/receipt');
 const { sendOrderStatusEmail } = require('../utils/email');
 const { shortOrderId } = require('../utils/orderFormat');
 const { getColorImageUrl } = require('../utils/productImages');
+const { PAYMENT_METHODS } = require('../utils/constants');
 
 const SHIPPING_PRICE = 0;
 const MAX_QUANTITY_PER_ITEM = 20;
@@ -74,6 +75,11 @@ exports.newOrder = async (req, res) => {
     }
     const requested = [...lines.values()];
 
+    // Cash on Delivery unless the customer chose a listed method
+    const paymentMethod = req.body.paymentMethod ?? 'Cash on Delivery';
+    if (!PAYMENT_METHODS.includes(paymentMethod)) return fail(res, 400, 'Choose a valid payment method');
+    const paidNow = paymentMethod !== 'Cash on Delivery';
+
     if (requested.some((l) => l.quantity > MAX_QUANTITY_PER_ITEM)) {
         return fail(res, 400, `You can order up to ${MAX_QUANTITY_PER_ITEM} of the same item`);
     }
@@ -132,7 +138,9 @@ exports.newOrder = async (req, res) => {
             user: req.user._id,
             shippingInfo,
             orderItems: builtItems,
-            paymentMethod: 'Cash on Delivery',
+            paymentMethod,
+            isPaid: paidNow,
+            paidAt: paidNow ? Date.now() : undefined,
             itemsPrice,
             shippingPrice: SHIPPING_PRICE,
             totalPrice: itemsPrice + SHIPPING_PRICE,
@@ -245,4 +253,63 @@ exports.downloadReceipt = async (req, res) => {
         'Content-Disposition': `attachment; filename="OOTD-receipt-${shortOrderId(order._id).slice(1)}.pdf"`,
     });
     return res.send(pdf);
+};
+
+
+// GET /api/v1/admin/dashboard
+// Everything the admin dashboard needs in one request. Cancelled orders don't count as sales.
+exports.dashboardStats = async (req, res) => {
+    const notCancelled = { orderStatus: { $ne: 'Cancelled' } };
+    const year = new Date().getFullYear();
+
+    const [totals, salesPerMonth, productSales, customerSales, totalProducts, totalUsers] = await Promise.all([
+        Order.aggregate([
+            { $group: { _id: null, totalOrders: { $sum: 1 } } },
+        ]),
+        Order.aggregate([
+            { $match: { ...notCancelled, createdAt: { $gte: new Date(year, 0, 1), $lt: new Date(year + 1, 0, 1) } } },
+            { $group: { _id: { $month: '$createdAt' }, total: { $sum: '$totalPrice' }, orders: { $sum: 1 } } },
+        ]),
+        Order.aggregate([
+            { $match: notCancelled },
+            { $unwind: '$orderItems' },
+            {
+                $group: {
+                    _id: '$orderItems.name',
+                    unitsSold: { $sum: '$orderItems.quantity' },
+                    total: { $sum: { $multiply: ['$orderItems.price', '$orderItems.quantity'] } },
+                },
+            },
+            { $sort: { total: -1 } },
+            { $limit: 10 },
+        ]),
+        Order.aggregate([
+            { $match: notCancelled },
+            { $group: { _id: '$user', total: { $sum: '$totalPrice' }, orders: { $sum: 1 } } },
+            { $sort: { total: -1 } },
+            { $limit: 10 },
+            { $lookup: { from: 'users', localField: '_id', foreignField: '_id', as: 'user' } },
+            { $project: { total: 1, orders: 1, name: { $ifNull: [{ $arrayElemAt: ['$user.name', 0] }, 'Deleted user'] } } },
+        ]),
+        Product.countDocuments(),
+        User.countDocuments(),
+    ]);
+
+    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    const monthly = months.map((month, i) => {
+        const found = salesPerMonth.find((m) => m._id === i + 1);
+        return { month, total: found ? found.total : 0, orders: found ? found.orders : 0 };
+    });
+
+    return res.status(200).json({
+        success: true,
+        year,
+        totalOrders: totals[0] ? totals[0].totalOrders : 0,
+        totalSales: monthly.reduce((sum, m) => sum + m.total, 0),
+        totalProducts,
+        totalUsers,
+        salesPerMonth: monthly,
+        productSales: productSales.map((p) => ({ name: p._id, unitsSold: p.unitsSold, total: p.total })),
+        customerSales: customerSales.map((c) => ({ name: c.name, orders: c.orders, total: c.total })),
+    });
 };

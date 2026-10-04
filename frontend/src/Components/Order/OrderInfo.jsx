@@ -67,7 +67,10 @@ export default function OrderInfo({ order, itemAction }) {
                 )}
                 <div className="cart-summary-row">
                     <span>Payment</span>
-                    <span>{order.paymentMethod}</span>
+                    <span>
+                        {order.paymentMethod}
+                        {order.isPaid ? ' (Paid)' : ''}
+                    </span>
                 </div>
                 <div className="cart-summary-row">
                     <span>Items</span>

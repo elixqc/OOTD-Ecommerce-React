@@ -39,6 +39,9 @@ export default function Profile() {
                 <Button variant="contained" component={Link} to="/me/update">
                     Edit profile
                 </Button>
+                <Button component={Link} to="/password/update">
+                    Change password
+                </Button>
                 <Button component={Link} to="/orders/me">
                     My orders
                 </Button>

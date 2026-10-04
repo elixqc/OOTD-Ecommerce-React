@@ -5,12 +5,15 @@ import { listenToAuthChanges } from './actions/userActions';
 import CustomerLayout from './Components/Layout/CustomerLayout';
 import AdminLayout from './Components/Admin/AdminLayout';
 import ProtectedRoute from './Components/Route/ProtectedRoute';
+import MetaData from './Components/Layout/MetaData';
+import Payment from './Components/Cart/Payment';
 import Home from './Components/Home';
 import Login from './Components/User/Login';
 import Register from './Components/User/Register';
 import ForgotPassword from './Components/User/ForgotPassword';
 import Profile from './Components/User/Profile';
 import UpdateProfile from './Components/User/UpdateProfile';
+import UpdatePassword from './Components/User/UpdatePassword';
 import ProductDetails from './Components/Product/ProductDetails';
 import Cart from './Components/Cart/Cart';
 import Shipping from './Components/Cart/Shipping';
@@ -40,22 +43,24 @@ function App() {
     return (
         <Routes>
             <Route element={<CustomerLayout />}>
-                <Route path="/" element={<Home />} />
+                <Route path="/" element={<><MetaData title="Shop" /><Home /></>} />
                 <Route path="/product/:id" element={<ProductDetails />} />
-                <Route path="/cart" element={<Cart />} />
-                <Route path="/login" element={<Login />} />
-                <Route path="/register" element={<Register />} />
-                <Route path="/password/forgot" element={<ForgotPassword />} />
+                <Route path="/cart" element={<><MetaData title="Cart" /><Cart /></>} />
+                <Route path="/login" element={<><MetaData title="Login" /><Login /></>} />
+                <Route path="/register" element={<><MetaData title="Register" /><Register /></>} />
+                <Route path="/password/forgot" element={<><MetaData title="Forgot password" /><ForgotPassword /></>} />
 
                 {/* Logged-in customers only */}
                 <Route element={<ProtectedRoute />}>
-                    <Route path="/me" element={<Profile />} />
-                    <Route path="/me/update" element={<UpdateProfile />} />
-                    <Route path="/shipping" element={<Shipping />} />
-                    <Route path="/confirm" element={<ConfirmOrder />} />
-                    <Route path="/order/success" element={<OrderSuccess />} />
-                    <Route path="/orders/me" element={<ListOrders />} />
-                    <Route path="/order/:id" element={<OrderDetails />} />
+                    <Route path="/me" element={<><MetaData title="My profile" /><Profile /></>} />
+                    <Route path="/me/update" element={<><MetaData title="Update profile" /><UpdateProfile /></>} />
+                    <Route path="/password/update" element={<><MetaData title="Change password" /><UpdatePassword /></>} />
+                    <Route path="/shipping" element={<><MetaData title="Shipping" /><Shipping /></>} />
+                    <Route path="/payment" element={<><MetaData title="Payment" /><Payment /></>} />
+                    <Route path="/confirm" element={<><MetaData title="Confirm order" /><ConfirmOrder /></>} />
+                    <Route path="/order/success" element={<><MetaData title="Order placed" /><OrderSuccess /></>} />
+                    <Route path="/orders/me" element={<><MetaData title="My orders" /><ListOrders /></>} />
+                    <Route path="/order/:id" element={<><MetaData title="Order details" /><OrderDetails /></>} />
                 </Route>
 
                 <Route path="*" element={<h2>Page not found</h2>} />
@@ -63,15 +68,15 @@ function App() {
 
             <Route element={<ProtectedRoute adminOnly />}>
                 <Route element={<AdminLayout />}>
-                    <Route path="/admin" element={<Dashboard />} />
-                    <Route path="/admin/products" element={<ProductsList />} />
-                    <Route path="/admin/product/new" element={<NewProduct />} />
-                    <Route path="/admin/product/:id" element={<UpdateProduct />} />
-                    <Route path="/admin/orders" element={<OrdersList />} />
-                    <Route path="/admin/order/:id" element={<ProcessOrder />} />
-                    <Route path="/admin/users" element={<UsersList />} />
-                    <Route path="/admin/user/:id" element={<UpdateUser />} />
-                    <Route path="/admin/reviews" element={<ReviewsList />} />
+                    <Route path="/admin" element={<><MetaData title="Admin - Dashboard" /><Dashboard /></>} />
+                    <Route path="/admin/products" element={<><MetaData title="Admin - Products" /><ProductsList /></>} />
+                    <Route path="/admin/product/new" element={<><MetaData title="Admin - New product" /><NewProduct /></>} />
+                    <Route path="/admin/product/:id" element={<><MetaData title="Admin - Update product" /><UpdateProduct /></>} />
+                    <Route path="/admin/orders" element={<><MetaData title="Admin - Orders" /><OrdersList /></>} />
+                    <Route path="/admin/order/:id" element={<><MetaData title="Admin - Process order" /><ProcessOrder /></>} />
+                    <Route path="/admin/users" element={<><MetaData title="Admin - Users" /><UsersList /></>} />
+                    <Route path="/admin/user/:id" element={<><MetaData title="Admin - User details" /><UpdateUser /></>} />
+                    <Route path="/admin/reviews" element={<><MetaData title="Admin - Reviews" /><ReviewsList /></>} />
                 </Route>
             </Route>
         </Routes>

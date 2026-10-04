@@ -34,9 +34,17 @@ export default function AdminLayout() {
                 </div>
             </aside>
 
-            <main className="admin-main">
-                <Outlet />
-            </main>
+            <div className="admin-content">
+                <main className="admin-main">
+                    <Outlet />
+                </main>
+                <footer className="admin-footer">
+                    <span>OOTD Admin · © {new Date().getFullYear()}</span>
+                    <span>
+                        Signed in as {user?.name} · <Link to="/">Back to store</Link>
+                    </span>
+                </footer>
+            </div>
         </div>
     );
 }
