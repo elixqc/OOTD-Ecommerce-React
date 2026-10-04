@@ -8,6 +8,9 @@ import ProtectedRoute from './Components/Route/ProtectedRoute';
 import Home from './Components/Home';
 import Login from './Components/User/Login';
 import Register from './Components/User/Register';
+import ForgotPassword from './Components/User/ForgotPassword';
+import Profile from './Components/User/Profile';
+import UpdateProfile from './Components/User/UpdateProfile';
 import ProductDetails from './Components/Product/ProductDetails';
 import Cart from './Components/Cart/Cart';
 import Shipping from './Components/Cart/Shipping';
@@ -40,9 +43,12 @@ function App() {
                 <Route path="/cart" element={<Cart />} />
                 <Route path="/login" element={<Login />} />
                 <Route path="/register" element={<Register />} />
+                <Route path="/password/forgot" element={<ForgotPassword />} />
 
                 {/* Logged-in customers only */}
                 <Route element={<ProtectedRoute />}>
+                    <Route path="/me" element={<Profile />} />
+                    <Route path="/me/update" element={<UpdateProfile />} />
                     <Route path="/shipping" element={<Shipping />} />
                     <Route path="/confirm" element={<ConfirmOrder />} />
                     <Route path="/order/success" element={<OrderSuccess />} />

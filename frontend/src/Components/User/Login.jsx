@@ -88,6 +88,8 @@ export default function Login() {
                 </form>
 
                 <Typography variant="body2" className="auth-footer">
+                    <Link to="/password/forgot">Forgot your password?</Link>
+                    <br />
                     No account yet? <Link to="/register">Register</Link>
                 </Typography>
             </Card>

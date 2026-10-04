@@ -25,13 +25,14 @@ const userSchema = new mongoose.Schema(
             type: String,
             trim: true,
             maxLength: [20, 'Phone number is too long'],
+            match: [/^[0-9+\-\s()]{7,15}$/, 'Enter a valid phone number'],
             default: '',
         },
         shippingAddress: {
-            address: { type: String, default: '' },
-            city: { type: String, default: '' },
-            postalCode: { type: String, default: '' },
-            country: { type: String, default: '' },
+            address: { type: String, trim: true, maxLength: [200, 'Address is too long'], default: '' },
+            city: { type: String, trim: true, maxLength: [60, 'City is too long'], default: '' },
+            postalCode: { type: String, trim: true, maxLength: [10, 'Postal code is too long'], default: '' },
+            country: { type: String, trim: true, maxLength: [60, 'Country is too long'], default: '' },
         },
         avatar: {
             public_id: { type: String, default: '' },

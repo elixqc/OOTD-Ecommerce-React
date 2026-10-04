@@ -47,7 +47,9 @@ export default function Header() {
 
                 {user ? (
                     <>
-                        <span className="navbar-user">{user.name}</span>
+                        <Button color="inherit" component={Link} to="/me">
+                            {user.name}
+                        </Button>
                         <Button color="inherit" onClick={handleLogout}>
                             Logout
                         </Button>

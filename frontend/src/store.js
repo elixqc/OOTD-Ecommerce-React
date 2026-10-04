@@ -1,6 +1,7 @@
 import { combineReducers, applyMiddleware, legacy_createStore as createStore } from 'redux';
 import { thunk } from 'redux-thunk';
-import { authReducer } from './reducers/userReducers';
+import { authReducer, userReducer } from './reducers/userReducers';
+import { forgotPasswordReducer } from './reducers/userReducers';
 import {
     adminProductsReducer,
     productDetailsReducer,
@@ -21,6 +22,8 @@ import {
 
 const reducer = combineReducers({
     auth: authReducer,
+    forgotPassword: forgotPasswordReducer,
+    user: userReducer,
     adminProducts: adminProductsReducer,
     productDetails: productDetailsReducer,
     newProduct: newProductReducer,

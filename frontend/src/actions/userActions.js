@@ -9,6 +9,7 @@ import {
 import { auth, googleProvider } from '../firebase';
 import api from '../api';
 import { getErrorMessage } from '../Utils/helpers';
+import { sendPasswordResetEmail } from 'firebase/auth';
 import {
     LOGIN_REQUEST,
     LOGIN_SUCCESS,
@@ -20,7 +21,13 @@ import {
     LOAD_USER_FAIL,
     LOGOUT_SUCCESS,
     LOGOUT_FAIL,
+    UPDATE_PROFILE_REQUEST,
+    UPDATE_PROFILE_SUCCESS,
+    UPDATE_PROFILE_FAIL,
     CLEAR_ERRORS,
+    FORGOT_PASSWORD_REQUEST,
+    FORGOT_PASSWORD_SUCCESS,
+    FORGOT_PASSWORD_FAIL,
 } from '../constants/userConstants';
 
 // True while a login/register is running, so the auth listener doesn't load the user twice
@@ -105,6 +112,38 @@ export const logout = () => async (dispatch) => {
     }
 };
 
+// Returns true when the profile was saved
+export const updateMyProfile = (userData) => async (dispatch) => {
+    try {
+        dispatch({ type: UPDATE_PROFILE_REQUEST });
+        const { data } = await api.put('/me/update', userData);
+        dispatch({ type: UPDATE_PROFILE_SUCCESS, payload: data.user });
+        return true;
+    } catch (error) {
+        dispatch({ type: UPDATE_PROFILE_FAIL, payload: getErrorMessage(error) });
+        return false;
+    }
+};
+
 export const clearErrors = () => (dispatch) => {
     dispatch({ type: CLEAR_ERRORS });
+};
+
+const RESET_SENT_MESSAGE = 'If an account exists for that email, we sent a link to reset your password.';
+
+// Firebase sends the email. An unknown email gets the same message,
+// so this form can't be used to find out who has an account.
+export const forgotPassword = (email) => async (dispatch) => {
+    try {
+        dispatch({ type: FORGOT_PASSWORD_REQUEST });
+        await sendPasswordResetEmail(auth, email, { url: `${window.location.origin}/login` });
+        dispatch({ type: FORGOT_PASSWORD_SUCCESS, payload: RESET_SENT_MESSAGE });
+    } catch (error) {
+        if (error.code === 'auth/user-not-found') {
+            dispatch({ type: FORGOT_PASSWORD_SUCCESS, payload: RESET_SENT_MESSAGE });
+            return;
+        }
+        const message = error.code === 'auth/invalid-email' ? 'Enter a valid email' : getErrorMessage(error);
+        dispatch({ type: FORGOT_PASSWORD_FAIL, payload: message });
+    }
 };

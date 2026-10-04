@@ -9,7 +9,15 @@ import {
     LOAD_USER_FAIL,
     LOGOUT_SUCCESS,
     LOGOUT_FAIL,
+    UPDATE_PROFILE_REQUEST,
+    UPDATE_PROFILE_SUCCESS,
+    UPDATE_PROFILE_FAIL,
+    UPDATE_PROFILE_RESET,
     CLEAR_ERRORS,
+    FORGOT_PASSWORD_REQUEST,
+    FORGOT_PASSWORD_SUCCESS,
+    FORGOT_PASSWORD_FAIL,
+    FORGOT_PASSWORD_RESET,
 } from '../constants/userConstants';
 
 // loading starts as true because the session is restored when the app opens
@@ -42,9 +50,48 @@ export const authReducer = (state = initialState, action) => {
         case LOGOUT_FAIL:
             return { ...state, error: action.payload };
 
+        // The saved profile comes back from the server, so the header and shipping form use it
+        case UPDATE_PROFILE_SUCCESS:
+            return { ...state, user: action.payload };
+
         case CLEAR_ERRORS:
             return { ...state, error: null };
 
+        default:
+            return state;
+    }
+};
+
+// Profile update status
+export const userReducer = (state = {}, action) => {
+    switch (action.type) {
+        case UPDATE_PROFILE_REQUEST:
+            return { ...state, loading: true, error: null };
+        case UPDATE_PROFILE_SUCCESS:
+            return { loading: false, isUpdated: true, error: null };
+        case UPDATE_PROFILE_FAIL:
+            return { ...state, loading: false, error: action.payload };
+        case UPDATE_PROFILE_RESET:
+            return { ...state, isUpdated: false };
+        case CLEAR_ERRORS:
+            return { ...state, error: null };
+        default:
+            return state;
+    }
+};
+
+export const forgotPasswordReducer = (state = {}, action) => {
+    switch (action.type) {
+        case FORGOT_PASSWORD_REQUEST:
+            return { loading: true, error: null, message: null };
+        case FORGOT_PASSWORD_SUCCESS:
+            return { loading: false, message: action.payload };
+        case FORGOT_PASSWORD_FAIL:
+            return { loading: false, error: action.payload };
+        case FORGOT_PASSWORD_RESET:
+            return {};
+        case CLEAR_ERRORS:
+            return { ...state, error: null };
         default:
             return state;
     }

@@ -550,3 +550,38 @@ body {
     white-space: pre-wrap;
     overflow-wrap: anywhere;
 }
+
+.profile-card {
+    max-width: 640px;
+    margin: 0 auto;
+    padding: 32px;
+}
+
+.profile-header {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    margin-bottom: 24px;
+}
+
+.profile-details {
+    display: grid;
+    grid-template-columns: 140px 1fr;
+    gap: 10px 16px;
+    margin: 0 0 24px;
+}
+
+.profile-details dt {
+    color: #666;
+}
+
+.profile-details dd {
+    margin: 0;
+    overflow-wrap: anywhere;
+}
+
+.avatar-upload {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
