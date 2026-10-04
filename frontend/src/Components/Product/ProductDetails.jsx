@@ -24,6 +24,7 @@ import { notifyError, notifySuccess } from '../../Utils/helpers';
 import { getColorImages, getColors } from '../../Utils/productImages';
 import ProductCard from './ProductCard';
 import ListReviews from '../Review/ListReviews';
+import { Accordion, AccordionDetails, AccordionSummary } from '@mui/material';
 
 const VISIBLE_COLORS = 6;
 
@@ -47,6 +48,28 @@ function ColorOption({ product, name, selected, unavailable, onSelect, showName 
         </button>
     );
 }
+
+// A row that opens and closes. Starts closed.
+function InfoSection({ title, children }) {
+    const [open, setOpen] = useState(false);
+
+    return (
+        <Accordion
+            expanded={open}
+            onChange={(e, isOpen) => setOpen(isOpen)}
+            disableGutters
+            elevation={0}
+            square
+            className="info-section"
+        >
+            <AccordionSummary expandIcon={open ? <RemoveIcon fontSize="small" /> : <AddIcon fontSize="small" />}>
+                <Typography className="info-section-title">{title}</Typography>
+            </AccordionSummary>
+            <AccordionDetails>{children}</AccordionDetails>
+        </Accordion>
+    );
+}
+
 
 // Separate component so the selected image, size, color, and quantity reset whenever the product changes
 function ProductInfo({ product }) {
@@ -177,9 +200,6 @@ function ProductInfo({ product }) {
                 </div>
 
                 <Typography variant="h5">₱{product.price.toLocaleString()}</Typography>
-                <Typography variant="body1" className="product-description">
-                    {product.description}
-                </Typography>
 
                 <div className="option-group">
                     <Typography variant="subtitle2">Size</Typography>
@@ -244,17 +264,39 @@ function ProductInfo({ product }) {
                     </div>
                 </div>
 
-                <div>
-                    <Button variant="contained" size="large" onClick={handleAddToCart} disabled={outOfStock}>
-                        Add to cart
-                    </Button>
-                </div>
+                <Button
+                    variant="contained"
+                    size="large"
+                    fullWidth
+                    className="add-to-cart"
+                    onClick={handleAddToCart}
+                    disabled={outOfStock}
+                >
+                    {outOfStock ? 'Out of stock' : 'Add to cart'}
+                </Button>
 
-                <ul className="product-meta">
-                    <li>Category: {product.category}</li>
-                    <li>Gender: {product.gender}</li>
-                    {product.material && <li>Material: {product.material}</li>}
-                </ul>
+                <div className="info-sections">
+                    <InfoSection title="Product description">
+                        <p className="product-description">{product.description}</p>
+                    </InfoSection>
+
+                    <InfoSection title="Product details">
+                        <ul className="product-meta">
+                            <li>Category: {product.category}</li>
+                            <li>Gender: {product.gender}</li>
+                            {product.material && <li>Material: {product.material}</li>}
+                        </ul>
+                    </InfoSection>
+
+                    <InfoSection title="Delivery & returns">
+                        <ul className="product-meta">
+                            <li>Standard delivery is free on every order.</li>
+                            <li>Pay with Cash on Delivery or by card at checkout.</li>
+                            <li>We email you a receipt, and again each time your order status changes.</li>
+                            <li>Need to return or exchange something? Message us with your order number and we'll sort it out.</li>
+                        </ul>
+                    </InfoSection>
+                </div>
             </div>
         </div>
 

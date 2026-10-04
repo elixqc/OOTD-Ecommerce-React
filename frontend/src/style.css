@@ -1530,3 +1530,55 @@ body {
         position: static;
     }
 }
+
+/* Product page: collapsible sections and a full-width add-to-cart button */
+.add-to-cart {
+    margin: 4px 0 8px;
+    padding: 16px;
+    border-radius: 0;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    font-weight: 600;
+}
+
+.info-sections {
+    margin-top: 8px;
+    border-top: 1px solid #cfcfcf;
+}
+
+.info-section.MuiAccordion-root {
+    background: transparent;
+    border-bottom: 1px solid #cfcfcf;
+}
+
+.info-section.MuiAccordion-root::before {
+    display: none;
+}
+
+.info-section .MuiAccordionSummary-root {
+    min-height: 58px;
+    padding: 0;
+}
+
+.info-section-title.MuiTypography-root {
+    font-size: 0.95rem;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+}
+
+/* keeps the + / - icon from flipping upside down when opened */
+.info-section .MuiAccordionSummary-expandIconWrapper.Mui-expanded {
+    transform: none;
+}
+
+.info-section .MuiAccordionDetails-root {
+    padding: 0 0 20px;
+}
+
+.info-section .product-description,
+.info-section .product-meta {
+    margin: 0;
+    font-size: 0.9rem;
+    line-height: 1.7;
+    color: #333;
+}
