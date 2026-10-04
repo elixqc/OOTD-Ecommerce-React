@@ -18,6 +18,16 @@ import {
     FORGOT_PASSWORD_SUCCESS,
     FORGOT_PASSWORD_FAIL,
     FORGOT_PASSWORD_RESET,
+    ALL_USERS_REQUEST,
+    ALL_USERS_SUCCESS,
+    ALL_USERS_FAIL,
+    USER_DETAILS_REQUEST,
+    USER_DETAILS_SUCCESS,
+    USER_DETAILS_FAIL,
+    UPDATE_USER_REQUEST,
+    UPDATE_USER_SUCCESS,
+    UPDATE_USER_FAIL,
+    UPDATE_USER_RESET,
 } from '../constants/userConstants';
 
 // loading starts as true because the session is restored when the app opens
@@ -90,6 +100,56 @@ export const forgotPasswordReducer = (state = {}, action) => {
             return { loading: false, error: action.payload };
         case FORGOT_PASSWORD_RESET:
             return {};
+        case CLEAR_ERRORS:
+            return { ...state, error: null };
+        default:
+            return state;
+    }
+};
+
+// Admin: all accounts
+export const allUsersReducer = (state = { users: [] }, action) => {
+    switch (action.type) {
+        case ALL_USERS_REQUEST:
+            return { ...state, loading: true };
+        case ALL_USERS_SUCCESS:
+            return { loading: false, users: action.payload };
+        case ALL_USERS_FAIL:
+            return { ...state, loading: false, error: action.payload };
+        case CLEAR_ERRORS:
+            return { ...state, error: null };
+        default:
+            return state;
+    }
+};
+
+// Admin: one account
+export const userDetailsReducer = (state = { user: null, orderCount: 0 }, action) => {
+    switch (action.type) {
+        case USER_DETAILS_REQUEST:
+            return { ...state, loading: true, error: null };
+        case USER_DETAILS_SUCCESS:
+            return { loading: false, user: action.payload.user, orderCount: action.payload.orderCount };
+        case USER_DETAILS_FAIL:
+            return { loading: false, user: null, orderCount: 0, error: action.payload };
+        case CLEAR_ERRORS:
+            return { ...state, error: null };
+        default:
+            return state;
+    }
+};
+
+// Admin: activate / deactivate
+export const adminUserReducer = (state = {}, action) => {
+    switch (action.type) {
+        case UPDATE_USER_REQUEST:
+            return { loading: true, error: null };
+        case UPDATE_USER_SUCCESS:
+            return { loading: false, isUpdated: true, updatedUser: action.payload };
+        case UPDATE_USER_FAIL:
+            return { loading: false, error: action.payload };
+        case UPDATE_USER_RESET:
+            return { ...state, isUpdated: false };
         case CLEAR_ERRORS:
             return { ...state, error: null };
         default:

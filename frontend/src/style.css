@@ -884,3 +884,14 @@ body {
 .product-gallery-main {
     transition: opacity 0.2s;
 }
+
+.user-cell {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    height: 100%;
+}
+
+.profile-card-left {
+    margin: 0;
+}

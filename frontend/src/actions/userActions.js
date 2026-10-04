@@ -28,6 +28,15 @@ import {
     FORGOT_PASSWORD_REQUEST,
     FORGOT_PASSWORD_SUCCESS,
     FORGOT_PASSWORD_FAIL,
+    ALL_USERS_REQUEST,
+    ALL_USERS_SUCCESS,
+    ALL_USERS_FAIL,
+    USER_DETAILS_REQUEST,
+    USER_DETAILS_SUCCESS,
+    USER_DETAILS_FAIL,
+    UPDATE_USER_REQUEST,
+    UPDATE_USER_SUCCESS,
+    UPDATE_USER_FAIL,
 } from '../constants/userConstants';
 
 // True while a login/register is running, so the auth listener doesn't load the user twice
@@ -145,5 +154,36 @@ export const forgotPassword = (email) => async (dispatch) => {
         }
         const message = error.code === 'auth/invalid-email' ? 'Enter a valid email' : getErrorMessage(error);
         dispatch({ type: FORGOT_PASSWORD_FAIL, payload: message });
+    }
+};
+
+export const getAllUsers = () => async (dispatch) => {
+    try {
+        dispatch({ type: ALL_USERS_REQUEST });
+        const { data } = await api.get('/admin/users');
+        dispatch({ type: ALL_USERS_SUCCESS, payload: data.users });
+    } catch (error) {
+        dispatch({ type: ALL_USERS_FAIL, payload: getErrorMessage(error) });
+    }
+};
+
+export const getUserDetails = (id) => async (dispatch) => {
+    try {
+        dispatch({ type: USER_DETAILS_REQUEST });
+        const { data } = await api.get(`/admin/user/${id}`);
+        dispatch({ type: USER_DETAILS_SUCCESS, payload: { user: data.user, orderCount: data.orderCount } });
+    } catch (error) {
+        dispatch({ type: USER_DETAILS_FAIL, payload: getErrorMessage(error) });
+    }
+};
+
+// isActive: true activates the account, false deactivates it
+export const updateUser = (id, isActive) => async (dispatch) => {
+    try {
+        dispatch({ type: UPDATE_USER_REQUEST });
+        const { data } = await api.put(`/admin/user/${id}`, { isActive });
+        dispatch({ type: UPDATE_USER_SUCCESS, payload: data.user });
+    } catch (error) {
+        dispatch({ type: UPDATE_USER_FAIL, payload: getErrorMessage(error) });
     }
 };

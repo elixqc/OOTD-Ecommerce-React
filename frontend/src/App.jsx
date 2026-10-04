@@ -25,6 +25,8 @@ import UpdateProduct from './Components/Admin/UpdateProduct';
 import OrdersList from './Components/Admin/OrdersList';
 import ProcessOrder from './Components/Admin/ProcessOrder';
 import ReviewsList from './Components/Admin/ReviewsList';
+import UsersList from './Components/Admin/UsersList';
+import UpdateUser from './Components/Admin/UpdateUser';
 
 function App() {
     const dispatch = useDispatch();
@@ -67,6 +69,8 @@ function App() {
                     <Route path="/admin/product/:id" element={<UpdateProduct />} />
                     <Route path="/admin/orders" element={<OrdersList />} />
                     <Route path="/admin/order/:id" element={<ProcessOrder />} />
+                    <Route path="/admin/users" element={<UsersList />} />
+                    <Route path="/admin/user/:id" element={<UpdateUser />} />
                     <Route path="/admin/reviews" element={<ReviewsList />} />
                 </Route>
             </Route>

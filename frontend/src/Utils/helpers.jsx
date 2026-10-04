@@ -56,6 +56,7 @@ const FIREBASE_MESSAGES = {
     'auth/popup-closed-by-user': 'Sign-in was cancelled',
     'auth/network-request-failed': 'Network error. Check your connection',
     'auth/operation-not-allowed': 'This sign-in method is not enabled in Firebase',
+    'auth/user-disabled': 'This account has been deactivated',
 };
 
 // Prefers the backend's message, then a friendly Firebase message
