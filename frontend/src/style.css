@@ -1192,3 +1192,26 @@ body {
         transform: scale(1.04);
     }
 }
+
+/* Show photos exactly as uploaded: no tint */
+.product-card-media {
+    background: #fff;
+    border: 1px solid #ece9e4;
+    box-sizing: border-box;
+}
+
+.product-card-media img {
+    mix-blend-mode: normal;
+}
+
+/* White background for the customer pages */
+.customer-shell {
+    background: #fff;
+}
+
+/* Boxes that were white on the cream background now need a light edge */
+.cart-summary,
+.order-card,
+.review-form {
+    border: 1px solid #ece9e4;
+}
