@@ -1,10 +1,9 @@
 import { useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { useFormik } from 'formik';
 import * as Yup from 'yup';
-import { Button, Card, TextField, Typography } from '@mui/material';
-import CheckoutSteps from './CheckoutSteps';
+import { Button, TextField } from '@mui/material';
 import { saveShippingInfo } from '../../actions/cartActions';
 
 const validationSchema = Yup.object({
@@ -67,25 +66,40 @@ export default function Shipping() {
 
     return (
         <>
-            <CheckoutSteps activeStep={0} />
-            <div className="auth-wrapper">
-                <Card className="auth-card">
-                    <Typography variant="h5" component="h1" className="auth-title">
-                        Shipping info
-                    </Typography>
+            <section className="checkout-section">
+                <h2 className="checkout-heading">Contact</h2>
+                <TextField
+                    label="Email"
+                    value={user?.email || ''}
+                    fullWidth
+                    disabled
+                    helperText="Your receipt and order updates are sent to this email"
+                />
+            </section>
 
-                    <form onSubmit={formik.handleSubmit} noValidate className="form-stack">
+            <form onSubmit={formik.handleSubmit} noValidate>
+                <section className="checkout-section">
+                    <h2 className="checkout-heading">Delivery</h2>
+                    <div className="checkout-fields">
+                        {field('country', 'Country/Region', { autoComplete: 'country-name' })}
                         {field('address', 'Address', { autoComplete: 'street-address' })}
-                        {field('city', 'City', { autoComplete: 'address-level2' })}
-                        {field('phoneNo', 'Phone number', { autoComplete: 'tel', inputMode: 'tel' })}
-                        {field('postalCode', 'Postal code', { autoComplete: 'postal-code' })}
-                        {field('country', 'Country', { autoComplete: 'country-name' })}
-                        <Button type="submit" variant="contained">
-                            Continue
-                        </Button>
-                    </form>
-                </Card>
-            </div>
+                        <div className="checkout-row">
+                            {field('city', 'City', { autoComplete: 'address-level2' })}
+                            {field('postalCode', 'Postal code', { autoComplete: 'postal-code' })}
+                        </div>
+                        {field('phoneNo', 'Phone', { autoComplete: 'tel', inputMode: 'tel' })}
+                    </div>
+                </section>
+
+                <div className="checkout-actions">
+                    <Link to="/cart" className="checkout-back">
+                        ‹ Return to cart
+                    </Link>
+                    <Button type="submit" variant="contained" size="large">
+                        Continue to review
+                    </Button>
+                </div>
+            </form>
         </>
     );
 }

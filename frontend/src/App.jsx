@@ -6,6 +6,7 @@ import CustomerLayout from './Components/Layout/CustomerLayout';
 import AdminLayout from './Components/Admin/AdminLayout';
 import ProtectedRoute from './Components/Route/ProtectedRoute';
 import MetaData from './Components/Layout/MetaData';
+import CheckoutLayout from './Components/Cart/CheckoutLayout';
 import Payment from './Components/Cart/Payment';
 import Home from './Components/Home';
 import Login from './Components/User/Login';
@@ -55,15 +56,21 @@ function App() {
                     <Route path="/me" element={<><MetaData title="My profile" /><Profile /></>} />
                     <Route path="/me/update" element={<><MetaData title="Update profile" /><UpdateProfile /></>} />
                     <Route path="/password/update" element={<><MetaData title="Change password" /><UpdatePassword /></>} />
-                    <Route path="/shipping" element={<><MetaData title="Shipping" /><Shipping /></>} />
-                    <Route path="/payment" element={<><MetaData title="Payment" /><Payment /></>} />
-                    <Route path="/confirm" element={<><MetaData title="Confirm order" /><ConfirmOrder /></>} />
                     <Route path="/order/success" element={<><MetaData title="Order placed" /><OrderSuccess /></>} />
                     <Route path="/orders/me" element={<><MetaData title="My orders" /><ListOrders /></>} />
                     <Route path="/order/:id" element={<><MetaData title="Order details" /><OrderDetails /></>} />
                 </Route>
 
                 <Route path="*" element={<h2>Page not found</h2>} />
+            </Route>
+
+            {/* Checkout: slim header, form on the left, order summary on the right */}
+            <Route element={<ProtectedRoute />}>
+                <Route element={<CheckoutLayout />}>
+                    <Route path="/shipping" element={<><MetaData title="Shipping" /><Shipping /></>} />
+                    <Route path="/confirm" element={<><MetaData title="Review order" /><ConfirmOrder /></>} />
+                    <Route path="/payment" element={<><MetaData title="Payment" /><Payment /></>} />
+                </Route>
             </Route>
 
             <Route element={<ProtectedRoute adminOnly />}>

@@ -3,8 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { useFormik } from 'formik';
 import * as Yup from 'yup';
-import { Button, FormControl, FormControlLabel, Radio, RadioGroup, TextField, Typography } from '@mui/material';
-import CheckoutSteps from './CheckoutSteps';
+import { Button, Radio, TextField } from '@mui/material';
 import { clearCart } from '../../actions/cartActions';
 import { createOrder } from '../../actions/orderActions';
 import { clearErrors } from '../../actions/userActions';
@@ -40,6 +39,7 @@ export default function Payment() {
     const dispatch = useDispatch();
     const navigate = useNavigate();
     const { cartItems, shippingInfo } = useSelector((state) => state.cart);
+    const { user } = useSelector((state) => state.auth);
     const { loading, error } = useSelector((state) => state.newOrder);
     const [method, setMethod] = useState(COD);
     const orderPlaced = useRef(false); // stops the "empty cart" redirect once the order goes through
@@ -96,74 +96,96 @@ export default function Payment() {
         ...extra,
     });
 
+    const chooseMethod = (value) => {
+        setMethod(value);
+        formik.setErrors({});
+    };
+
     if (!shippingInfo || cartItems.length === 0) return null;
 
     return (
         <>
-            <CheckoutSteps activeStep={2} />
-            <Typography variant="h4" component="h1" className="page-title">
-                Payment
-            </Typography>
+            <section className="review-box">
+                <div className="review-row">
+                    <span className="review-label">Contact</span>
+                    <span className="review-value">{user?.email}</span>
+                </div>
+                <div className="review-row">
+                    <span className="review-label">Ship to</span>
+                    <span className="review-value">
+                        {shippingInfo.address}, {shippingInfo.city} {shippingInfo.postalCode}, {shippingInfo.country}
+                    </span>
+                    <Link to="/shipping" className="review-change">
+                        Change
+                    </Link>
+                </div>
+                <div className="review-row">
+                    <span className="review-label">Method</span>
+                    <span className="review-value">Standard delivery · Free</span>
+                </div>
+            </section>
 
-            <div className="cart-layout">
-                <form onSubmit={formik.handleSubmit} noValidate className="order-card form-stack">
-                    <FormControl>
-                        <Typography variant="h6">Payment method</Typography>
-                        <RadioGroup
-                            value={method}
-                            onChange={(e) => {
-                                setMethod(e.target.value);
-                                formik.setErrors({});
-                            }}
-                        >
-                            <FormControlLabel value={COD} control={<Radio />} label="Cash on Delivery" />
-                            <FormControlLabel value={CARD} control={<Radio />} label="Credit / debit card" />
-                        </RadioGroup>
-                    </FormControl>
+            <form onSubmit={formik.handleSubmit} noValidate>
+                <section className="checkout-section">
+                    <h2 className="checkout-heading">Payment</h2>
 
-                    {method === COD ? (
-                        <Typography variant="body2" color="text.secondary">
-                            Pay in cash when your order arrives. Please prepare the exact amount.
-                        </Typography>
-                    ) : (
-                        <>
-                            <Typography variant="body2" color="text.secondary">
-                                Demo only: no real payment is made, and your card details are not stored or sent anywhere.
-                            </Typography>
-                            <TextField {...field('cardName', 'Name on card', { autoComplete: 'cc-name' })} />
-                            <TextField
-                                {...field('cardNumber', 'Card number', {
-                                    autoComplete: 'cc-number',
-                                    placeholder: '1234 5678 9012 3456',
-                                    slotProps: { htmlInput: { inputMode: 'numeric', maxLength: 19 } },
-                                })}
-                            />
-                            <div className="form-grid">
-                                <TextField
-                                    {...field('expiry', 'Expiry (MM/YY)', {
-                                        autoComplete: 'cc-exp',
-                                        placeholder: 'MM/YY',
-                                        slotProps: { htmlInput: { maxLength: 5 } },
-                                    })}
-                                />
-                                <TextField
-                                    {...field('cvc', 'CVC', {
-                                        autoComplete: 'cc-csc',
-                                        slotProps: { htmlInput: { inputMode: 'numeric', maxLength: 4 } },
-                                    })}
-                                />
+                    <div className="pay-options">
+                        <label className={method === COD ? 'pay-option selected' : 'pay-option'}>
+                            <Radio name="method" value={COD} checked={method === COD} onChange={() => chooseMethod(COD)} />
+                            <span>Cash on Delivery</span>
+                        </label>
+                        {method === COD && (
+                            <div className="pay-panel">
+                                Pay in cash when your order arrives. Please prepare the exact amount.
                             </div>
-                        </>
-                    )}
+                        )}
 
-                    <Button type="submit" variant="contained" disabled={loading}>
+                        <label className={method === CARD ? 'pay-option selected' : 'pay-option'}>
+                            <Radio name="method" value={CARD} checked={method === CARD} onChange={() => chooseMethod(CARD)} />
+                            <span>Credit / debit card</span>
+                        </label>
+                        {method === CARD && (
+                            <div className="pay-panel">
+                                <span>
+                                    Demo only: no real payment is made, and your card details are not stored or sent anywhere.
+                                </span>
+                                <TextField {...field('cardName', 'Name on card', { autoComplete: 'cc-name' })} />
+                                <TextField
+                                    {...field('cardNumber', 'Card number', {
+                                        autoComplete: 'cc-number',
+                                        placeholder: '1234 5678 9012 3456',
+                                        slotProps: { htmlInput: { inputMode: 'numeric', maxLength: 19 } },
+                                    })}
+                                />
+                                <div className="checkout-row">
+                                    <TextField
+                                        {...field('expiry', 'Expiry (MM/YY)', {
+                                            autoComplete: 'cc-exp',
+                                            placeholder: 'MM/YY',
+                                            slotProps: { htmlInput: { maxLength: 5 } },
+                                        })}
+                                    />
+                                    <TextField
+                                        {...field('cvc', 'CVC', {
+                                            autoComplete: 'cc-csc',
+                                            slotProps: { htmlInput: { inputMode: 'numeric', maxLength: 4 } },
+                                        })}
+                                    />
+                                </div>
+                            </div>
+                        )}
+                    </div>
+                </section>
+
+                <div className="checkout-actions">
+                    <Link to="/confirm" className="checkout-back">
+                        ‹ Return to review
+                    </Link>
+                    <Button type="submit" variant="contained" size="large" disabled={loading}>
                         {loading ? 'Placing order...' : `Place order · ${peso(totalPrice)}`}
                     </Button>
-                    <Button component={Link} to="/confirm">
-                        Back
-                    </Button>
-                </form>
-            </div>
+                </div>
+            </form>
         </>
     );
 }
