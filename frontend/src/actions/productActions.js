@@ -34,9 +34,10 @@ export const getAdminProducts = () => async (dispatch) => {
     }
 };
 
-export const getProductDetails = (id) => async (dispatch) => {
+// silent = refresh the data without showing the loading spinner (e.g. after a new review)
+export const getProductDetails = (id, silent = false) => async (dispatch) => {
     try {
-        dispatch({ type: PRODUCT_DETAILS_REQUEST });
+        if (!silent) dispatch({ type: PRODUCT_DETAILS_REQUEST });
         const { data } = await api.get(`/product/${id}`);
         dispatch({ type: PRODUCT_DETAILS_SUCCESS, payload: data.product });
     } catch (error) {

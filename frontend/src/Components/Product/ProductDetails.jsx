@@ -17,6 +17,7 @@ import { getProductDetails, getRelatedProducts } from '../../actions/productActi
 import { addToCart } from '../../actions/cartActions';
 import { notifyError, notifySuccess } from '../../Utils/helpers';
 import ProductCard from './ProductCard';
+import ListReviews from '../Review/ListReviews';
 
 // Separate component so the selected image, size, color, and quantity reset whenever the product changes
 function ProductInfo({ product }) {
@@ -222,6 +223,8 @@ export default function ProductDetails() {
             </Button>
 
             <ProductInfo key={product._id} product={product} />
+
+            <ListReviews productId={product._id} />
 
             {related.length > 0 && (
                 <section className="related-products">

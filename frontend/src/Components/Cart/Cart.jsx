@@ -5,8 +5,7 @@ import AddIcon from '@mui/icons-material/Add';
 import DeleteIcon from '@mui/icons-material/Delete';
 import RemoveIcon from '@mui/icons-material/Remove';
 import { removeFromCart, updateCartQuantity } from '../../actions/cartActions';
-
-const peso = (amount) => `₱${(Math.round(amount * 100) / 100).toLocaleString()}`;
+import { peso } from '../../Utils/helpers';
 
 export default function Cart() {
     const dispatch = useDispatch();
@@ -100,6 +99,9 @@ export default function Cart() {
                         <span>Total</span>
                         <span>{peso(total)}</span>
                     </div>
+                    <Button variant="contained" component={Link} to="/shipping">
+                        Proceed to checkout
+                    </Button>
                     <Button component={Link} to="/">
                         Continue shopping
                     </Button>

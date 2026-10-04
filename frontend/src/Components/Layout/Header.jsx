@@ -33,6 +33,12 @@ export default function Header() {
                     </Badge>
                 </IconButton>
 
+                {user && (
+                    <Button color="inherit" component={Link} to="/orders/me">
+                        My orders
+                    </Button>
+                )}
+
                 {isAdmin && (
                     <Button color="inherit" component={Link} to="/admin">
                         Admin

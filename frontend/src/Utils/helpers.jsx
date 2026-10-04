@@ -25,6 +25,27 @@ export const confirmDelete = async (text) => {
     return result.isConfirmed;
 };
 
+// Same wording as the confirmDelete popup, but for other actions (e.g. cancelling an order)
+export const confirmAction = async (title, text, confirmText) => {
+    const result = await Swal.fire({
+        title,
+        text,
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#c8553d',
+        confirmButtonText: confirmText,
+    });
+    return result.isConfirmed;
+};
+
+export const peso = (amount) => `₱${(Math.round(amount * 100) / 100).toLocaleString()}`;
+
+export const formatDate = (date) =>
+    new Date(date).toLocaleDateString('en-PH', { year: 'numeric', month: 'short', day: 'numeric' });
+
+// "#A1B2C3" from a long MongoDB id
+export const shortOrderId = (id) => `#${String(id).slice(-6).toUpperCase()}`;
+
 const FIREBASE_MESSAGES = {
     'auth/invalid-credential': 'Invalid email or password',
     'auth/user-not-found': 'Invalid email or password',

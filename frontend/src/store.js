@@ -10,6 +10,14 @@ import {
     relatedProductsReducer,
 } from './reducers/productReducers';
 import { cartReducer } from './reducers/cartReducers';
+import { productReviewsReducer, reviewStatusReducer, adminReviewsReducer, myReviewsReducer } from './reducers/reviewReducers';
+import {
+    newOrderReducer,
+    myOrdersReducer,
+    orderDetailsReducer,
+    adminOrdersReducer,
+    orderReducer,
+} from './reducers/orderReducers';
 
 const reducer = combineReducers({
     auth: authReducer,
@@ -20,6 +28,15 @@ const reducer = combineReducers({
     catalog: catalogReducer,
     relatedProducts: relatedProductsReducer,
     cart: cartReducer,
+    newOrder: newOrderReducer,
+    myOrders: myOrdersReducer,
+    orderDetails: orderDetailsReducer,
+    adminOrders: adminOrdersReducer,
+    order: orderReducer,
+    productReviews: productReviewsReducer,
+    reviewStatus: reviewStatusReducer,
+    adminReviews: adminReviewsReducer,
+    myReviews: myReviewsReducer,
 });
 
 // Restore the saved cart, ignoring anything that doesn't look like a cart line
@@ -35,7 +52,18 @@ const loadCartItems = () => {
     }
 };
 
-const initialState = { cart: { cartItems: loadCartItems() } };
+// Restore the saved shipping address, or null if there isn't a usable one
+const loadShippingInfo = () => {
+    try {
+        const info = JSON.parse(localStorage.getItem('shippingInfo'));
+        const fields = ['address', 'city', 'phoneNo', 'postalCode', 'country'];
+        return info && fields.every((f) => typeof info[f] === 'string') ? info : null;
+    } catch {
+        return null;
+    }
+};
+
+const initialState = { cart: { cartItems: loadCartItems(), shippingInfo: loadShippingInfo() } };
 
 const store = createStore(reducer, initialState, applyMiddleware(thunk));
 

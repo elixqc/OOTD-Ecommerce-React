@@ -1,4 +1,4 @@
-import { ADD_TO_CART, REMOVE_FROM_CART } from '../constants/cartConstants';
+import { ADD_TO_CART, REMOVE_FROM_CART, CLEAR_CART, SAVE_SHIPPING_INFO } from '../constants/cartConstants';
 
 const saveCart = (getState) => {
     try {
@@ -56,4 +56,19 @@ export const updateCartQuantity = (key, quantity) => (dispatch, getState) => {
 export const removeFromCart = (key) => (dispatch, getState) => {
     dispatch({ type: REMOVE_FROM_CART, payload: key });
     saveCart(getState);
+};
+
+// Called after an order is placed
+export const clearCart = () => (dispatch, getState) => {
+    dispatch({ type: CLEAR_CART });
+    saveCart(getState);
+};
+
+export const saveShippingInfo = (shippingInfo) => (dispatch) => {
+    dispatch({ type: SAVE_SHIPPING_INFO, payload: shippingInfo });
+    try {
+        localStorage.setItem('shippingInfo', JSON.stringify(shippingInfo));
+    } catch {
+        // Storage is blocked: the address is still used for this order
+    }
 };
