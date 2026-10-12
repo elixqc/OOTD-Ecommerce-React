@@ -27,13 +27,16 @@ export default function Header() {
                 </Typography>
                 <div className="navbar-spacer" />
 
-                <IconButton color="inherit" component={Link} to="/cart" aria-label="Shopping cart">
-                    <Badge badgeContent={cartCount} color="secondary">
-                        <ShoppingCartIcon />
-                    </Badge>
-                </IconButton>
+                {!isAdmin && (
+                    <IconButton color="inherit" component={Link} to="/cart" aria-label="Shopping cart">
+                        <Badge badgeContent={cartCount} color="secondary">
+                            <ShoppingCartIcon />
+                        </Badge>
+                    </IconButton>
+                )}
 
-                {user && (
+
+                {user && !isAdmin && (
                     <Button color="inherit" component={Link} to="/orders/me">
                         My orders
                     </Button>

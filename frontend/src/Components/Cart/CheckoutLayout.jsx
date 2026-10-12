@@ -1,7 +1,7 @@
 import { Link, Outlet, useLocation } from 'react-router-dom';
 import { useSelector } from 'react-redux';
-import { Badge, Breadcrumbs, IconButton, Typography } from '@mui/material';
-import ShoppingBagOutlinedIcon from '@mui/icons-material/ShoppingBagOutlined';
+import { Breadcrumbs, Typography } from '@mui/material';
+import Header from '../Layout/Header';
 import { peso } from '../../Utils/helpers';
 
 const STEPS = [
@@ -25,18 +25,7 @@ export default function CheckoutLayout() {
 
     return (
         <div className="checkout-page">
-            <header className="checkout-header">
-                <div className="checkout-header-inner">
-                    <Link to="/" className="checkout-logo">
-                        OOTD
-                    </Link>
-                    <IconButton component={Link} to="/cart" aria-label="Back to cart">
-                        <Badge badgeContent={count} color="primary">
-                            <ShoppingBagOutlinedIcon />
-                        </Badge>
-                    </IconButton>
-                </div>
-            </header>
+            <Header />
 
             <div className="checkout-body">
                 <main className="checkout-main">
