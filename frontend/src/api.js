@@ -1,15 +1,13 @@
 import axios from 'axios';
-import { auth } from './firebase';
 
 const api = axios.create({
     baseURL: import.meta.env.VITE_API_URL,
 });
 
-// Attach the Firebase token to every request automatically
+// Attach the Clerk token to every request automatically
 api.interceptors.request.use(async (config) => {
-    const user = auth.currentUser;
-    if (user) {
-        const token = await user.getIdToken();
+    const token = await window.Clerk?.session?.getToken();
+    if (token) {
         config.headers.Authorization = `Bearer ${token}`;
     }
     return config;

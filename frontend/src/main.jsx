@@ -2,6 +2,7 @@ import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import { BrowserRouter } from 'react-router-dom';
 import { Provider } from 'react-redux';
+import { ClerkProvider } from '@clerk/react';
 import { StyledEngineProvider, ThemeProvider } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
 import App from './App.jsx';
@@ -13,12 +14,19 @@ createRoot(document.getElementById('root')).render(
     <StrictMode>
         <Provider store={store}>
             <BrowserRouter>
-                <StyledEngineProvider injectFirst>
-                    <ThemeProvider theme={theme}>
-                        <CssBaseline />
-                        <App />
-                    </ThemeProvider>
-                </StyledEngineProvider>
+                <ClerkProvider
+                    publishableKey={import.meta.env.VITE_CLERK_PUBLISHABLE_KEY}
+                    signInUrl="/login"
+                    signUpUrl="/register"
+                    afterSignOutUrl="/"
+                >
+                    <StyledEngineProvider injectFirst>
+                        <ThemeProvider theme={theme}>
+                            <CssBaseline />
+                            <App />
+                        </ThemeProvider>
+                    </StyledEngineProvider>
+                </ClerkProvider>
             </BrowserRouter>
         </Provider>
     </StrictMode>

@@ -1,7 +1,8 @@
 import { useEffect } from 'react';
 import { Route, Routes } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
-import { listenToAuthChanges } from './actions/userActions';
+import { useAuth } from '@clerk/react';
+import { syncUser } from './actions/userActions';
 import CustomerLayout from './Components/Layout/CustomerLayout';
 import AdminLayout from './Components/Admin/AdminLayout';
 import ProtectedRoute from './Components/Route/ProtectedRoute';
@@ -11,7 +12,6 @@ import Payment from './Components/Cart/Payment';
 import Home from './Components/Home';
 import Login from './Components/User/Login';
 import Register from './Components/User/Register';
-import ForgotPassword from './Components/User/ForgotPassword';
 import Profile from './Components/User/Profile';
 import UpdateProfile from './Components/User/UpdateProfile';
 import UpdatePassword from './Components/User/UpdatePassword';
@@ -31,15 +31,17 @@ import ProcessOrder from './Components/Admin/ProcessOrder';
 import ReviewsList from './Components/Admin/ReviewsList';
 import UsersList from './Components/Admin/UsersList';
 import UpdateUser from './Components/Admin/UpdateUser';
+import SSOCallback from './Components/User/SSOCallback';
 
 function App() {
     const dispatch = useDispatch();
+    const { isLoaded, isSignedIn } = useAuth();
 
-    // Restore the login session when the app opens
+    // Load the user from our database once Clerk knows who is signed in
     useEffect(() => {
-        const unsubscribe = dispatch(listenToAuthChanges());
-        return unsubscribe;
-    }, [dispatch]);
+        if (!isLoaded) return;
+        dispatch(syncUser(isSignedIn));
+    }, [dispatch, isLoaded, isSignedIn]);
 
     return (
         <Routes>
@@ -47,15 +49,15 @@ function App() {
                 <Route path="/" element={<><MetaData title="Shop" /><Home /></>} />
                 <Route path="/product/:id" element={<ProductDetails />} />
                 <Route path="/cart" element={<><MetaData title="Cart" /><Cart /></>} />
-                <Route path="/login" element={<><MetaData title="Login" /><Login /></>} />
-                <Route path="/register" element={<><MetaData title="Register" /><Register /></>} />
-                <Route path="/password/forgot" element={<><MetaData title="Forgot password" /><ForgotPassword /></>} />
+                <Route path="/login/*" element={<><MetaData title="Login" /><Login /></>} />
+                <Route path="/sso-callback" element={<SSOCallback />} />
+                <Route path="/register/*" element={<><MetaData title="Register" /><Register /></>} />
 
                 {/* Logged-in customers only */}
                 <Route element={<ProtectedRoute />}>
                     <Route path="/me" element={<><MetaData title="My profile" /><Profile /></>} />
                     <Route path="/me/update" element={<><MetaData title="Update profile" /><UpdateProfile /></>} />
-                    <Route path="/password/update" element={<><MetaData title="Change password" /><UpdatePassword /></>} />
+                    <Route path="/password/update/*" element={<><MetaData title="Change password" /><UpdatePassword /></>} />
                     <Route path="/order/success" element={<><MetaData title="Order placed" /><OrderSuccess /></>} />
                     <Route path="/orders/me" element={<><MetaData title="My orders" /><ListOrders /></>} />
                     <Route path="/order/:id" element={<><MetaData title="Order details" /><OrderDetails /></>} />

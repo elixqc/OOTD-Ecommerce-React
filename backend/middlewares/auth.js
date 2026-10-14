@@ -1,36 +1,24 @@
-const firebaseAuth = require('../config/firebase');
+const { getAuth } = require('@clerk/express');
 const User = require('../models/user');
 
-// Reads "Authorization: Bearer <token>" and verifies it with Firebase
-const decodeToken = async (req) => {
-    const header = req.headers.authorization || '';
-    if (!header.startsWith('Bearer ')) return null;
-
-    try {
-        return await firebaseAuth.verifyIdToken(header.split(' ')[1]);
-    } catch (error) {
-        return null;
-    }
-};
-
 // Token only. Used by /register, because the MongoDB user doesn't exist yet.
-exports.verifyToken = async (req, res, next) => {
-    const decoded = await decodeToken(req);
-    if (!decoded) {
+exports.verifyToken = (req, res, next) => {
+    const { userId } = getAuth(req);
+    if (!userId) {
         return res.status(401).json({ success: false, message: 'Login first to access this resource' });
     }
-    req.firebaseUser = decoded;
+    req.clerkUserId = userId;
     next();
 };
 
 // Token + registered MongoDB user + active account
 exports.isAuthenticatedUser = async (req, res, next) => {
-    const decoded = await decodeToken(req);
-    if (!decoded) {
+    const { userId } = getAuth(req);
+    if (!userId) {
         return res.status(401).json({ success: false, message: 'Login first to access this resource' });
     }
 
-    const user = await User.findOne({ firebaseUid: decoded.uid });
+    const user = await User.findOne({ clerkId: userId });
     if (!user) {
         return res.status(404).json({ success: false, message: 'Account not registered. Please complete registration.' });
     }

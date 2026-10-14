@@ -1,5 +1,5 @@
 const mongoose = require('mongoose');
-const firebaseAuth = require('../config/firebase');
+const { clerkClient } = require('@clerk/express');
 const Order = require('../models/order');
 const cloudinary = require('../config/cloudinary');
 const User = require('../models/user');
@@ -7,15 +7,26 @@ const User = require('../models/user');
 // POST /api/v1/register
 // Safe to call after every login: returns the existing user if already registered.
 exports.registerUser = async (req, res) => {
-    const { uid, email, name: tokenName } = req.firebaseUser;
+    const clerkId = req.clerkUserId;
 
-    let user = await User.findOne({ firebaseUid: uid });
+    let user = await User.findOne({ clerkId });
     if (user) {
         return res.status(200).json({ success: true, user });
     }
 
+    const clerkUser = await clerkClient.users.getUser(clerkId);
+    const email = clerkUser.emailAddresses.find((e) => e.id === clerkUser.primaryEmailAddressId)?.emailAddress;
+
     if (!email) {
         return res.status(400).json({ success: false, message: 'Your account has no email address' });
+    }
+
+    // Old account from before Clerk (same email): link it instead of making a duplicate
+    user = await User.findOne({ email: email.toLowerCase() });
+    if (user) {
+        user.clerkId = clerkId;
+        await user.save();
+        return res.status(200).json({ success: true, user });
     }
 
     const { name, phone, avatar } = req.body;
@@ -41,8 +52,8 @@ exports.registerUser = async (req, res) => {
 
     // Mongoose checks name length and required fields
     user = await User.create({
-        firebaseUid: uid,
-        name: name || tokenName,
+        clerkId,
+        name: name || clerkUser.fullName || email.split('@')[0],
         email,
         phone,
         avatar: avatarData,
@@ -120,7 +131,7 @@ const userNotFound = (res) => res.status(404).json({ success: false, message: 'U
 
 // GET /api/v1/admin/users
 exports.allUsers = async (req, res) => {
-    const users = await User.find().select('-firebaseUid -wishlist').sort({ createdAt: -1 });
+    const users = await User.find().select('-clerkId -wishlist').sort({ createdAt: -1 });
     return res.status(200).json({ success: true, count: users.length, users });
 };
 
@@ -128,7 +139,7 @@ exports.allUsers = async (req, res) => {
 exports.getUserDetails = async (req, res) => {
     if (!mongoose.isValidObjectId(req.params.id)) return userNotFound(res);
 
-    const user = await User.findById(req.params.id).select('-firebaseUid -wishlist');
+    const user = await User.findById(req.params.id).select('-clerkId -wishlist');
     if (!user) return userNotFound(res);
 
     const orderCount = await Order.countDocuments({ user: user._id });
@@ -155,20 +166,21 @@ exports.updateUser = async (req, res) => {
         return res.status(200).json({ success: true, user });
     }
 
-    // Firebase first: a disabled account can't log in, and its sessions are revoked
+    // Clerk first: a banned account can't sign in, and its sessions are revoked
     try {
-        await firebaseAuth.updateUser(user.firebaseUid, { disabled: !isActive });
-        if (!isActive) await firebaseAuth.revokeRefreshTokens(user.firebaseUid);
+        if (isActive) await clerkClient.users.unbanUser(user.clerkId);
+        else await clerkClient.users.banUser(user.clerkId);
     } catch (error) {
-        if (error.code !== 'auth/user-not-found') throw error;
+        if (error.status !== 404) throw error;
     }
 
     user.isActive = isActive;
     try {
         await user.save();
     } catch (error) {
-        // Keep Firebase and the database in sync
-        await firebaseAuth.updateUser(user.firebaseUid, { disabled: isActive }).catch(() => {});
+        // Keep Clerk and the database in sync
+        const undo = isActive ? clerkClient.users.banUser : clerkClient.users.unbanUser;
+        await undo.call(clerkClient.users, user.clerkId).catch(() => {});
         throw error;
     }
 
