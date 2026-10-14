@@ -357,12 +357,118 @@ body {
     }
 }
 
-.catalog-filters {
+/* Shop toolbar: wide search, Filter button, Sort */
+.catalog-heading {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 12px;
+}
+
+.catalog-toolbar {
     display: flex;
     flex-wrap: wrap;
     gap: 12px;
     align-items: center;
-    margin: 16px 0 24px;
+    margin-bottom: 16px;
+}
+
+.catalog-search {
+    flex: 1 1 280px;
+    min-width: 0;
+}
+
+.catalog-search .MuiOutlinedInput-root,
+.catalog-sort .MuiOutlinedInput-root {
+    height: 40px;
+    background: #fff;
+}
+
+.catalog-sort {
+    min-width: 220px;
+}
+
+.catalog-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+/* Filter drawer */
+.filter-drawer.MuiDrawer-paper {
+    width: 400px;
+    max-width: 100vw;
+    background: var(--brand-bg);
+}
+
+.filter-drawer-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 20px;
+    border-bottom: 1px solid #e6e2dc;
+}
+
+.filter-drawer-body {
+    flex: 1;
+    overflow-x: hidden;
+    overflow-y: auto;
+    padding: 0 20px;
+}
+
+.filter-section-title {
+    font-size: 0.9rem;
+    font-weight: 700;
+}
+
+/* Collapsible sections: a thin line between them and a round chevron button */
+.filter-accordion.MuiAccordion-root {
+    background: transparent;
+    border-bottom: 1px solid #e6e2dc;
+}
+
+.filter-accordion.MuiAccordion-root::before {
+    display: none;
+}
+
+.filter-accordion .MuiAccordionSummary-root {
+    padding: 4px 0;
+}
+
+.filter-accordion .MuiAccordionDetails-root {
+    padding: 4px 0 20px;
+}
+
+.filter-chevron {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    background: #e8e4de;
+    color: var(--brand-dark);
+    transition: background 0.2s ease, color 0.2s ease;
+}
+
+.filter-accordion .MuiAccordionSummary-expandIconWrapper.Mui-expanded .filter-chevron {
+    background: var(--brand-dark);
+    color: #fff;
+}
+
+.filter-drawer-footer {
+    padding: 16px 20px;
+    border-top: 1px solid #e6e2dc;
+    background: var(--brand-bg);
+}
+
+@media (max-width: 600px) {
+    .catalog-sort {
+        flex: 1 1 100%;
+    }
 }
 
 .product-grid {

@@ -222,9 +222,18 @@ const escapeRegex = (text) => text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
 const toNumber = (value) => (value === undefined || value === '' || Array.isArray(value) ? NaN : Number(value));
 
-// GET /api/v1/products?keyword=&category=&minPrice=&maxPrice=&rating=&page=&limit=   (public)
+// Allowed sort choices. _id is the tie-breaker so pages never repeat or skip items.
+const SORT_OPTIONS = {
+    newest: { createdAt: -1, _id: -1 },
+    'price-asc': { price: 1, _id: 1 },
+    'price-desc': { price: -1, _id: -1 },
+    rating: { ratings: -1, numOfReviews: -1, _id: -1 },
+    popular: { numOfReviews: -1, ratings: -1, _id: -1 },
+};
+
+// GET /api/v1/products?keyword=&category=&minPrice=&maxPrice=&rating=&sort=&page=&limit=   (public)
 exports.getProducts = async (req, res) => {
-    const { keyword, category, minPrice, maxPrice, rating } = req.query;
+    const { keyword, category, minPrice, maxPrice, rating, sort } = req.query;
     const page = Math.max(parseInt(req.query.page, 10) || 1, 1);
     const limit = Math.min(Math.max(parseInt(req.query.limit, 10) || 8, 1), 24);
 
@@ -257,12 +266,15 @@ exports.getProducts = async (req, res) => {
         filter.numOfReviews = { $gte: minReviews };
     }
     
+    // Only real keys are accepted, so values like "constructor" fall back to newest
+    const sortBy = typeof sort === 'string' && Object.hasOwn(SORT_OPTIONS, sort) ? SORT_OPTIONS[sort] : SORT_OPTIONS.newest;
+
     // Count before skip/limit, so total is the real number of matches
     const total = await Product.countDocuments(filter);
 
     const products = await Product.find(filter)
         .select('-user')
-        .sort({ createdAt: -1, _id: -1 })
+        .sort(sortBy)
         .skip((page - 1) * limit)
         .limit(limit);
 
@@ -273,6 +285,13 @@ exports.getProducts = async (req, res) => {
         page,
         hasMore: page * limit < total,
     });
+};
+
+// GET /api/v1/products/max-price   (public)
+// Highest price in the shop, rounded up. The filter drawer uses it as the end of the price slider.
+exports.getMaxPrice = async (req, res) => {
+    const [result] = await Product.aggregate([{ $group: { _id: null, max: { $max: '$price' } } }]);
+    return res.status(200).json({ success: true, maxPrice: result ? Math.ceil(result.max) : 0 });
 };
 
 // GET /api/v1/product/:id/related   (public)

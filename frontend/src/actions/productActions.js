@@ -88,15 +88,21 @@ export const deleteProducts = (ids) => async (dispatch) => {
 
 let latestRequest = 0;
 
+// Turns the filter object into query params, leaving out empty / "All" values
+export const buildProductParams = (filters) => {
+    const params = {};
+    Object.entries(filters).forEach(([key, value]) => {
+        if (value !== '' && value !== 'All') params[key] = value;
+    });
+    return params;
+};
+
 // Page 1 starts a fresh list (new filters). Later pages are appended.
 export const getProducts = (filters, page) => async (dispatch) => {
     // If filters change while a request is running, the older response is ignored
     const requestId = ++latestRequest;
 
-    const params = { page, limit: 8 };
-    Object.entries(filters).forEach(([key, value]) => {
-        if (value !== '' && value !== 'All') params[key] = value;
-    });
+    const params = { page, limit: 8, ...buildProductParams(filters) };
 
     try {
         dispatch({ type: PRODUCTS_REQUEST, payload: page });

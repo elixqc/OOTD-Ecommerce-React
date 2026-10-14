@@ -6,6 +6,7 @@ const {
     uploadProductImage,
     removeUploadedImage,
     getProducts,
+    getMaxPrice,
     getSingleProduct,
     getRelatedProducts,
     getAdminProducts,
@@ -18,6 +19,7 @@ const { isAuthenticatedUser, authorizeRoles } = require('../middlewares/auth');
 const adminOnly = [isAuthenticatedUser, authorizeRoles('admin')];
 
 router.get('/products', getProducts);
+router.get('/products/max-price', getMaxPrice);
 router.get('/product/:id/related', getRelatedProducts);
 router.get('/product/:id', getSingleProduct);
 

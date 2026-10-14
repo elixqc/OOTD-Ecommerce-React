@@ -1,23 +1,76 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { Button, CircularProgress, MenuItem, TextField, Typography } from '@mui/material';
+import {
+    Badge,
+    Button,
+    Chip,
+    CircularProgress,
+    IconButton,
+    InputAdornment,
+    MenuItem,
+    TextField,
+    Typography,
+} from '@mui/material';
+import SearchIcon from '@mui/icons-material/Search';
+import CloseIcon from '@mui/icons-material/Close';
+import TuneIcon from '@mui/icons-material/Tune';
+import api from '../../api';
 import { getProducts, loadMoreProducts } from '../../actions/productActions';
-import { CATEGORIES } from '../../constants/productConstants';
-import { notifyError } from '../../Utils/helpers';
+import { peso } from '../../Utils/helpers';
+import FilterDrawer from './FilterDrawer';
 import ProductCard from './ProductCard';
 
-const emptyFilters = { keyword: '', category: 'All', minPrice: '', maxPrice: '', rating: 'All', minReviews: 'All' };
+const emptyFilters = {
+    keyword: '',
+    category: 'All',
+    minPrice: '',
+    maxPrice: '',
+    rating: 'All',
+    minReviews: 'All',
+    sort: 'newest',
+};
+
+const SORT_OPTIONS = [
+    { value: 'newest', label: 'Newest' },
+    { value: 'price-asc', label: 'Price: Low to High' },
+    { value: 'price-desc', label: 'Price: High to Low' },
+    { value: 'rating', label: 'Top rated' },
+    { value: 'popular', label: 'Most reviewed' },
+];
+
+const priceLabel = ({ minPrice, maxPrice }) => {
+    if (minPrice !== '' && maxPrice !== '') return `${peso(Number(minPrice))} – ${peso(Number(maxPrice))}`;
+    if (minPrice !== '') return `${peso(Number(minPrice))} and up`;
+    return `Up to ${peso(Number(maxPrice))}`;
+};
 
 export default function Catalog() {
     const dispatch = useDispatch();
-    const { products, loading, error, hasMore, page } = useSelector((state) => state.catalog);
+    const { products, loading, error, hasMore, page, total } = useSelector((state) => state.catalog);
 
-    // draft = what's typed in the form, filters = what was applied with the Apply button
-    const [draft, setDraft] = useState(emptyFilters);
     const [filters, setFilters] = useState(emptyFilters);
+    const [searchText, setSearchText] = useState('');
+    const [drawerOpen, setDrawerOpen] = useState(false);
+    const [maxPrice, setMaxPrice] = useState(0);
     const sentinel = useRef(null);
 
-    // First page, and again whenever the applied filters change
+    // Search applies by itself shortly after typing stops, so there is no Apply button to press
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            const keyword = searchText.trim();
+            setFilters((prev) => (prev.keyword === keyword ? prev : { ...prev, keyword }));
+        }, 400);
+        return () => clearTimeout(timer);
+    }, [searchText]);
+
+    // Highest price in the shop, used as the end of the price slider in the filter drawer
+    useEffect(() => {
+        api.get('/products/max-price')
+            .then(({ data }) => setMaxPrice(data.maxPrice))
+            .catch(() => {});
+    }, []);
+
+    // First page, and again whenever the applied filters or sort change
     useEffect(() => {
         dispatch(getProducts(filters, 1));
     }, [dispatch, filters]);
@@ -38,107 +91,120 @@ export default function Catalog() {
         return () => observer.disconnect();
     }, [dispatch, filters, hasMore, loading, page]);
 
-    const handleChange = (e) => setDraft({ ...draft, [e.target.name]: e.target.value });
+    // One removable chip for each filter that is switched on (search and sort have their own controls)
+    const activeChips = useMemo(() => {
+        const chips = [];
+        if (filters.category !== 'All') chips.push({ key: 'category', label: filters.category, reset: { category: 'All' } });
+        if (filters.minPrice !== '' || filters.maxPrice !== '')
+            chips.push({ key: 'price', label: priceLabel(filters), reset: { minPrice: '', maxPrice: '' } });
+        if (filters.rating !== 'All') chips.push({ key: 'rating', label: `${filters.rating}★ & up`, reset: { rating: 'All' } });
+        if (filters.minReviews !== 'All')
+            chips.push({
+                key: 'reviews',
+                label: filters.minReviews === '1' ? 'Has reviews' : `${filters.minReviews}+ reviews`,
+                reset: { minReviews: 'All' },
+            });
+        return chips;
+    }, [filters]);
 
-    const handleSubmit = (e) => {
-        e.preventDefault();
-        if (draft.minPrice !== '' && draft.maxPrice !== '' && Number(draft.minPrice) > Number(draft.maxPrice)) {
-            notifyError('Min price cannot be higher than max price');
-            return;
-        }
-        setFilters(draft);
+    const removeChip = (reset) => setFilters((prev) => ({ ...prev, ...reset }));
+
+    const clearAll = () => {
+        setSearchText('');
+        setFilters({ ...emptyFilters, sort: filters.sort });
     };
 
-    const handleClear = () => {
-        setDraft(emptyFilters);
-        setFilters(emptyFilters);
-    };
+    const hasAnyFilter = activeChips.length > 0 || filters.keyword !== '';
 
     return (
         <section>
-            <Typography variant="h5" component="h2" gutterBottom>
-                Shop
-            </Typography>
+            <div className="catalog-heading">
+                <Typography variant="h5" component="h2">
+                    Shop
+                </Typography>
+                {page > 0 && !error && (
+                    <Typography color="text.secondary">
+                        {total} {total === 1 ? 'product' : 'products'}
+                    </Typography>
+                )}
+            </div>
 
-            <form className="catalog-filters" onSubmit={handleSubmit}>
+            <div className="catalog-toolbar">
                 <TextField
-                    name="keyword"
-                    label="Search name, brand, or category"
+                    className="catalog-search"
+                    placeholder="Search by name, brand, or category"
                     size="small"
-                    sx={{ width: 130 }}
-                    value={draft.keyword}
-                    onChange={handleChange}
+                    value={searchText}
+                    onChange={(e) => setSearchText(e.target.value)}
+                    slotProps={{
+                        htmlInput: { 'aria-label': 'Search products' },
+                        input: {
+                            startAdornment: (
+                                <InputAdornment position="start">
+                                    <SearchIcon fontSize="small" />
+                                </InputAdornment>
+                            ),
+                            endAdornment: searchText && (
+                                <InputAdornment position="end">
+                                    <IconButton size="small" aria-label="Clear search" onClick={() => setSearchText('')}>
+                                        <CloseIcon fontSize="small" />
+                                    </IconButton>
+                                </InputAdornment>
+                            ),
+                        },
+                    }}
                 />
+
+                <Badge badgeContent={activeChips.length} color="secondary">
+                    <Button
+                        variant="outlined"
+                        color="primary"
+                        startIcon={<TuneIcon />}
+                        onClick={() => setDrawerOpen(true)}
+                        sx={{ height: 40 }}
+                    >
+                        Filter
+                    </Button>
+                </Badge>
+
                 <TextField
                     select
-                    name="category"
-                    label="Category"
                     size="small"
-                    sx={{ width: 130 }}
-                    className="filter-select"
-                    value={draft.category}
-                    onChange={handleChange}
+                    className="catalog-sort"
+                    value={filters.sort}
+                    onChange={(e) => setFilters((prev) => ({ ...prev, sort: e.target.value }))}
+                    slotProps={{ htmlInput: { 'aria-label': 'Sort products' } }}
                 >
-                    <MenuItem value="All">All categories</MenuItem>
-                    {CATEGORIES.map((category) => (
-                        <MenuItem key={category} value={category}>
-                            {category}
+                    {SORT_OPTIONS.map((option) => (
+                        <MenuItem key={option.value} value={option.value}>
+                            Sort: {option.label}
                         </MenuItem>
                     ))}
                 </TextField>
-                <TextField
-                    name="minPrice"
-                    label="Min price"
-                    type="number"
-                    size="small"
-                    value={draft.minPrice}
-                    onChange={handleChange}
-                />
-                <TextField
-                    name="maxPrice"
-                    label="Max price"
-                    type="number"
-                    size="small"
-                    value={draft.maxPrice}
-                    onChange={handleChange}
-                />
-                <TextField
-                    select
-                    name="rating"
-                    label="Rating"
-                    size="small"
-                    className="filter-select"
-                    value={draft.rating}
-                    onChange={handleChange}
-                >
-                    <MenuItem value="All">Any rating</MenuItem>
-                    {[4, 3, 2, 1].map((stars) => (
-                        <MenuItem key={stars} value={String(stars)}>
-                            {stars} stars &amp; up
-                        </MenuItem>
+            </div>
+
+            {hasAnyFilter && (
+                <div className="catalog-chips">
+                    {filters.keyword && (
+                        <Chip label={`“${filters.keyword}”`} onDelete={() => setSearchText('')} />
+                    )}
+                    {activeChips.map((chip) => (
+                        <Chip key={chip.key} label={chip.label} onDelete={() => removeChip(chip.reset)} />
                     ))}
-                </TextField>
-                <TextField
-                    select
-                    name="minReviews"
-                    label="Reviews"
-                    size="small"
-                    className="filter-select"
-                    value={draft.minReviews}
-                    onChange={handleChange}
-                >
-                    <MenuItem value="All">Any number</MenuItem>
-                    <MenuItem value="1">Has reviews</MenuItem>
-                    <MenuItem value="5">5+ reviews</MenuItem>
-                    <MenuItem value="10">10+ reviews</MenuItem>
-                </TextField>
-                <Button type="submit" variant="contained">
-                    Apply
-                </Button>
-                <Button type="button" onClick={handleClear}>
-                    Clear
-                </Button>
-            </form>
+                    <Button size="small" color="secondary" onClick={clearAll}>
+                        Clear all
+                    </Button>
+                </div>
+            )}
+
+            <FilterDrawer
+                open={drawerOpen}
+                onClose={() => setDrawerOpen(false)}
+                applied={filters}
+                onApply={(next) => setFilters({ ...next, keyword: filters.keyword, sort: filters.sort })}
+                emptyFilters={emptyFilters}
+                maxPrice={maxPrice}
+            />
 
             {error && (
                 <div className="catalog-message">
@@ -159,7 +225,14 @@ export default function Catalog() {
                 </div>
             )}
             {!loading && !error && page > 0 && products.length === 0 && (
-                <Typography className="catalog-message">No products match your search.</Typography>
+                <div className="catalog-message">
+                    <Typography>No products match your search.</Typography>
+                    {hasAnyFilter && (
+                        <Button color="secondary" onClick={clearAll}>
+                            Clear all filters
+                        </Button>
+                    )}
+                </div>
             )}
             {!loading && !error && !hasMore && products.length > 0 && (
                 <Typography className="catalog-message" color="text.secondary">
