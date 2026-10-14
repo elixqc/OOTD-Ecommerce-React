@@ -256,19 +256,89 @@ exports.downloadReceipt = async (req, res) => {
 };
 
 
-// GET /api/v1/admin/dashboard
-// Everything the admin dashboard needs in one request. Cancelled orders don't count as sales.
-exports.dashboardStats = async (req, res) => {
-    const notCancelled = { orderStatus: { $ne: 'Cancelled' } };
-    const year = new Date().getFullYear();
+// GET /api/v1/admin/dashboard?from=YYYY-MM-DD&to=YYYY-MM-DD
+// Everything the admin dashboard needs in one request, filtered by an inclusive date range.
+// Defaults to January 1st of this year up to today. Cancelled orders don't count as sales.
+const TIMEZONE = 'Asia/Manila'; // dates are interpreted as Philippine local days
+const TZ_OFFSET = '+08:00';
+const DAY_MS = 24 * 60 * 60 * 1000;
 
-    const [totals, salesPerMonth, productSales, customerSales, totalProducts, totalUsers] = await Promise.all([
+const isValidDateString = (value) => {
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) return false;
+    const d = new Date(`${value}T00:00:00Z`);
+    return !Number.isNaN(d.getTime()) && d.toISOString().slice(0, 10) === value;
+};
+
+// Builds every day (or month) key between from and to so empty periods show as 0 on the chart
+const buildBuckets = (from, to, granularity) => {
+    const buckets = [];
+    const end = new Date(`${to}T00:00:00Z`);
+    let cursor = new Date(`${from}T00:00:00Z`);
+
+    if (granularity === 'hour') {
+        for (let h = 0; h < 24; h++) {
+            buckets.push({
+                key: String(h).padStart(2, '0'),
+                label: `${h % 12 === 0 ? 12 : h % 12} ${h < 12 ? 'AM' : 'PM'}`,
+            });
+        }
+    } else if (granularity === 'month') {
+        cursor = new Date(Date.UTC(cursor.getUTCFullYear(), cursor.getUTCMonth(), 1));
+        while (cursor <= end) {
+            buckets.push({
+                key: cursor.toISOString().slice(0, 7),
+                label: cursor.toLocaleDateString('en-US', { month: 'short', year: 'numeric', timeZone: 'UTC' }),
+            });
+            cursor = new Date(Date.UTC(cursor.getUTCFullYear(), cursor.getUTCMonth() + 1, 1));
+        }
+    } else {
+        while (cursor <= end) {
+            buckets.push({
+                key: cursor.toISOString().slice(0, 10),
+                label: cursor.toLocaleDateString('en-US', { month: 'short', day: 'numeric', timeZone: 'UTC' }),
+            });
+            cursor = new Date(cursor.getTime() + DAY_MS);
+        }
+    }
+    return buckets;
+};
+
+exports.dashboardStats = async (req, res) => {
+    const today = new Date().toLocaleDateString('en-CA', { timeZone: TIMEZONE });
+    const from = req.query.from || `${today.slice(0, 4)}-01-01`;
+    const to = req.query.to || today;
+
+    if (!isValidDateString(from) || !isValidDateString(to)) {
+        return res.status(400).json({ success: false, message: 'Dates must be valid and use the YYYY-MM-DD format' });
+    }
+    if (from > to) {
+        return res.status(400).json({ success: false, message: 'The start date cannot be after the end date' });
+    }
+
+    const start = new Date(`${from}T00:00:00${TZ_OFFSET}`);
+    const endExclusive = new Date(new Date(`${to}T00:00:00${TZ_OFFSET}`).getTime() + DAY_MS);
+    const inRange = { createdAt: { $gte: start, $lt: endExclusive } };
+    const notCancelled = { ...inRange, orderStatus: { $ne: 'Cancelled' } };
+
+    // A single day is shown hour by hour, up to ~3 months day by day, anything longer month by month
+    const rangeDays = Math.round((endExclusive - start) / DAY_MS);
+    const granularity = rangeDays === 1 ? 'hour' : rangeDays <= 92 ? 'day' : 'month';
+    const dateFormat = { hour: '%H', day: '%Y-%m-%d', month: '%Y-%m' }[granularity];
+
+    const [totals, salesOverTime, productSales, customerSales, totalProducts, totalUsers] = await Promise.all([
         Order.aggregate([
+            { $match: inRange },
             { $group: { _id: null, totalOrders: { $sum: 1 } } },
         ]),
         Order.aggregate([
-            { $match: { ...notCancelled, createdAt: { $gte: new Date(year, 0, 1), $lt: new Date(year + 1, 0, 1) } } },
-            { $group: { _id: { $month: '$createdAt' }, total: { $sum: '$totalPrice' }, orders: { $sum: 1 } } },
+            { $match: notCancelled },
+            {
+                $group: {
+                    _id: { $dateToString: { format: dateFormat, date: '$createdAt', timezone: TIMEZONE } },
+                    total: { $sum: '$totalPrice' },
+                    orders: { $sum: 1 },
+                },
+            },
         ]),
         Order.aggregate([
             { $match: notCancelled },
@@ -295,20 +365,25 @@ exports.dashboardStats = async (req, res) => {
         User.countDocuments(),
     ]);
 
-    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-    const monthly = months.map((month, i) => {
-        const found = salesPerMonth.find((m) => m._id === i + 1);
-        return { month, total: found ? found.total : 0, orders: found ? found.orders : 0 };
+    const series = buildBuckets(from, to, granularity).map(({ key, label }) => {
+        const found = salesOverTime.find((b) => b._id === key);
+        return { date: key, label, total: found ? found.total : 0, orders: found ? found.orders : 0 };
     });
+
+    const totalSales = series.reduce((sum, b) => sum + b.total, 0);
+    const paidOrders = series.reduce((sum, b) => sum + b.orders, 0);
 
     return res.status(200).json({
         success: true,
-        year,
+        from,
+        to,
+        granularity,
         totalOrders: totals[0] ? totals[0].totalOrders : 0,
-        totalSales: monthly.reduce((sum, m) => sum + m.total, 0),
+        totalSales,
+        averageOrderValue: paidOrders ? totalSales / paidOrders : 0,
         totalProducts,
         totalUsers,
-        salesPerMonth: monthly,
+        salesOverTime: series,
         productSales: productSales.map((p) => ({ name: p._id, unitsSold: p.unitsSold, total: p.total })),
         customerSales: customerSales.map((c) => ({ name: c.name, orders: c.orders, total: c.total })),
     });
