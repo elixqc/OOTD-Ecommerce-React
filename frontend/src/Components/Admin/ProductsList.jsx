@@ -15,6 +15,10 @@ export default function ProductsList() {
 
     const [keyword, setKeyword] = useState('');
     const [categoryFilter, setCategoryFilter] = useState('All');
+    const [minPrice, setMinPrice] = useState('');
+    const [maxPrice, setMaxPrice] = useState('');
+    const [ratingFilter, setRatingFilter] = useState('All');
+    const [reviewsFilter, setReviewsFilter] = useState('All');
     const [selectionModel, setSelectionModel] = useState(null);
 
     useEffect(() => {
@@ -42,6 +46,11 @@ export default function ProductsList() {
 
     const filteredRows = useMemo(() => {
         const text = keyword.trim().toLowerCase();
+        const min = minPrice === '' ? null : Number(minPrice);
+        const max = maxPrice === '' ? null : Number(maxPrice);
+        const minRating = ratingFilter === 'All' ? 0 : Number(ratingFilter);
+        const minReviews = reviewsFilter === 'All' ? 0 : Number(reviewsFilter);
+
         return products.filter((p) => {
             const matchesText =
                 !text ||
@@ -49,9 +58,29 @@ export default function ProductsList() {
                 (p.brand || '').toLowerCase().includes(text) ||
                 p.category.toLowerCase().includes(text);
             const matchesCategory = categoryFilter === 'All' || p.category === categoryFilter;
-            return matchesText && matchesCategory;
+            const matchesPrice = (min === null || p.price >= min) && (max === null || p.price <= max);
+            const matchesRating = p.ratings >= minRating;
+            const matchesReviews = (p.numOfReviews || 0) >= minReviews;
+            return matchesText && matchesCategory && matchesPrice && matchesRating && matchesReviews;
         });
-    }, [products, keyword, categoryFilter]);
+    }, [products, keyword, categoryFilter, minPrice, maxPrice, ratingFilter, reviewsFilter]);
+
+    const filtering =
+        keyword !== '' ||
+        categoryFilter !== 'All' ||
+        minPrice !== '' ||
+        maxPrice !== '' ||
+        ratingFilter !== 'All' ||
+        reviewsFilter !== 'All';
+
+    const clearFilters = () => {
+        setKeyword('');
+        setCategoryFilter('All');
+        setMinPrice('');
+        setMaxPrice('');
+        setRatingFilter('All');
+        setReviewsFilter('All');
+    };
 
     // Newer DataGrid versions give { type, ids: Set }, older ones give an array
     const getSelectedIds = (model) => {
@@ -98,6 +127,7 @@ export default function ProductsList() {
         },
         { field: 'totalStock', headerName: 'Stock', type: 'number', width: 90 },
         { field: 'ratings', headerName: 'Rating', type: 'number', width: 90 },
+        { field: 'numOfReviews', headerName: 'Reviews', type: 'number', width: 100 },
         {
             field: 'actions',
             headerName: 'Actions',
@@ -150,6 +180,49 @@ export default function ProductsList() {
                         </MenuItem>
                     ))}
                 </TextField>
+                <TextField
+                    label="Min price"
+                    type="number"
+                    size="small"
+                    value={minPrice}
+                    onChange={(e) => setMinPrice(e.target.value)}
+                />
+                <TextField
+                    label="Max price"
+                    type="number"
+                    size="small"
+                    value={maxPrice}
+                    onChange={(e) => setMaxPrice(e.target.value)}
+                />
+                <TextField
+                    select
+                    label="Rating"
+                    size="small"
+                    className="filter-select"
+                    value={ratingFilter}
+                    onChange={(e) => setRatingFilter(e.target.value)}
+                >
+                    <MenuItem value="All">Any rating</MenuItem>
+                    {[4, 3, 2, 1].map((stars) => (
+                        <MenuItem key={stars} value={String(stars)}>
+                            {stars} stars &amp; up
+                        </MenuItem>
+                    ))}
+                </TextField>
+                <TextField
+                    select
+                    label="Reviews"
+                    size="small"
+                    className="filter-select"
+                    value={reviewsFilter}
+                    onChange={(e) => setReviewsFilter(e.target.value)}
+                >
+                    <MenuItem value="All">Any number</MenuItem>
+                    <MenuItem value="1">Has reviews</MenuItem>
+                    <MenuItem value="5">5+ reviews</MenuItem>
+                    <MenuItem value="10">10+ reviews</MenuItem>
+                </TextField>
+                {filtering && <Button onClick={clearFilters}>Clear</Button>}
                 <div className="table-toolbar-spacer" />
                 <Button
                     variant="contained"

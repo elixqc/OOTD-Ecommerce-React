@@ -6,7 +6,7 @@ import { CATEGORIES } from '../../constants/productConstants';
 import { notifyError } from '../../Utils/helpers';
 import ProductCard from './ProductCard';
 
-const emptyFilters = { keyword: '', category: 'All', minPrice: '', maxPrice: '', rating: 'All' };
+const emptyFilters = { keyword: '', category: 'All', minPrice: '', maxPrice: '', rating: 'All', minReviews: 'All' };
 
 export default function Catalog() {
     const dispatch = useDispatch();
@@ -117,6 +117,20 @@ export default function Catalog() {
                             {stars} stars &amp; up
                         </MenuItem>
                     ))}
+                </TextField>
+                <TextField
+                    select
+                    name="minReviews"
+                    label="Reviews"
+                    size="small"
+                    className="filter-select"
+                    value={draft.minReviews}
+                    onChange={handleChange}
+                >
+                    <MenuItem value="All">Any number</MenuItem>
+                    <MenuItem value="1">Has reviews</MenuItem>
+                    <MenuItem value="5">5+ reviews</MenuItem>
+                    <MenuItem value="10">10+ reviews</MenuItem>
                 </TextField>
                 <Button type="submit" variant="contained">
                     Apply

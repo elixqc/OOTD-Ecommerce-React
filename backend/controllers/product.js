@@ -252,6 +252,11 @@ exports.getProducts = async (req, res) => {
         filter.ratings = { $gte: minRating };
     }
 
+    const minReviews = toNumber(req.query.minReviews);
+    if (Number.isFinite(minReviews) && minReviews > 0) {
+        filter.numOfReviews = { $gte: minReviews };
+    }
+    
     // Count before skip/limit, so total is the real number of matches
     const total = await Product.countDocuments(filter);
 

@@ -16,15 +16,39 @@ import {
     MY_REVIEWS_FAIL,
 } from '../constants/reviewConstants';
 
-export const getProductReviews = (productId) => async (dispatch) => {
-    try {
-        dispatch({ type: PRODUCT_REVIEWS_REQUEST });
-        const { data } = await api.get(`/product/${productId}/reviews`);
-        dispatch({ type: PRODUCT_REVIEWS_SUCCESS, payload: { productId, reviews: data.reviews } });
-    } catch (error) {
-        dispatch({ type: PRODUCT_REVIEWS_FAIL, payload: getErrorMessage(error) });
-    }
-};
+let latestReviewsRequest = 0;
+
+// filters: { rating, withComment, size, color }. Empty values are left out.
+export const getProductReviews =
+    (productId, filters = {}) =>
+    async (dispatch) => {
+        // If the filters change while a request is running, the older response is ignored
+        const requestId = ++latestReviewsRequest;
+
+        const params = {};
+        if (filters.rating) params.rating = filters.rating;
+        if (filters.withComment) params.withComment = 'true';
+        if (filters.size) params.size = filters.size;
+        if (filters.color) params.color = filters.color;
+
+        try {
+            dispatch({ type: PRODUCT_REVIEWS_REQUEST });
+            const { data } = await api.get(`/product/${productId}/reviews`, { params });
+            if (requestId !== latestReviewsRequest) return;
+            dispatch({
+                type: PRODUCT_REVIEWS_SUCCESS,
+                payload: {
+                    productId,
+                    reviews: data.reviews,
+                    summary: data.summary,
+                    variantOptions: data.variantOptions,
+                },
+            });
+        } catch (error) {
+            if (requestId !== latestReviewsRequest) return;
+            dispatch({ type: PRODUCT_REVIEWS_FAIL, payload: getErrorMessage(error) });
+        }
+    };
 
 // Can this customer review the product, and have they already?
 export const getReviewStatus = (productId) => async (dispatch) => {
@@ -42,8 +66,8 @@ export const getReviewStatus = (productId) => async (dispatch) => {
 
 // After a review is added, edited, or deleted: reload the list, the form state,
 // and the product's average rating (without blanking the page)
-export const refreshProductReviews = (productId) => (dispatch) => {
-    dispatch(getProductReviews(productId));
+export const refreshProductReviews = (productId, filters) => (dispatch) => {
+    dispatch(getProductReviews(productId, filters));
     dispatch(getReviewStatus(productId));
     dispatch(getProductDetails(productId, true));
 };

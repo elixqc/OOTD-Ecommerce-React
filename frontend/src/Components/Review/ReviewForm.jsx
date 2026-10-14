@@ -9,9 +9,8 @@ const validationSchema = Yup.object({
     rating: Yup.number().min(1, 'Please choose a star rating').max(5).required('Please choose a star rating'),
     comment: Yup.string()
         .trim()
-        .min(3, 'Please write at least 3 characters')
         .max(1000, 'Review cannot exceed 1000 characters')
-        .required('Please write a review'),
+        .test('min-length', 'Write at least 3 characters, or leave it empty', (value) => !value || value.length >= 3),
 });
 
 // Writes a new review, or edits `existing` when it is given
@@ -52,7 +51,7 @@ export default function ReviewForm({ productId, existing, onDone, onCancel }) {
             </div>
 
             <TextField
-                label="Your review"
+                label="Your review (optional)"
                 name="comment"
                 multiline
                 minRows={3}

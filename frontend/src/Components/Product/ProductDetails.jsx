@@ -370,7 +370,7 @@ export default function ProductDetails() {
 
             <ProductInfo key={product._id} product={product} />
 
-            <ListReviews productId={product._id} />
+            <ListReviews key={product._id} productId={product._id} />
 
             {related.length > 0 && (
                 <section className="related-products">

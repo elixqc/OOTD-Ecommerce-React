@@ -22,12 +22,16 @@ const reviewSchema = new mongoose.Schema(
             min: [1, 'Rating must be at least 1'],
             max: [5, 'Rating cannot exceed 5'],
         },
+        // The comment is optional, so a customer can leave a star rating only
         comment: {
             type: String,
-            required: [true, 'Please write a review'],
             trim: true,
+            default: '',
             maxLength: [1000, 'Review cannot exceed 1000 characters'],
         },
+        // The size and color the customer bought (copied from their delivered order)
+        size: { type: String, trim: true, default: '' },
+        color: { type: String, trim: true, default: '' },
     },
     { timestamps: true }
 );

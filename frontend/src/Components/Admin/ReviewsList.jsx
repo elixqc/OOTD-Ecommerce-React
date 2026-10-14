@@ -9,6 +9,7 @@ import {
     DialogActions,
     DialogContent,
     DialogTitle,
+    MenuItem,
     Rating,
     TextField,
     ToggleButton,
@@ -23,6 +24,8 @@ export default function ReviewsList() {
     const dispatch = useDispatch();
     const { reviews, loading, error } = useSelector((state) => state.adminReviews);
     const [keyword, setKeyword] = useState('');
+    const [ratingFilter, setRatingFilter] = useState('All');
+    const [commentFilter, setCommentFilter] = useState('All'); // All, With, Without
     const [viewing, setViewing] = useState(null); // the review open in the dialog
     const [showOriginal, setShowOriginal] = useState(false);
 
@@ -39,15 +42,21 @@ export default function ReviewsList() {
 
     const filteredRows = useMemo(() => {
         const text = keyword.trim().toLowerCase();
-        if (!text) return reviews;
-        return reviews.filter(
-            (r) =>
+        return reviews.filter((r) => {
+            const matchesText =
+                !text ||
                 (r.product?.name || '').toLowerCase().includes(text) ||
                 (r.user?.name || r.name).toLowerCase().includes(text) ||
-                r.comment.toLowerCase().includes(text) ||
-                (r.originalComment || '').toLowerCase().includes(text)
-        );
-    }, [reviews, keyword]);
+                (r.comment || '').toLowerCase().includes(text) ||
+                (r.originalComment || '').toLowerCase().includes(text) ||
+                [r.size, r.color].some((v) => (v || '').toLowerCase().includes(text));
+            const matchesRating = ratingFilter === 'All' || r.rating === Number(ratingFilter);
+            const hasComment = Boolean((r.comment || '').trim());
+            const matchesComment =
+                commentFilter === 'All' || (commentFilter === 'With' ? hasComment : !hasComment);
+            return matchesText && matchesRating && matchesComment;
+        });
+    }, [reviews, keyword, ratingFilter, commentFilter]);
 
     // Always opens on the filtered text; the admin chooses to reveal the original
     const openReview = (review) => {
@@ -83,6 +92,12 @@ export default function ReviewsList() {
         },
         { field: 'name', headerName: 'Customer', width: 150 },
         {
+            field: 'variant',
+            headerName: 'Variant',
+            width: 130,
+            valueGetter: (value, row) => [row.color, row.size].filter(Boolean).join(', '),
+        },
+        {
             field: 'rating',
             headerName: 'Rating',
             type: 'number',
@@ -96,7 +111,7 @@ export default function ReviewsList() {
             minWidth: 240,
             renderCell: (params) => (
                 <div className="review-cell">
-                    <span className="review-cell-text">{params.value}</span>
+                    <span className="review-cell-text">{params.value || 'No comment'}</span>
                     {params.row.flagged && <Chip label="Filtered" size="small" color="warning" variant="outlined" />}
                 </div>
             ),
@@ -143,6 +158,33 @@ export default function ReviewsList() {
                     value={keyword}
                     onChange={(e) => setKeyword(e.target.value)}
                 />
+                <TextField
+                    select
+                    label="Stars"
+                    size="small"
+                    className="filter-select"
+                    value={ratingFilter}
+                    onChange={(e) => setRatingFilter(e.target.value)}
+                >
+                    <MenuItem value="All">All stars</MenuItem>
+                    {[5, 4, 3, 2, 1].map((stars) => (
+                        <MenuItem key={stars} value={String(stars)}>
+                            {stars} star{stars === 1 ? '' : 's'}
+                        </MenuItem>
+                    ))}
+                </TextField>
+                <TextField
+                    select
+                    label="Comment"
+                    size="small"
+                    className="filter-select"
+                    value={commentFilter}
+                    onChange={(e) => setCommentFilter(e.target.value)}
+                >
+                    <MenuItem value="All">All reviews</MenuItem>
+                    <MenuItem value="With">With comment</MenuItem>
+                    <MenuItem value="Without">Without comment</MenuItem>
+                </TextField>
             </div>
 
             <div className="data-grid-box">
@@ -168,6 +210,12 @@ export default function ReviewsList() {
                             </Typography>
                             <Rating value={viewing.rating} size="small" readOnly sx={{ my: 1 }} />
 
+                            {(viewing.color || viewing.size) && (
+                                <Typography variant="body2" color="text.secondary">
+                                    Variation: {[viewing.color, viewing.size].filter(Boolean).join(', ')}
+                                </Typography>
+                            )}
+                            
                             {viewing.flagged && (
                                 <ToggleButtonGroup
                                     exclusive
@@ -182,7 +230,7 @@ export default function ReviewsList() {
                             )}
 
                             <p className="review-full-text">
-                                {viewing.flagged && showOriginal ? viewing.originalComment : viewing.comment}
+                                {(viewing.flagged && showOriginal ? viewing.originalComment : viewing.comment) || 'No comment'}
                             </p>
                         </DialogContent>
                         <DialogActions>

@@ -16,11 +16,24 @@ import { CLEAR_ERRORS } from '../constants/userConstants';
 
 // productId says which product the list belongs to, because the store can
 // still hold the previous product's reviews while a new page loads
-export const productReviewsReducer = (state = { reviews: [], productId: null }, action) => {
+
+const noVariants = { sizes: [], colors: [] };
+
+export const productReviewsReducer = (
+    state = { reviews: [], productId: null, summary: null, variantOptions: noVariants },
+    action
+) => {
     switch (action.type) {
         case PRODUCT_REVIEWS_REQUEST:
             return { ...state, loading: true };
         case PRODUCT_REVIEWS_SUCCESS:
+            return {
+                loading: false,
+                productId: action.payload.productId,
+                reviews: action.payload.reviews,
+                summary: action.payload.summary,
+                variantOptions: action.payload.variantOptions || noVariants,
+            };
             return { loading: false, productId: action.payload.productId, reviews: action.payload.reviews };
         case PRODUCT_REVIEWS_FAIL:
             return { ...state, loading: false, error: action.payload };
