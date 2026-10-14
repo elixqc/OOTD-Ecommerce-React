@@ -16,7 +16,7 @@ export default function OrderInfo({ order, itemAction }) {
                     {order.user?.name && <Typography variant="body2">{order.user.name}</Typography>}
                     <Typography variant="body2">{ship.address}</Typography>
                     <Typography variant="body2">
-                        {ship.city}, {ship.postalCode}, {ship.country}
+                        {[ship.city, ship.region, ship.postalCode, ship.country].filter(Boolean).join(', ')}
                     </Typography>
                     <Typography variant="body2">Phone: {ship.phoneNo}</Typography>
                 </section>

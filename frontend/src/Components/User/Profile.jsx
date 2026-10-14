@@ -6,7 +6,7 @@ import { formatDate } from '../../Utils/helpers';
 export default function Profile() {
     const { user } = useSelector((state) => state.auth);
     const address = user.shippingAddress || {};
-    const fullAddress = [address.address, address.city, address.postalCode, address.country]
+    const fullAddress = [address.address, address.city, address.region, address.postalCode, address.country]
         .filter(Boolean)
         .join(', ');
 

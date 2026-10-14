@@ -113,7 +113,9 @@ export default function Payment() {
                 <div className="review-row">
                     <span className="review-label">Ship to</span>
                     <span className="review-value">
-                        {shippingInfo.address}, {shippingInfo.city} {shippingInfo.postalCode}, {shippingInfo.country}
+                        {[shippingInfo.address, shippingInfo.city, shippingInfo.region, shippingInfo.postalCode, shippingInfo.country]
+                            .filter(Boolean)
+                            .join(', ')}
                     </span>
                     <Link to="/shipping" className="review-change">
                         Change

@@ -57,7 +57,7 @@ export default function UpdateUser() {
     }
 
     const address = user.shippingAddress || {};
-    const fullAddress = [address.address, address.city, address.postalCode, address.country]
+    const fullAddress = [address.address, address.city, address.region, address.postalCode, address.country]
         .filter(Boolean)
         .join(', ');
 

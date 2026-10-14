@@ -62,7 +62,7 @@ export default function Header() {
     const isAdmin = user?.role === 'admin';
     const cartCount = cartItems.reduce((sum, item) => sum + item.quantity, 0);
     const wide = pathname === '/'; // same rule as CustomerLayout
-    const scrolled = useScrollTrigger({ disableHysteresis: true, threshold: 8 });
+    const scrolled = useScrollTrigger({ disableHysteresis: true, threshold: 0 });
 
     const [anchorEl, setAnchorEl] = useState(null);
     const [drawerOpen, setDrawerOpen] = useState(false);

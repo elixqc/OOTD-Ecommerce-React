@@ -5,9 +5,11 @@ import { useFormik } from 'formik';
 import * as Yup from 'yup';
 import { Button, TextField } from '@mui/material';
 import { saveShippingInfo } from '../../actions/cartActions';
+import LocationFields from '../Common/LocationFields';
 
 const validationSchema = Yup.object({
     address: Yup.string().trim().min(5, 'Enter your full address').max(200, 'Address is too long').required('Address is required'),
+    region: Yup.string().trim().max(80, 'Region is too long').required('Region is required'),
     city: Yup.string().trim().max(60, 'City is too long').required('City is required'),
     phoneNo: Yup.string()
         .trim()
@@ -31,15 +33,19 @@ export default function Shipping() {
         if (cartItems.length === 0) navigate('/cart', { replace: true });
     }, [cartItems.length, navigate]);
 
-    // Use the last address typed here, otherwise the one saved in the profile
+    // Start from the address typed earlier in this session (e.g. after clicking "Change" on the review page).
+    // Otherwise use the profile's address and phone, but only when both are saved. If not, the form starts empty.
     const saved = user?.shippingAddress || {};
+    const useProfile = Boolean(saved.address && user?.phone);
+    const start = shippingInfo || (useProfile ? { ...saved, phoneNo: user.phone } : {});
     const formik = useFormik({
         initialValues: {
-            address: shippingInfo?.address ?? saved.address ?? '',
-            city: shippingInfo?.city ?? saved.city ?? '',
-            phoneNo: shippingInfo?.phoneNo ?? user?.phone ?? '',
-            postalCode: shippingInfo?.postalCode ?? saved.postalCode ?? '',
-            country: shippingInfo?.country ?? (saved.country || 'Philippines'),
+            country: start.country ?? '',
+            region: start.region ?? '',
+            city: start.city ?? '',
+            address: start.address ?? '',
+            postalCode: start.postalCode ?? '',
+            phoneNo: start.phoneNo ?? '',
         },
         validationSchema,
         validateOnChange: false,
@@ -80,14 +86,13 @@ export default function Shipping() {
             <form onSubmit={formik.handleSubmit} noValidate>
                 <section className="checkout-section">
                     <h2 className="checkout-heading">Delivery</h2>
-                    <div className="checkout-fields">
-                        {field('country', 'Country/Region', { autoComplete: 'country-name' })}
+                    <div className="checkout-fields" style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                        <LocationFields formik={formik} />
                         {field('address', 'Address', { autoComplete: 'street-address' })}
                         <div className="checkout-row">
-                            {field('city', 'City', { autoComplete: 'address-level2' })}
                             {field('postalCode', 'Postal code', { autoComplete: 'postal-code' })}
+                            {field('phoneNo', 'Phone', { autoComplete: 'tel', inputMode: 'tel' })}
                         </div>
-                        {field('phoneNo', 'Phone', { autoComplete: 'tel', inputMode: 'tel' })}
                     </div>
                 </section>
 

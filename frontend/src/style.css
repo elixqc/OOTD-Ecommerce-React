@@ -1034,9 +1034,16 @@ body {
     padding: 24px var(--page-gutter);
 }
 
-/* The shop page uses the full width of the screen */
 .page-container.page-wide {
     max-width: none;
+    /* Slide up under the header (56px bar + 1px border) so the banner shows through it */
+    margin-top: -57px;
+}
+
+@media (min-width: 900px) {
+    .page-container.page-wide {
+        margin-top: -65px; /* 64px bar + 1px border */
+    }
 }
 
 /* Stops the full-width banner from causing a sideways scrollbar */
@@ -1046,20 +1053,60 @@ body {
 
 /* Full-width banner at the top of the home page */
 .home-hero {
+    position: relative;
     margin: -24px calc(-1 * var(--page-gutter)) 32px;
-    padding: clamp(48px, 8vw, 110px) var(--page-gutter);
-    background: var(--brand-dark);
-    border-top: 1px solid rgba(255, 255, 255, 0.08);
-    color: #fff;
+    padding: 0;
+    background: #ebebeb;
+    color: var(--brand-dark);
+    text-align: left;
+}
+
+.home-hero-img {
+    display: block;
+    width: 100%;
+    height: auto;
+}
+
+/* Phones and tablets: the text sits under the photo */
+.home-hero-content {
+    padding: 24px var(--page-gutter) 28px;
+    text-align: center;
 }
 
 .home-hero .MuiTypography-root {
     color: inherit;
 }
 
+.home-hero .MuiTypography-h3 {
+    font-weight: 700;
+    font-size: clamp(1.75rem, 7vw, 2.5rem);
+}
+
 .home-hero .MuiButton-contained {
-    background: #fff;
-    color: var(--brand-dark);
+    background: var(--brand-dark);
+    color: #fff;
+}
+
+.home-hero .MuiButton-contained:hover {
+    background: #333;
+}
+
+/* Desktop: the text sits on the empty left side of the photo */
+@media (min-width: 900px) {
+    .home-hero-content {
+        position: absolute;
+        top: 50%;
+        left: var(--page-gutter);
+        width: 26%;
+        padding: 0;
+        text-align: left;
+        transform: translateY(-50%);
+    }
+
+    .home-hero .MuiTypography-h3 {
+        font-size: clamp(1.75rem, 3.2vw, 3.25rem);
+        line-height: 1.1;
+    }
 }
 
 .home-hero .MuiButton-contained:hover {

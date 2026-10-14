@@ -80,7 +80,7 @@ exports.buildOrderEmail = (order, user) => {
 
         <p style="font-size:14px;"><strong>Shipping to:</strong><br>
             ${escapeHtml(order.shippingInfo.address)}<br>
-            ${escapeHtml(order.shippingInfo.city)}, ${escapeHtml(order.shippingInfo.postalCode)}, ${escapeHtml(order.shippingInfo.country)}<br>
+            ${[order.shippingInfo.city, order.shippingInfo.region, order.shippingInfo.postalCode, order.shippingInfo.country].filter(Boolean).map(escapeHtml).join(', ')}<br>
             Phone: ${escapeHtml(order.shippingInfo.phoneNo)}
         </p>
         <p style="font-size:14px;">Payment: ${escapeHtml(order.paymentMethod)}. Your PDF receipt is attached.</p>

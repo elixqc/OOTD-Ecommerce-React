@@ -65,11 +65,7 @@ export const clearCart = () => (dispatch, getState) => {
     saveCart(getState);
 };
 
+// Kept in memory only (not in the browser), so it can't show up for a different user
 export const saveShippingInfo = (shippingInfo) => (dispatch) => {
     dispatch({ type: SAVE_SHIPPING_INFO, payload: shippingInfo });
-    try {
-        localStorage.setItem('shippingInfo', JSON.stringify(shippingInfo));
-    } catch {
-        // Storage is blocked: the address is still used for this order
-    }
 };

@@ -60,18 +60,14 @@ const loadCartItems = () => {
     }
 };
 
-// Restore the saved shipping address, or null if there isn't a usable one
-const loadShippingInfo = () => {
-    try {
-        const info = JSON.parse(localStorage.getItem('shippingInfo'));
-        const fields = ['address', 'city', 'phoneNo', 'postalCode', 'country'];
-        return info && fields.every((f) => typeof info[f] === 'string') ? info : null;
-    } catch {
-        return null;
-    }
-};
+// An address remembered in this browser by older versions must not fill in checkout for whoever uses it next
+try {
+    localStorage.removeItem('shippingInfo');
+} catch {
+    // Storage is blocked: nothing to remove
+}
 
-const initialState = { cart: { cartItems: loadCartItems(), shippingInfo: loadShippingInfo() } };
+const initialState = { cart: { cartItems: loadCartItems(), shippingInfo: null } };
 
 const store = createStore(reducer, initialState, applyMiddleware(thunk));
 

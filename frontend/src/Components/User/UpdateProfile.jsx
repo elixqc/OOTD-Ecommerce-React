@@ -8,6 +8,7 @@ import { clearErrors, updateMyProfile } from '../../actions/userActions';
 import { UPDATE_PROFILE_RESET } from '../../constants/userConstants';
 import { MAX_FILE_SIZE } from '../../constants/productConstants';
 import { notifyError, notifySuccess } from '../../Utils/helpers';
+import LocationFields from '../Common/LocationFields';
 
 const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
 
@@ -22,6 +23,7 @@ const validationSchema = Yup.object({
         .trim()
         .matches(/^[0-9+\-\s()]{7,15}$/, { message: 'Enter a valid phone number', excludeEmptyString: true }),
     address: Yup.string().trim().max(200, 'Address is too long'),
+    region: Yup.string().trim().max(80, 'Region is too long'),
     city: Yup.string().trim().max(60, 'City is too long'),
     postalCode: Yup.string()
         .trim()
@@ -51,6 +53,7 @@ export default function UpdateProfile() {
             name: user.name || '',
             phone: user.phone || '',
             address: saved.address || '',
+            region: saved.region || '',
             city: saved.city || '',
             postalCode: saved.postalCode || '',
             country: saved.country || '',
@@ -64,6 +67,7 @@ export default function UpdateProfile() {
                 phone: values.phone.trim(),
                 shippingAddress: {
                     address: values.address.trim(),
+                    region: values.region.trim(),
                     city: values.city.trim(),
                     postalCode: values.postalCode.trim(),
                     country: values.country.trim(),
@@ -153,10 +157,9 @@ export default function UpdateProfile() {
                     {field('phone', 'Phone number', { autoComplete: 'tel', inputMode: 'tel' })}
 
                     <Typography variant="subtitle2">Shipping address</Typography>
+                    <LocationFields formik={formik} rowClassName="form-stack" />
                     {field('address', 'Address', { autoComplete: 'street-address' })}
-                    {field('city', 'City', { autoComplete: 'address-level2' })}
                     {field('postalCode', 'Postal code', { autoComplete: 'postal-code' })}
-                    {field('country', 'Country', { autoComplete: 'country-name' })}
 
                     <Button type="submit" variant="contained" disabled={loading}>
                         {loading ? 'Saving...' : 'Save changes'}

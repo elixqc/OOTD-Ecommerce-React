@@ -40,7 +40,7 @@ exports.buildReceiptPdf = (order, user) =>
             const shipLines = [
                 user?.name,
                 ship.address,
-                `${ship.city}, ${ship.postalCode}`,
+                [ship.city, ship.region, ship.postalCode].filter(Boolean).join(', '),
                 ship.country,
                 `Phone: ${ship.phoneNo}`,
                 user?.email,

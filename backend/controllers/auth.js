@@ -80,6 +80,7 @@ exports.updateProfile = async (req, res) => {
     if (shippingAddress && typeof shippingAddress === 'object') {
         user.shippingAddress = {
             address: text(shippingAddress.address),
+            region: text(shippingAddress.region),
             city: text(shippingAddress.city),
             postalCode: text(shippingAddress.postalCode),
             country: text(shippingAddress.country),

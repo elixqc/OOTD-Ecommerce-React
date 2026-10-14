@@ -30,6 +30,7 @@ const userSchema = new mongoose.Schema(
         },
         shippingAddress: {
             address: { type: String, trim: true, maxLength: [200, 'Address is too long'], default: '' },
+            region: { type: String, trim: true, maxLength: [80, 'Region is too long'], default: '' },
             city: { type: String, trim: true, maxLength: [60, 'City is too long'], default: '' },
             postalCode: { type: String, trim: true, maxLength: [10, 'Postal code is too long'], default: '' },
             country: { type: String, trim: true, maxLength: [60, 'Country is too long'], default: '' },
