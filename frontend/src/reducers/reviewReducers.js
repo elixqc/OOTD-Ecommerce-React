@@ -34,7 +34,6 @@ export const productReviewsReducer = (
                 summary: action.payload.summary,
                 variantOptions: action.payload.variantOptions || noVariants,
             };
-            return { loading: false, productId: action.payload.productId, reviews: action.payload.reviews };
         case PRODUCT_REVIEWS_FAIL:
             return { ...state, loading: false, error: action.payload };
         case CLEAR_ERRORS:
