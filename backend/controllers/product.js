@@ -2,7 +2,7 @@ const cloudinary = require('../config/cloudinary');
 const Product = require('../models/product');
 const Review = require('../models/review');
 const User = require('../models/user');
-const { CATEGORIES, MAX_IMAGES_PER_COLOR, IMAGE_FOLDER } = require('../utils/constants');
+const { CATEGORIES, GENDERS, MAX_IMAGES_PER_COLOR, IMAGE_FOLDER } = require('../utils/constants');
 
 const MAX_IMAGE_LENGTH = 4000000; // base64 characters, roughly 3 MB of image
 const ALLOWED_TYPES = /^data:image\/(jpeg|png|webp);base64,/;
@@ -135,7 +135,7 @@ exports.newProduct = async (req, res) => {
 // GET /api/v1/product/:id  (public)
 exports.getSingleProduct = async (req, res) => {
     const product = await Product.findById(req.params.id);
-    if (!product) {
+    if (!product || product.isActive === false) {
         return res.status(404).json({ success: false, message: 'Product not found' });
     }
     return res.status(200).json({ success: true, product });
@@ -233,11 +233,11 @@ const SORT_OPTIONS = {
 
 // GET /api/v1/products?keyword=&category=&minPrice=&maxPrice=&rating=&sort=&page=&limit=   (public)
 exports.getProducts = async (req, res) => {
-    const { keyword, category, minPrice, maxPrice, rating, sort } = req.query;
+    const { keyword, category, gender, minPrice, maxPrice, rating, sort } = req.query;
     const page = Math.max(parseInt(req.query.page, 10) || 1, 1);
     const limit = Math.min(Math.max(parseInt(req.query.limit, 10) || 8, 1), 24);
 
-    const filter = {};
+    const filter = { isActive: { $ne: false } };
 
     if (typeof keyword === 'string' && keyword.trim()) {
         const pattern = new RegExp(escapeRegex(keyword.trim()), 'i');
@@ -246,6 +246,10 @@ exports.getProducts = async (req, res) => {
 
     if (CATEGORIES.includes(category)) {
         filter.category = category;
+    }
+
+    if (GENDERS.includes(gender)) {
+        filter.gender = gender === 'Unisex' ? 'Unisex' : { $in: [gender, 'Unisex'] };
     }
 
     const min = toNumber(minPrice);
@@ -289,9 +293,13 @@ exports.getProducts = async (req, res) => {
 
 // GET /api/v1/products/max-price   (public)
 // Highest price in the shop, rounded up. The filter drawer uses it as the end of the price slider.
-exports.getMaxPrice = async (req, res) => {
-    const [result] = await Product.aggregate([{ $group: { _id: null, max: { $max: '$price' } } }]);
+exports.getMaxPrice = async (req, res) => { 
+    const [result] = await Product.aggregate([
+        { $match: { isActive: { $ne: false } } },
+        { $group: { _id: null, max: { $max: '$price' } } },
+    ]);
     return res.status(200).json({ success: true, maxPrice: result ? Math.ceil(result.max) : 0 });
+    
 };
 
 // GET /api/v1/product/:id/related   (public)
@@ -302,10 +310,33 @@ exports.getRelatedProducts = async (req, res) => {
         return res.status(404).json({ success: false, message: 'Product not found' });
     }
 
-    const products = await Product.find({ category: product.category, _id: { $ne: product._id } })
-        .select('-user')
-        .sort({ ratings: -1, createdAt: -1 })
-        .limit(4);
+    const products = await Product.find({
+        category: product.category,
+        _id: { $ne: product._id },
+        isActive: { $ne: false },
+    })
 
     return res.status(200).json({ success: true, products });
+};
+
+// GET /api/v1/admin/product/:id
+exports.getAdminProduct = async (req, res) => {
+    const product = await Product.findById(req.params.id);
+    if (!product) {
+        return res.status(404).json({ success: false, message: 'Product not found' });
+    }
+    return res.status(200).json({ success: true, product });
+};
+
+// PUT /api/v1/admin/product/:id/status   body: { isActive: true | false }
+exports.setProductActive = async (req, res) => {
+    const { isActive } = req.body;
+    if (typeof isActive !== 'boolean') {
+        return res.status(400).json({ success: false, message: 'isActive must be true or false' });
+    }
+    const product = await Product.findByIdAndUpdate(req.params.id, { isActive }, { new: true });
+    if (!product) {
+        return res.status(404).json({ success: false, message: 'Product not found' });
+    }
+    return res.status(200).json({ success: true, product });
 };

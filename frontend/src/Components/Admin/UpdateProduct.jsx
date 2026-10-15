@@ -16,7 +16,7 @@ export default function UpdateProduct() {
     const { loading: updating, isUpdated, error: updateError } = useSelector((state) => state.product);
 
     useEffect(() => {
-        dispatch(getProductDetails(id));
+        dispatch(getProductDetails(id, false, true));
     }, [dispatch, id]);
 
     useEffect(() => {

@@ -2,11 +2,12 @@ import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { DataGrid } from '@mui/x-data-grid';
-import { Avatar, Button, MenuItem, TextField, Typography } from '@mui/material';
-import { deleteProduct, deleteProducts, getAdminProducts } from '../../actions/productActions';
+import { Avatar, Button, Chip, MenuItem, TextField, Typography } from '@mui/material';
+import { deleteProduct, deleteProducts, getAdminProducts, setProductActive } from '../../actions/productActions';
 import { clearErrors } from '../../actions/userActions';
 import { DELETE_PRODUCT_RESET, CATEGORIES } from '../../constants/productConstants';
 import { confirmDelete, notifyError, notifySuccess } from '../../Utils/helpers';
+
 
 export default function ProductsList() {
     const dispatch = useDispatch();
@@ -105,6 +106,13 @@ export default function ProductsList() {
         if (confirmed) dispatch(deleteProducts(selectedIds));
     };
 
+        const handleToggleActive = async (product) => {
+        const activate = product.isActive === false;
+        const message = await dispatch(setProductActive(product._id, activate));
+        if (message) notifyError(message);
+        else notifySuccess(activate ? 'Product is visible in the shop again' : 'Product hidden from the shop');
+    };
+
     const columns = [
         {
             field: 'image',
@@ -129,15 +137,31 @@ export default function ProductsList() {
         { field: 'ratings', headerName: 'Rating', type: 'number', width: 90 },
         { field: 'numOfReviews', headerName: 'Reviews', type: 'number', width: 100 },
         {
+            field: 'status',
+            headerName: 'Status',
+            width: 110,
+            valueGetter: (value, row) => (row.isActive === false ? 'Hidden' : 'Active'),
+            renderCell: (params) => (
+                <Chip size="small" label={params.value} color={params.value === 'Active' ? 'success' : 'default'} />
+            ),
+        },
+        {
             field: 'actions',
             headerName: 'Actions',
-            width: 170,
+            width: 290,
             sortable: false,
             filterable: false,
             renderCell: (params) => (
                 <>
                     <Button size="small" component={Link} to={`/admin/product/${params.row._id}`}>
                         Edit
+                    </Button>
+                    <Button
+                        size="small"
+                        color={params.row.isActive === false ? 'success' : 'warning'}
+                        onClick={() => handleToggleActive(params.row)}
+                    >
+                        {params.row.isActive === false ? 'Activate' : 'Deactivate'}
                     </Button>
                     <Button size="small" color="error" onClick={() => handleDelete(params.row)}>
                         Delete

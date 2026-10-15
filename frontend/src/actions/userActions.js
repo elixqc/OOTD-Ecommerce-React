@@ -44,7 +44,7 @@ export const syncUser = (isSignedIn) => async (dispatch) => {
         dispatch({ type: LOGIN_REQUEST });
         const user = await fetchProfile();
         dispatch({ type: LOGIN_SUCCESS, payload: user });
-        dispatch(loadUserCart());
+        dispatch(loadUserCart(user));
     } catch (error) {
         dispatch({ type: LOGIN_FAIL, payload: getErrorMessage(error) });
     }

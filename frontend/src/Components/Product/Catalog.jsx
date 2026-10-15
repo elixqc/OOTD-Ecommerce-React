@@ -23,6 +23,7 @@ import ProductCard from './ProductCard';
 const emptyFilters = {
     keyword: '',
     category: 'All',
+    gender: 'All',
     minPrice: '',
     maxPrice: '',
     rating: 'All',
@@ -95,6 +96,7 @@ export default function Catalog() {
     const activeChips = useMemo(() => {
         const chips = [];
         if (filters.category !== 'All') chips.push({ key: 'category', label: filters.category, reset: { category: 'All' } });
+        if (filters.gender !== 'All') chips.push({ key: 'gender', label: filters.gender, reset: { gender: 'All' } });
         if (filters.minPrice !== '' || filters.maxPrice !== '')
             chips.push({ key: 'price', label: priceLabel(filters), reset: { minPrice: '', maxPrice: '' } });
         if (filters.rating !== 'All') chips.push({ key: 'rating', label: `${filters.rating}★ & up`, reset: { rating: 'All' } });

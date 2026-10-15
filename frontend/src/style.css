@@ -1740,3 +1740,22 @@ body {
     align-items: center;
     gap: 8px;
 }
+
+/* Desktop: the banner stays pinned and the shop slides up over it */
+@media (min-width: 900px) {
+    .home-hero {
+        position: sticky;
+        top: 0;
+        z-index: 0;
+        margin-bottom: 0;
+    }
+
+    .home-shop {
+        position: relative;
+        z-index: 1;
+        background: #fff;
+        /* reach the screen edges so the banner doesn't peek out at the sides */
+        margin: 0 calc(-1 * var(--page-gutter));
+        padding: 32px var(--page-gutter) 0;
+    }
+}

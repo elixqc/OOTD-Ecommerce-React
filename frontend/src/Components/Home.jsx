@@ -25,7 +25,9 @@ export default function Home() {
                     )}
                 </div>
             </section>
-            <Catalog />
+            <div className="home-shop">
+                <Catalog />
+            </div>
         </>
     );
 }

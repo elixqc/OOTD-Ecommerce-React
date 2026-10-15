@@ -85,6 +85,7 @@ const productSchema = new mongoose.Schema(
             trim: true,
             default: '',
         },
+        isActive: { type: Boolean, default: true },
         // Shared photos from before per-color galleries. Only used as a fallback
         // for colors that have no photos of their own.
         images: { type: [imageSchema], default: [] },

@@ -21,9 +21,6 @@ const NEXT_STATUSES = {
 
 const fail = (res, status, message) => res.status(status).json({ success: false, message });
 
-// Takes stock from one size/color variant, but only if enough is left.
-// The check and the deduction happen in one database operation, so two
-// customers can't both buy the last item.
 const reserveStock = async ({ product, size, color, quantity }) => {
     const result = await Product.updateOne(
         { _id: product, variants: { $elemMatch: { size, color, stock: { $gte: quantity } } } },
@@ -91,7 +88,7 @@ exports.newOrder = async (req, res) => {
     const builtItems = [];
     for (const line of requested) {
         const product = productMap.get(String(line.product));
-        if (!product) return fail(res, 400, 'A product in your cart is no longer available');
+        if (!product || product.isActive === false) return fail(res, 400, 'A product in your cart is no longer available');
 
         const variant = product.variants.find((v) => v.size === line.size && v.color === line.color);
         if (!variant) {

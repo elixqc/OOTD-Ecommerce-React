@@ -10,7 +10,9 @@ const {
     getSingleProduct,
     getRelatedProducts,
     getAdminProducts,
+    getAdminProduct,
     updateProduct,
+    setProductActive,
     deleteProduct,
     deleteProducts,
 } = require('../controllers/product');
@@ -29,8 +31,10 @@ router.post('/admin/product/new', adminOnly, newProduct);
 router.post('/admin/product/image', adminOnly, uploadProductImage);
 router.delete('/admin/product/image', adminOnly, removeUploadedImage);
 router.delete('/admin/products', adminOnly, deleteProducts);
+router.put('/admin/product/:id/status', adminOnly, setProductActive);
 router
     .route('/admin/product/:id')
+    .get(adminOnly, getAdminProduct)
     .put(adminOnly, updateProduct)
     .delete(adminOnly, deleteProduct);
 

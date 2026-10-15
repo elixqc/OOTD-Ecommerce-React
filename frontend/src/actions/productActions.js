@@ -35,10 +35,10 @@ export const getAdminProducts = () => async (dispatch) => {
 };
 
 // silent = refresh the data without showing the loading spinner (e.g. after a new review)
-export const getProductDetails = (id, silent = false) => async (dispatch) => {
+export const getProductDetails = (id, silent = false, admin = false) => async (dispatch) => {
     try {
         if (!silent) dispatch({ type: PRODUCT_DETAILS_REQUEST });
-        const { data } = await api.get(`/product/${id}`);
+        const { data } = await api.get(admin ? `/admin/product/${id}` : `/product/${id}`);
         dispatch({ type: PRODUCT_DETAILS_SUCCESS, payload: data.product });
     } catch (error) {
         dispatch({ type: PRODUCT_DETAILS_FAIL, payload: getErrorMessage(error) });
@@ -156,3 +156,14 @@ export const uploadProductImage = async (image, onProgress) => {
 // Removes an upload that was never saved to a product. The server ignores images that are in use.
 export const discardUploadedImage = (publicId) =>
     api.delete('/admin/product/image', { data: { public_id: publicId } }).catch(() => {});
+
+// Hides or shows a product in the shop. Returns an error message, or null when it worked.
+export const setProductActive = (id, isActive) => async (dispatch) => {
+    try {
+        await api.put(`/admin/product/${id}/status`, { isActive });
+        dispatch(getAdminProducts());
+        return null;
+    } catch (error) {
+        return getErrorMessage(error);
+    }
+};

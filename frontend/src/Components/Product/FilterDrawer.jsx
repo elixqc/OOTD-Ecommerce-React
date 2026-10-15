@@ -21,7 +21,7 @@ import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import StarRoundedIcon from '@mui/icons-material/StarRounded';
 import api from '../../api';
 import { buildProductParams } from '../../actions/productActions';
-import { CATEGORIES } from '../../constants/productConstants';
+import { CATEGORIES, GENDERS } from '../../constants/productConstants';
 
 const REVIEW_OPTIONS = [
     { value: 'All', label: 'Any number' },
@@ -68,7 +68,7 @@ export default function FilterDrawer({ open, onClose, applied, onApply, emptyFil
 function FilterPanel({ onClose, applied, onApply, emptyFilters, maxPrice }) {
     const [draft, setDraft] = useState(applied);
     const [result, setResult] = useState({ key: '', total: null });
-    const [openSections, setOpenSections] = useState(['category', 'price']);
+    const [openSections, setOpenSections] = useState([]);
 
     const set = (name, value) => setDraft((prev) => ({ ...prev, [name]: value }));
     const toggleSection = (id) =>
@@ -167,6 +167,21 @@ function FilterPanel({ onClose, applied, onApply, emptyFilters, maxPrice }) {
                                 variant={draft.category === category ? 'filled' : 'outlined'}
                                 color={draft.category === category ? 'primary' : 'default'}
                                 onClick={() => set('category', category)}
+                            />
+                        ))}
+                    </Stack>
+                </Section>
+
+                <Section id="gender" title="Gender" open={openSections.includes('gender')} onToggle={toggleSection}>
+                    <Stack direction="row" useFlexGap spacing={1} sx={{ flexWrap: 'wrap' }}>
+                        {['All', ...GENDERS].map((gender) => (
+                            <Chip
+                                key={gender}
+                                label={gender === 'All' ? 'All genders' : gender}
+                                clickable
+                                variant={draft.gender === gender ? 'filled' : 'outlined'}
+                                color={draft.gender === gender ? 'primary' : 'default'}
+                                onClick={() => set('gender', gender)}
                             />
                         ))}
                     </Stack>
