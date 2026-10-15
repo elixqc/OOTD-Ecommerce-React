@@ -1,15 +1,17 @@
 import { useState } from 'react';
-import { Link as RouterLink, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { useSignUp } from '@clerk/react';
 import { useFormik } from 'formik';
 import * as Yup from 'yup';
-import { Button, Divider, InputAdornment, Link, TextField } from '@mui/material';
+import { Box, Button, Divider, InputAdornment, TextField } from '@mui/material';
 import EmailOutlinedIcon from '@mui/icons-material/EmailOutlined';
-import GoogleIcon from '@mui/icons-material/Google';
-import AuthLayout from './AuthLayout';
+import PersonOutlinedIcon from '@mui/icons-material/PersonOutlined';
+import AuthHeading from './AuthHeading';
+import AuthSwitch from './AuthSwitch';
+import SocialButtons from './SocialButtons';
+import { staggerFields } from './authMotion';
 import PasswordField from './PasswordField';
 import { notifyError, notifySuccess } from '../../Utils/helpers';
-import FacebookIcon from '@mui/icons-material/Facebook';
 
 const validationSchema = Yup.object({
     firstName: Yup.string().trim().max(25, 'Too long').required('First name is required'),
@@ -28,9 +30,19 @@ const codeSchema = Yup.object({
         .required('Enter the code we emailed you'),
 });
 
+const nameSlotProps = {
+    input: {
+        startAdornment: (
+            <InputAdornment position="start">
+                <PersonOutlinedIcon fontSize="small" />
+            </InputAdornment>
+        ),
+    },
+};
+
 const errorText = (error) => error.longMessage || error.message;
 
-export default function Register() {
+export default function Register({ active = true }) {
     const navigate = useNavigate();
     const { signUp, fetchStatus } = useSignUp();
     const loading = fetchStatus === 'fetching';
@@ -100,7 +112,7 @@ export default function Register() {
         if (error) notifyError(errorText(error));
     };
 
-        const handleFacebook = async () => {
+    const handleFacebook = async () => {
         const { error } = await signUp.sso({
             strategy: 'oauth_facebook',
             redirectUrl: '/',
@@ -109,13 +121,16 @@ export default function Register() {
         if (error) notifyError(errorText(error));
     };
 
+    const stack = { display: 'flex', flexDirection: 'column', gap: 2, ...staggerFields(active) };
+
     if (awaitingCode) {
         return (
-            <AuthLayout
-                title="Check your email"
-                subtitle={`We sent a 6-digit code to ${formik.values.email.trim()}`}
-            >
-                <form onSubmit={codeFormik.handleSubmit} noValidate className="form-stack">
+            <>
+                <AuthHeading
+                    title="Check your email"
+                    subtitle={`We sent a 6-digit code to ${formik.values.email.trim()}`}
+                />
+                <Box component="form" onSubmit={codeFormik.handleSubmit} noValidate sx={stack}>
                     <TextField
                         label="Verification code"
                         name="code"
@@ -133,26 +148,16 @@ export default function Register() {
                     <Button onClick={resendCode} disabled={loading}>
                         Resend code
                     </Button>
-                </form>
-            </AuthLayout>
+                </Box>
+            </>
         );
     }
 
     return (
-        <AuthLayout
-            title="Create your account"
-            subtitle="Join OOTD and start shopping"
-            footer={
-                <>
-                    Already have an account?{' '}
-                    <Link component={RouterLink} to="/login" color="secondary" underline="hover" fontWeight={600}>
-                        Login
-                    </Link>
-                </>
-            }
-        >
-            <form onSubmit={formik.handleSubmit} noValidate className="form-stack">
-                <div style={{ display: 'flex', gap: 16 }}>
+        <>
+            <AuthHeading title="Create your account" subtitle="Join OOTD and start shopping" />
+            <Box component="form" onSubmit={formik.handleSubmit} noValidate sx={stack}>
+                <Box sx={{ display: 'flex', gap: 2 }}>
                     <TextField
                         label="First name"
                         name="firstName"
@@ -162,6 +167,7 @@ export default function Register() {
                         onChange={formik.handleChange}
                         error={Boolean(formik.errors.firstName)}
                         helperText={formik.errors.firstName}
+                        slotProps={nameSlotProps}
                     />
                     <TextField
                         label="Last name"
@@ -172,8 +178,9 @@ export default function Register() {
                         onChange={formik.handleChange}
                         error={Boolean(formik.errors.lastName)}
                         helperText={formik.errors.lastName}
+                        slotProps={nameSlotProps}
                     />
-                </div>
+                </Box>
                 <TextField
                     label="Email"
                     name="email"
@@ -219,27 +226,9 @@ export default function Register() {
                     {loading ? 'Please wait...' : 'Create account'}
                 </Button>
                 <Divider>or</Divider>
-                <Button
-                    variant="outlined"
-                    size="large"
-                    fullWidth
-                    startIcon={<GoogleIcon />}
-                    onClick={handleGoogle}
-                    disabled={loading}
-                >
-                    Continue with Google
-                </Button>
-                                <Button
-                    variant="outlined"
-                    size="large"
-                    fullWidth
-                    startIcon={<FacebookIcon />}
-                    onClick={handleFacebook}
-                    disabled={loading}
-                >
-                    Continue with Facebook
-                </Button>
-            </form>
-        </AuthLayout>
+                <SocialButtons onGoogle={handleGoogle} onFacebook={handleFacebook} disabled={loading} />
+                <AuthSwitch prompt="Already a member?" cta="Login" to="/login" />
+            </Box>
+        </>
     );
 }

@@ -10,8 +10,7 @@ import MetaData from './Components/Layout/MetaData';
 import CheckoutLayout from './Components/Cart/CheckoutLayout';
 import Payment from './Components/Cart/Payment';
 import Home from './Components/Home';
-import Login from './Components/User/Login';
-import Register from './Components/User/Register';
+import AuthPage from './Components/User/AuthPage';
 import Profile from './Components/User/Profile';
 import UpdateProfile from './Components/User/UpdateProfile';
 import UpdatePassword from './Components/User/UpdatePassword';
@@ -49,9 +48,12 @@ function App() {
                 <Route path="/" element={<><MetaData title="Shop" /><Home /></>} />
                 <Route path="/product/:id" element={<ProductDetails />} />
                 <Route path="/cart" element={<><MetaData title="Cart" /><Cart /></>} />
-                <Route path="/login/*" element={<><MetaData title="Login" /><Login /></>} />
+                {/* Login and register share one page so the card can slide between them */}
+                <Route element={<AuthPage />}>
+                    <Route path="/login/*" element={null} />
+                    <Route path="/register/*" element={null} />
+                </Route>
                 <Route path="/sso-callback" element={<SSOCallback />} />
-                <Route path="/register/*" element={<><MetaData title="Register" /><Register /></>} />
 
                 {/* Logged-in customers only */}
                 <Route element={<ProtectedRoute />}>

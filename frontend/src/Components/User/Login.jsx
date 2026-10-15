@@ -1,21 +1,22 @@
-import { Link as RouterLink, useLocation, useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { useSignIn } from '@clerk/react';
 import { useFormik } from 'formik';
 import * as Yup from 'yup';
-import { Button, Divider, InputAdornment, Link, TextField } from '@mui/material';
+import { Box, Button, Divider, InputAdornment, TextField } from '@mui/material';
 import EmailOutlinedIcon from '@mui/icons-material/EmailOutlined';
-import GoogleIcon from '@mui/icons-material/Google';
-import AuthLayout from './AuthLayout';
+import AuthHeading from './AuthHeading';
+import AuthSwitch from './AuthSwitch';
+import SocialButtons from './SocialButtons';
+import { staggerFields } from './authMotion';
 import PasswordField from './PasswordField';
 import { notifyError, notifySuccess } from '../../Utils/helpers';
-import FacebookIcon from '@mui/icons-material/Facebook';
 
 const validationSchema = Yup.object({
     email: Yup.string().trim().email('Enter a valid email').required('Email is required'),
     password: Yup.string().required('Password is required'),
 });
 
-export default function Login() {
+export default function Login({ active = true }) {
     const navigate = useNavigate();
     const location = useLocation();
     const redirectTo = location.state?.from?.pathname || '/';
@@ -68,19 +69,14 @@ export default function Login() {
     };
 
     return (
-        <AuthLayout
-            title="Welcome back"
-            subtitle="Login to your OOTD account"
-            footer={
-                <>
-                    No account yet?{' '}
-                    <Link component={RouterLink} to="/register" color="secondary" underline="hover" fontWeight={600}>
-                        Register
-                    </Link>
-                </>
-            }
-        >
-            <form onSubmit={formik.handleSubmit} noValidate className="form-stack">
+        <>
+            <AuthHeading title="Welcome back" subtitle="Login to your OOTD account" />
+            <Box
+                component="form"
+                onSubmit={formik.handleSubmit}
+                noValidate
+                sx={{ display: 'flex', flexDirection: 'column', gap: 2, ...staggerFields(active) }}
+            >
                 <TextField
                     label="Email"
                     name="email"
@@ -115,27 +111,9 @@ export default function Login() {
                     {loading ? 'Please wait...' : 'Login'}
                 </Button>
                 <Divider>or</Divider>
-                <Button
-                    variant="outlined"
-                    size="large"
-                    fullWidth
-                    startIcon={<GoogleIcon />}
-                    onClick={handleGoogle}
-                    disabled={loading}
-                >
-                    Continue with Google
-                </Button>
-                                <Button
-                    variant="outlined"
-                    size="large"
-                    fullWidth
-                    startIcon={<FacebookIcon />}
-                    onClick={handleFacebook}
-                    disabled={loading}
-                >
-                    Continue with Facebook
-                </Button>
-            </form>
-        </AuthLayout>
+                <SocialButtons onGoogle={handleGoogle} onFacebook={handleFacebook} disabled={loading} />
+                <AuthSwitch prompt="Don't have an account?" cta="Sign up" to="/register" />
+            </Box>
+        </>
     );
 }
