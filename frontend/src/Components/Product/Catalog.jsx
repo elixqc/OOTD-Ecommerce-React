@@ -175,7 +175,12 @@ export default function Catalog() {
                             top: 'calc(50% - 13px)',
                             p: '4px',
                             borderRadius: '50%',
-                            bgcolor: 'var(--brand-dark)',
+                            bgcolor: 'transparent',          // was var(--brand-dark)
+                            color: 'var(--brand-dark)',      // was #fff, so the arrow stays visible
+                            transition: 'background-color 0.2s, color 0.2s, transform 0.2s',
+                        },
+                        '&:hover .MuiSelect-icon': {
+                            bgcolor: '#000',                 // or var(--brand-dark) if you want it to match your theme
                             color: '#fff',
                         },
                         '&:hover .hover-underline, & .MuiSelect-select[aria-expanded="true"] .hover-underline': {
