@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom';
+import { Link, NavLink, useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import {
     AppBar,
@@ -45,23 +45,34 @@ const navTextSx = {
     textTransform: 'uppercase',
     minWidth: 0,
     px: 1.25,
+    position: 'relative',
     '&:hover': { bgcolor: 'transparent', opacity: 0.6 },
-    '&.active': {
-        textDecoration: 'underline',
-        textDecorationThickness: '1px',
-        textUnderlineOffset: '8px',
+
+    // The underline: hidden by default (scaleX 0), grows from the left when active
+    '&::after': {
+        content: '""',
+        position: 'absolute',
+        left: 10,   // matches px: 1.25 so it lines up with the text
+        right: 10,
+        bottom: 2,
+        height: '1px',
+        bgcolor: 'currentColor',
+        transform: 'scaleX(0)',
+        transformOrigin: 'left',
+        transition: 'transform 0.35s ease',
+    },
+    '&.active::after': {
+        transform: 'scaleX(1)',
     },
 };
 
 export default function Header() {
     const dispatch = useDispatch();
     const navigate = useNavigate();
-    const { pathname } = useLocation();
     const { user, loading } = useSelector((state) => state.auth);
     const { cartItems } = useSelector((state) => state.cart);
     const isAdmin = user?.role === 'admin';
     const cartCount = cartItems.reduce((sum, item) => sum + item.quantity, 0);
-    const wide = pathname === '/'; // same rule as CustomerLayout
     const scrolled = useScrollTrigger({ disableHysteresis: true, threshold: 0 });
 
     const [anchorEl, setAnchorEl] = useState(null);
@@ -107,7 +118,7 @@ export default function Header() {
                         gridTemplateColumns: '1fr auto 1fr',
                         alignItems: 'center',
                         width: '100%',
-                        maxWidth: wide ? 'none' : 'var(--page-max)',
+                        maxWidth: 'none',
                         mx: 'auto',
                         px: 'var(--page-gutter)',
                         minHeight: { xs: 56, md: 64 },
