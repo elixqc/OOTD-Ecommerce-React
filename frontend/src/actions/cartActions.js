@@ -1,9 +1,15 @@
 import { getColorImageUrl } from '../Utils/productImages';
 import { ADD_TO_CART, REMOVE_FROM_CART, CLEAR_CART, SAVE_SHIPPING_INFO } from '../constants/cartConstants';
 
+// Guests use 'cartItems'. A logged-in user gets their own key.
+const cartStorageKey = (getState) => {
+    const user = getState().auth.user;
+    return user ? `cartItems:${user._id}` : 'cartItems';
+};
+
 const saveCart = (getState) => {
     try {
-        localStorage.setItem('cartItems', JSON.stringify(getState().cart.cartItems));
+        localStorage.setItem(cartStorageKey(getState), JSON.stringify(getState().cart.cartItems));
     } catch {
         // Storage is full or blocked: the cart still works until the page is closed
     }
@@ -68,4 +74,29 @@ export const clearCart = () => (dispatch, getState) => {
 // Kept in memory only (not in the browser), so it can't show up for a different user
 export const saveShippingInfo = (shippingInfo) => (dispatch) => {
     dispatch({ type: SAVE_SHIPPING_INFO, payload: shippingInfo });
+};
+
+// Called after login: merges the user's saved cart with the guest cart
+export const loadUserCart = (user) => (dispatch, getState) => {
+    try {
+        const key = `cartItems:${user._id}`;
+        const saved = JSON.parse(localStorage.getItem(key));
+        const merged = Array.isArray(saved) ? [...saved] : [];
+
+        getState().cart.cartItems.forEach((guestItem) => {
+            const i = merged.findIndex((m) => m.key === guestItem.key);
+            if (i === -1) {
+                merged.push(guestItem);
+            } else {
+                const quantity = Math.min(merged[i].quantity + guestItem.quantity, merged[i].stock);
+                merged[i] = { ...merged[i], quantity };
+            }
+        });
+
+        merged.forEach((item) => dispatch({ type: ADD_TO_CART, payload: item }));
+        localStorage.setItem(key, JSON.stringify(merged));
+        localStorage.removeItem('cartItems'); // the guest cart now lives in the user's cart
+    } catch {
+        // Storage blocked: the cart just stays as it is
+    }
 };

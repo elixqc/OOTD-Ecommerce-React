@@ -18,9 +18,10 @@ import {
     USER_DETAILS_FAIL,
     UPDATE_USER_REQUEST,
     UPDATE_USER_SUCCESS,
-    UPDATE_USER_FAIL,
+    UPDATE_USER_FAIL
 } from '../constants/userConstants';
-
+import { CLEAR_CART } from '../constants/cartConstants';
+import { loadUserCart } from './cartActions';
 // Gets the MongoDB user for the signed-in Clerk user, registering them first if they're new
 const fetchProfile = async () => {
     try {
@@ -43,6 +44,7 @@ export const syncUser = (isSignedIn) => async (dispatch) => {
         dispatch({ type: LOGIN_REQUEST });
         const user = await fetchProfile();
         dispatch({ type: LOGIN_SUCCESS, payload: user });
+        dispatch(loadUserCart());
     } catch (error) {
         dispatch({ type: LOGIN_FAIL, payload: getErrorMessage(error) });
     }
@@ -52,6 +54,12 @@ export const logout = () => async (dispatch) => {
     try {
         await window.Clerk.signOut();
         dispatch({ type: LOGOUT_SUCCESS });
+        dispatch({ type: CLEAR_CART });
+        try {
+            localStorage.removeItem('cartItems');
+        } catch {
+            // storage blocked, nothing to remove
+        }
     } catch (error) {
         dispatch({ type: LOGOUT_FAIL, payload: getErrorMessage(error) });
     }

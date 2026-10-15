@@ -9,7 +9,11 @@ const reviews = require('./routes/review');
 const app = express();
 const { clerkMiddleware } = require('@clerk/express');
 
-app.use(cors({ origin: 'http://localhost:5173' }));
+app.use(cors({
+    origin: process.env.CLIENT_URL
+        ? process.env.CLIENT_URL.split(',')
+        : 'http://localhost:5173',
+}));
 app.use(express.json({ limit: '25mb' }));
 app.use(express.urlencoded({ limit: '25mb', extended: true }));
 app.use(clerkMiddleware());
