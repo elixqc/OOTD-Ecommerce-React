@@ -117,16 +117,7 @@ export default function Catalog() {
 
     return (
         <section>
-            <div className="catalog-heading">
-                <Typography variant="h5" component="h2">
-                    Shop
-                </Typography>
-                {page > 0 && !error && (
-                    <Typography color="text.secondary">
-                        {total} {total === 1 ? 'product' : 'products'}
-                    </Typography>
-                )}
-            </div>
+
 
             <div className="catalog-toolbar">
                 <Badge badgeContent={activeChips.length} color="secondary">
@@ -155,31 +146,62 @@ export default function Catalog() {
                     IconComponent={KeyboardArrowDownIcon}
                     renderValue={(value) => (
                         <>
-                            <strong>Sort by:</strong> {SORT_OPTIONS.find((o) => o.value === value)?.label}
+                            <strong>Sort by:</strong>{' '}
+                            <span className="hover-underline">{SORT_OPTIONS.find((o) => o.value === value)?.label}</span>
                         </>
                     )}
+                    MenuProps={{
+                        anchorOrigin: { vertical: 'bottom', horizontal: 'right' },
+                        transformOrigin: { vertical: 'top', horizontal: 'right' },
+                        slotProps: {
+                            paper: {
+                                sx: {
+                                    mt: 1,
+                                    width: 240,
+                                    py: 1,
+                                    borderRadius: '16px',
+                                    boxShadow: '0 8px 30px rgba(0, 0, 0, 0.12)',
+                                },
+                            },
+                        },
+                    }}
                     sx={{
                         fontSize: '0.875rem',
-                        '& .MuiSelect-select.MuiSelect-standard': { pr: '36px', '&:focus': { bgcolor: 'transparent' } },
-                        '&:hover .MuiSelect-select': {
-                            textDecoration: 'underline',
-                            textUnderlineOffset: '4px',
-                        },
+                        '& .MuiSelect-select.MuiSelect-standard': { pr: '40px !important', '&:focus': { bgcolor: 'transparent' } },
                         '& .MuiSelect-icon': {
                             right: 0,
-                            width: 24,
-                            height: 24,
-                            top: 'calc(50% - 12px)',
-                            p: '3px',
+                            width: 26,
+                            height: 26,
+                            top: 'calc(50% - 13px)',
+                            p: '4px',
                             borderRadius: '50%',
-                            bgcolor: '#e9e9e9',
-                            color: 'var(--brand-dark)',
+                            bgcolor: 'var(--brand-dark)',
+                            color: '#fff',
+                        },
+                        '&:hover .hover-underline, & .MuiSelect-select[aria-expanded="true"] .hover-underline': {
+                            backgroundSize: '100% 1px',
+                            backgroundPosition: '0 100%',
                         },
                     }}
                 >
                     {SORT_OPTIONS.map((option) => (
-                        <MenuItem key={option.value} value={option.value}>
-                            {option.label}
+                        <MenuItem
+                            key={option.value}
+                            value={option.value}
+                            className="underline-trigger"
+                            sx={{
+                                px: 3,
+                                py: 1.25,
+                                fontSize: '0.875rem',
+                                color: '#6b6b6b',
+                                '&:hover, &.Mui-focusVisible': { bgcolor: 'transparent', color: 'var(--brand-dark)' },
+                                '&.Mui-selected, &.Mui-selected:hover, &.Mui-selected.Mui-focusVisible': {
+                                    bgcolor: 'transparent',
+                                    color: 'var(--brand-dark)',
+                                },
+                            }}
+                        >
+                            <span className="hover-underline">{option.label}</span>
                         </MenuItem>
                     ))}
                 </Select>

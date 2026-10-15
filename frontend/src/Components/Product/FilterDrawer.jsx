@@ -58,7 +58,7 @@ function Section({ id, title, open, onToggle, children }) {
 // Slide-in panel with the product filters. Nothing is applied until "Show items" is pressed.
 export default function FilterDrawer({ open, onClose, applied, onApply, emptyFilters, maxPrice }) {
     return (
-        <Drawer anchor="right" open={open} onClose={onClose} slotProps={{ paper: { className: 'filter-drawer' } }}>
+        <Drawer anchor="left" open={open} onClose={onClose} slotProps={{ paper: { className: 'filter-drawer' } }}>
             {/* Only mounted while open, so the draft always starts from what is applied */}
             <FilterPanel onClose={onClose} applied={applied} onApply={onApply} emptyFilters={emptyFilters} maxPrice={maxPrice} />
         </Drawer>
