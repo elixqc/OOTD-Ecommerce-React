@@ -5,14 +5,11 @@ import {
     Button,
     Chip,
     CircularProgress,
-    IconButton,
-    InputAdornment,
     MenuItem,
-    TextField,
+    Select,
     Typography,
 } from '@mui/material';
-import SearchIcon from '@mui/icons-material/Search';
-import CloseIcon from '@mui/icons-material/Close';
+import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 import TuneIcon from '@mui/icons-material/Tune';
 import api from '../../api';
 import { getProducts, loadMoreProducts } from '../../actions/productActions';
@@ -32,9 +29,9 @@ const emptyFilters = {
 };
 
 const SORT_OPTIONS = [
-    { value: 'newest', label: 'Newest' },
-    { value: 'price-asc', label: 'Price: Low to High' },
-    { value: 'price-desc', label: 'Price: High to Low' },
+    { value: 'newest', label: 'Date, new to old' },
+    { value: 'price-asc', label: 'Price, low to high' },
+    { value: 'price-desc', label: 'Price, high to low' },
     { value: 'rating', label: 'Top rated' },
     { value: 'popular', label: 'Most reviewed' },
 ];
@@ -132,57 +129,60 @@ export default function Catalog() {
             </div>
 
             <div className="catalog-toolbar">
-                <TextField
-                    className="catalog-search"
-                    placeholder="Search by name, brand, or category"
-                    size="small"
-                    value={searchText}
-                    onChange={(e) => setSearchText(e.target.value)}
-                    slotProps={{
-                        htmlInput: { 'aria-label': 'Search products' },
-                        input: {
-                            startAdornment: (
-                                <InputAdornment position="start">
-                                    <SearchIcon fontSize="small" />
-                                </InputAdornment>
-                            ),
-                            endAdornment: searchText && (
-                                <InputAdornment position="end">
-                                    <IconButton size="small" aria-label="Clear search" onClick={() => setSearchText('')}>
-                                        <CloseIcon fontSize="small" />
-                                    </IconButton>
-                                </InputAdornment>
-                            ),
-                        },
-                    }}
-                />
-
                 <Badge badgeContent={activeChips.length} color="secondary">
                     <Button
-                        variant="outlined"
-                        color="primary"
+                        color="inherit"
+                        disableRipple
+                        className="underline-trigger"
                         startIcon={<TuneIcon />}
                         onClick={() => setDrawerOpen(true)}
-                        sx={{ height: 40 }}
+                        sx={{
+                            textTransform: 'none',
+                            fontWeight: 400,
+                            fontSize: '0.875rem',
+                            '&:hover': { bgcolor: 'transparent' },
+                        }}
                     >
-                        Filter
+                        <span className="hover-underline">Filters</span>
                     </Button>
                 </Badge>
 
-                <TextField
-                    select
-                    size="small"
-                    className="catalog-sort"
+                <Select
+                    variant="standard"
+                    disableUnderline
                     value={filters.sort}
                     onChange={(e) => setFilters((prev) => ({ ...prev, sort: e.target.value }))}
-                    slotProps={{ htmlInput: { 'aria-label': 'Sort products' } }}
+                    IconComponent={KeyboardArrowDownIcon}
+                    renderValue={(value) => (
+                        <>
+                            <strong>Sort by:</strong> {SORT_OPTIONS.find((o) => o.value === value)?.label}
+                        </>
+                    )}
+                    sx={{
+                        fontSize: '0.875rem',
+                        '& .MuiSelect-select.MuiSelect-standard': { pr: '36px', '&:focus': { bgcolor: 'transparent' } },
+                        '&:hover .MuiSelect-select': {
+                            textDecoration: 'underline',
+                            textUnderlineOffset: '4px',
+                        },
+                        '& .MuiSelect-icon': {
+                            right: 0,
+                            width: 24,
+                            height: 24,
+                            top: 'calc(50% - 12px)',
+                            p: '3px',
+                            borderRadius: '50%',
+                            bgcolor: '#e9e9e9',
+                            color: 'var(--brand-dark)',
+                        },
+                    }}
                 >
                     {SORT_OPTIONS.map((option) => (
                         <MenuItem key={option.value} value={option.value}>
-                            Sort: {option.label}
+                            {option.label}
                         </MenuItem>
                     ))}
-                </TextField>
+                </Select>
             </div>
 
             {hasAnyFilter && (

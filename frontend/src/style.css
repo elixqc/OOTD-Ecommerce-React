@@ -368,9 +368,9 @@ body {
 
 .catalog-toolbar {
     display: flex;
-    flex-wrap: wrap;
-    gap: 12px;
     align-items: center;
+    justify-content: space-between;
+    gap: 12px;
     margin-bottom: 16px;
 }
 
@@ -1001,10 +1001,12 @@ body {
 
 .MuiToggleButton-root.cross-out {
     color: #9a9a9a;
+    border-color: #e3e3e3;
 }
 
 .MuiToggleButton-root.cross-out.Mui-selected {
     color: #fff;
+    border-color: var(--brand-dark);
 }
 
 /* Side panel with every color */
@@ -1758,4 +1760,20 @@ body {
         margin: 0 calc(-1 * var(--page-gutter));
         padding: 32px var(--page-gutter) 0;
     }
+}
+
+/* Underline that slides in from the left on hover */
+.hover-underline {
+    padding-bottom: 3px;
+    background-image: linear-gradient(currentColor, currentColor);
+    background-repeat: no-repeat;
+    background-size: 0% 1px;
+    background-position: 100% 100%;
+    transition: background-size 0.3s ease;
+}
+
+.underline-trigger:hover .hover-underline,
+.underline-trigger .MuiSelect-select[aria-expanded='true'] .hover-underline {
+    background-size: 100% 1px;
+    background-position: 0 100%;
 }

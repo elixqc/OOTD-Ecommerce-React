@@ -8,6 +8,7 @@ import {
     Drawer,
     IconButton,
     Rating,
+    Stack,
     ToggleButton,
     ToggleButtonGroup,
     Typography,
@@ -203,19 +204,36 @@ function ProductInfo({ product }) {
 
                 <div className="option-group">
                     <Typography variant="subtitle2">Size</Typography>
-                    <ToggleButtonGroup
-                        exclusive
-                        size="small"
-                        sx={{ flexWrap: 'wrap' }}
-                        value={size}
-                        onChange={(e, value) => value && handleSize(value)}
-                    >
+                    <Stack direction="row" useFlexGap spacing={1} sx={{ flexWrap: 'wrap' }}>
                         {sizes.map((s) => (
-                            <ToggleButton key={s} value={s} className={sizeUnavailable(s) ? 'cross-out' : undefined}>
+                            <ToggleButton
+                                key={s}
+                                value={s}
+                                selected={s === size}
+                                onChange={() => handleSize(s)}
+                                className={sizeUnavailable(s) ? 'cross-out' : undefined}
+                                sx={{
+                                    minWidth: 35,
+                                    height: 29,
+                                    px: 1,
+                                    fontSize: '0.8rem',
+                                    fontWeight: 400,
+                                    borderRadius: '6px',
+                                    border: '1px solid #d4d4d4',
+                                    color: 'var(--brand-dark)',
+                                    textTransform: 'none',
+                                    '&:hover': { borderColor: 'var(--brand-dark)', bgcolor: '#fff' },
+                                    '&.Mui-selected, &.Mui-selected:hover': {
+                                        bgcolor: 'var(--brand-dark)',
+                                        borderColor: 'var(--brand-dark)',
+                                        color: '#fff',
+                                    },
+                                }}
+                            >
                                 {s}
                             </ToggleButton>
                         ))}
-                    </ToggleButtonGroup>
+                    </Stack>
                 </div>
 
                 <div className="option-group">
