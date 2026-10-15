@@ -2,7 +2,7 @@ import { Link } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import { Button, Typography } from '@mui/material';
 import Catalog from './Product/Catalog';
-import heroImage from '../assets/ootd-hero.jpeg';
+import heroImage from '../assets/ootd-hero.jpg';
 
 export default function Home() {
     const { user } = useSelector((state) => state.auth);

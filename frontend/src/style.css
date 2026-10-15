@@ -1191,12 +1191,23 @@ body {
 }
 
 .home-hero .MuiButton-contained {
-    background: var(--brand-dark);
-    color: #fff;
+    background: #fff;
+    color: var(--brand-dark);
+    border: 1px solid transparent;      /* keeps size the same on hover */
+    border-radius: 999px;
+    padding: 10px 32px;
+    text-transform: none;
+    box-shadow: 0 1px 6px rgba(0, 0, 0, 0.15);
+    transition: background-color 0.2s, color 0.2s, border-color 0.2s, box-shadow 0.2s;
+    font-weight: 400;
+    font-size: medium;
 }
 
 .home-hero .MuiButton-contained:hover {
-    background: #333;
+    background: transparent;
+    color: var(--brand-dark);
+    border-color: var(--brand-dark);
+    box-shadow: none;
 }
 
 /* Desktop: the text sits on the empty left side of the photo */
@@ -1204,7 +1215,7 @@ body {
     .home-hero-content {
         position: absolute;
         top: 50%;
-        left: var(--page-gutter);
+        left: calc(var(--page-gutter) + 40px);
         width: 26%;
         padding: 0;
         text-align: left;
@@ -1217,9 +1228,6 @@ body {
     }
 }
 
-.home-hero .MuiButton-contained:hover {
-    background: #e8e8e8;
-}
 
 /* Product grid: 2 columns on phones, 3 on tablets, 4 on desktop */
 .product-grid {
