@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom';
+import { Link, Navigate, useLocation } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import { Avatar, Button, Card, Chip, List, ListItemButton, ListItemIcon, ListItemText, Skeleton, Typography } from '@mui/material';
 import BadgeOutlinedIcon from '@mui/icons-material/BadgeOutlined';
@@ -94,9 +94,16 @@ function ProfileSkeleton() {
 
 export default function Profile() {
     const { user, loading } = useSelector((state) => state.auth);
+    const location = useLocation();
 
-    if (loading || !user) {
+    // Skeleton only while the session is being restored
+    if (loading) {
         return <ProfileSkeleton />;
+    }
+
+    // Not logged in: send to the login form, same as ProtectedRoute does
+    if (!user) {
+        return <Navigate to="/login" state={{ from: location }} replace />;
     }
 
     const address = user.shippingAddress || {};
@@ -113,7 +120,7 @@ export default function Profile() {
     }
 
     return (
-        <div className="profile-page">
+        <div className="profile-page page-enter">
             <Card elevation={0} className="profile-hero">
                 <div className="profile-banner" />
                 <div className="profile-hero-body">

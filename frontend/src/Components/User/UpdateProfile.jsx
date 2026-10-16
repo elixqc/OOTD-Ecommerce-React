@@ -4,6 +4,8 @@ import { useDispatch, useSelector } from 'react-redux';
 import { useFormik } from 'formik';
 import * as Yup from 'yup';
 import { Avatar, Button, Card, TextField, Typography } from '@mui/material';
+import PhotoCameraOutlinedIcon from '@mui/icons-material/PhotoCameraOutlined';
+import ArrowBackRoundedIcon from '@mui/icons-material/ArrowBackRounded';
 import { clearErrors, updateMyProfile } from '../../actions/userActions';
 import { UPDATE_PROFILE_RESET } from '../../constants/userConstants';
 import { MAX_FILE_SIZE } from '../../constants/productConstants';
@@ -118,34 +120,42 @@ export default function UpdateProfile() {
     );
 
     return (
-        <div className="auth-wrapper">
-            <Card className="auth-card">
-                <Typography variant="h5" component="h1" className="auth-title">
+        <form onSubmit={formik.handleSubmit} noValidate className="profile-page page-enter">
+            <div className="edit-header">
+                <Button component={Link} to="/me" startIcon={<ArrowBackRoundedIcon />} className="edit-back-btn" disabled={loading}>
+                    Back to profile
+                </Button>
+                <Typography variant="h5" component="h1" className="profile-name">
                     Edit profile
                 </Typography>
+            </div>
 
-                <form onSubmit={formik.handleSubmit} noValidate className="form-stack">
-                    <div className="avatar-upload">
-                        <Avatar
-                            src={avatar || user.avatar?.url || undefined}
-                            alt={user.name}
-                            sx={{ width: 80, height: 80 }}
-                        >
-                            {user.name?.[0]?.toUpperCase()}
-                        </Avatar>
-                        <div>
-                            <Button variant="outlined" component="label" size="small">
-                                Change photo
-                                <input hidden type="file" accept="image/png,image/jpeg,image/webp" onChange={handleAvatar} />
-                            </Button>
-                            {avatarError && (
-                                <Typography color="error" variant="body2">
-                                    {avatarError}
-                                </Typography>
-                            )}
-                        </div>
+            <Card elevation={0} className="profile-hero">
+                <div className="profile-banner" />
+                <div className="profile-hero-body">
+                    <Avatar src={avatar || user.avatar?.url || undefined} alt={user.name} className="profile-avatar">
+                        {user.name?.[0]?.toUpperCase()}
+                    </Avatar>
+                    <div className="profile-hero-info">
+                        <Typography component="h2" className="edit-photo-title">
+                            Profile photo
+                        </Typography>
+                        <Typography variant="body2" color={avatarError ? 'error' : 'text.secondary'}>
+                            {avatarError || 'JPG, PNG or WebP, up to 2 MB'}
+                        </Typography>
                     </div>
+                    <Button variant="outlined" component="label" startIcon={<PhotoCameraOutlinedIcon />} className="profile-edit-btn">
+                        Change photo
+                        <input hidden type="file" accept="image/png,image/jpeg,image/webp" onChange={handleAvatar} />
+                    </Button>
+                </div>
+            </Card>
 
+            <Card elevation={0} className="profile-panel">
+                <Typography component="h2" className="profile-panel-title">
+                    Personal information
+                </Typography>
+                <div className="edit-grid">
                     {field('name', 'Full name', { autoComplete: 'name' })}
                     <TextField
                         label="Email"
@@ -155,20 +165,28 @@ export default function UpdateProfile() {
                         helperText="Your email can't be changed here"
                     />
                     {field('phone', 'Phone number', { autoComplete: 'tel', inputMode: 'tel' })}
-
-                    <Typography variant="subtitle2">Shipping address</Typography>
-                    <LocationFields formik={formik} rowClassName="form-stack" />
-                    {field('address', 'Address', { autoComplete: 'street-address' })}
-                    {field('postalCode', 'Postal code', { autoComplete: 'postal-code' })}
-
-                    <Button type="submit" variant="contained" disabled={loading}>
-                        {loading ? 'Saving...' : 'Save changes'}
-                    </Button>
-                    <Button component={Link} to="/me" disabled={loading}>
-                        Cancel
-                    </Button>
-                </form>
+                </div>
             </Card>
-        </div>
+
+            <Card elevation={0} className="profile-panel">
+                <Typography component="h2" className="profile-panel-title">
+                    Shipping address
+                </Typography>
+                <div className="edit-stack">
+                    <LocationFields formik={formik} rowClassName="edit-grid" />
+                    {field('address', 'Address', { autoComplete: 'street-address' })}
+                    <div className="edit-grid">{field('postalCode', 'Postal code', { autoComplete: 'postal-code' })}</div>
+                </div>
+            </Card>
+
+            <div className="edit-actions">
+                <Button component={Link} to="/me" disabled={loading}>
+                    Cancel
+                </Button>
+                <Button type="submit" variant="contained" disabled={loading} className="profile-edit-btn">
+                    {loading ? 'Saving...' : 'Save changes'}
+                </Button>
+            </div>
+        </form>
     );
 }
