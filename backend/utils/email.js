@@ -1,38 +1,46 @@
 
-const { Resend } = require('resend');
+const nodemailer = require('nodemailer');
 const { buildReceiptPdf } = require('./receipt');
-const { shortOrderId, money, formatDate, escapeHtml } = require('./orderFormat');
+const {
+    shortOrderId,
+    money,
+    formatDate,
+    escapeHtml
+} = require('./orderFormat');
 
-const resend = new Resend(process.env.RESEND_API_KEY);
-
-// What the customer is told for each status
 const STATUS_MESSAGES = {
-    Processing: "We've received your order and are getting it ready.",
-    Shipped: 'Good news, your order is on its way!',
-    Delivered: 'Your order has been delivered. We hope you love it! You can now review your items under My orders.',
-    Cancelled: 'Your order has been cancelled.',
+    Processing: 'Your order has been received and is being processed.',
+    Shipped: 'Your order has been shipped.',
+    Delivered: 'Your order has been delivered.',
+    Cancelled: 'Your order has been cancelled.'
 };
 
-let transporter = null;
+function getTransporter() {
+    const {
+        SMTP_HOST,
+        SMTP_PORT,
+        SMTP_USER,
+        SMTP_PASS
+    } = process.env;
 
-// Reads the SMTP settings from backend/config/.env. Returns null if they aren't filled in.
-const getTransporter = () => {
-    const { SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASS } = process.env;
-    if (!SMTP_HOST || !SMTP_USER || !SMTP_PASS) return null;
-
-    if (!transporter) {
-        const port = Number(SMTP_PORT) || 587;
-        transporter = nodemailer.createTransport({
-            host: SMTP_HOST,
-            port,
-            secure: port === 465, // 465 uses SSL right away; 587 and 2525 upgrade after connecting
-            auth: { user: SMTP_USER, pass: SMTP_PASS },
-        });
+    if (!SMTP_HOST || !SMTP_USER || !SMTP_PASS) {
+        console.warn('Email skipped: SMTP configuration is incomplete.');
+        return null;
     }
-    return transporter;
-};
 
-// The email's subject, plain-text body, and HTML body. Everything typed by a customer is escaped.
+    const port = Number(SMTP_PORT || 2525);
+
+    return nodemailer.createTransport({
+        host: SMTP_HOST,
+        port,
+        secure: port === 465,
+        auth: {
+            user: SMTP_USER,
+            pass: SMTP_PASS
+        }
+    });
+}
+
 exports.buildOrderEmail = (order, user) => {
     const id = shortOrderId(order._id);
     const status = order.orderStatus;
@@ -107,9 +115,6 @@ exports.buildOrderEmail = (order, user) => {
     return { subject, html, text };
 };
 
-// Emails the customer about their order, with the PDF receipt attached.
-// It never throws: a mail problem must not make checkout or a status update fail.
-// If SMTP isn't set up, it just logs that it skipped the email.
 exports.sendOrderStatusEmail = async (order, user) => {
     try {
         if (!user?.email) {
@@ -117,34 +122,30 @@ exports.sendOrderStatusEmail = async (order, user) => {
             return;
         }
 
-        if (!process.env.RESEND_API_KEY || !process.env.EMAIL_FROM) {
-            console.error('Order email failed: missing Resend configuration.');
-            return;
-        }
+        const mailer = getTransporter();
+
+        if (!mailer) return;
 
         const pdf = await buildReceiptPdf(order, user);
-        const { subject, html, text } = exports.buildOrderEmail(order, user);
+        const { subject, html, text } =
+            exports.buildOrderEmail(order, user);
 
-        const { data, error } = await resend.emails.send({
-            from: process.env.EMAIL_FROM,
-            to: [user.email],
+        const info = await mailer.sendMail({
+            from: process.env.EMAIL_FROM || `OOTD <${process.env.SMTP_USER}>`,
+            to: user.email,
             subject,
-            html,
             text,
+            html,
             attachments: [
                 {
                     filename: `OOTD-receipt-${shortOrderId(order._id).slice(1)}.pdf`,
-                    content: pdf.toString('base64'),
-                },
-            ],
+                    content: pdf,
+                    contentType: 'application/pdf'
+                }
+            ]
         });
 
-        if (error) {
-            console.error('Order email failed:', error);
-            return;
-        }
-
-        console.log('Order email accepted by Resend:', data?.id);
+        console.log('Order email accepted by Mailtrap:', info.messageId);
     } catch (error) {
         console.error('Order email failed:', error.message);
     }
