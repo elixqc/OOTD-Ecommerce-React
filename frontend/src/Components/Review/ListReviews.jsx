@@ -12,13 +12,16 @@ import {
     getReviewStatus,
     refreshProductReviews,
 } from '../../actions/reviewActions';
-import { confirmDelete, formatDate, notifyError, notifySuccess } from '../../Utils/helpers';
+import { formatDate, notifyError, notifySuccess } from '../../Utils/helpers';
+import ConfirmDialog from '../Layout/ConfirmDialog';
 
 const noFilters = { rating: '', withComment: false, size: '', color: '' };
 
 // Reviews of one product, with filters, plus the form for customers who bought it
 export default function ListReviews({ productId }) {
     const dispatch = useDispatch();
+    const [confirm, setConfirm] = useState({ open: false });
+    const closeConfirm = () => setConfirm((current) => ({ ...current, open: false }));
     const { user } = useSelector((state) => state.auth);
     const {
         reviews,
@@ -64,12 +67,7 @@ export default function ListReviews({ productId }) {
         dispatch(refreshProductReviews(productId, filters));
     };
 
-    const handleDelete = async (review) => {
-        const confirmed = await confirmDelete(
-            review._id === myReview?._id ? 'Delete your review?' : `Remove ${review.name}'s review?`
-        );
-        if (!confirmed) return;
-
+    const removeReview = async (review) => {
         const message = await dispatch(deleteReview(review._id));
         if (message) {
             notifyError(message);
@@ -77,6 +75,16 @@ export default function ListReviews({ productId }) {
         }
         notifySuccess('Review deleted');
         dispatch(refreshProductReviews(productId, filters));
+    };
+
+    const handleDelete = (review) => {
+        setConfirm({
+            open: true,
+            title: 'Are you sure?',
+            text: review._id === myReview?._id ? 'Delete your review?' : `Remove ${review.name}'s review?`,
+            confirmText: 'Yes, delete',
+            onConfirm: () => removeReview(review),
+        });
     };
 
     // The form (when allowed) and a short note (when not)
@@ -308,6 +316,7 @@ export default function ListReviews({ productId }) {
                     </div>
                 </div>
             )}
+            <ConfirmDialog {...confirm} onClose={closeConfirm} />
         </section>
     );
 }

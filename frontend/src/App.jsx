@@ -2,6 +2,7 @@ import { useEffect } from 'react';
 import { Route, Routes, useLocation } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
 import { useAuth } from '@clerk/react';
+import { Toaster } from 'sonner';
 import { syncUser } from './actions/userActions';
 import CustomerLayout from './Components/Layout/CustomerLayout';
 import AdminLayout from './Components/Admin/AdminLayout';
@@ -57,6 +58,7 @@ function App() {
     return (
         <>
             <ScrollToTop />
+            <Toaster position="bottom-right" duration={3000} toastOptions={{ className: 'ootd-toast' }} />
             <Routes>
                 <Route element={<CustomerLayout />}>
                     <Route path="/" element={<><MetaData title="Shop" /><Home /></>} />

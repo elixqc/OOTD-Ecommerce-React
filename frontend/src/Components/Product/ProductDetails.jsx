@@ -22,7 +22,8 @@ import EditOutlinedIcon from '@mui/icons-material/EditOutlined';
 import DeleteOutlinedIcon from '@mui/icons-material/DeleteOutlined';
 import MetaData from '../Layout/MetaData';
 import { getProductDetails, getRelatedProducts, deleteProduct } from '../../actions/productActions';
-import { confirmDelete, notifyError, notifySuccess } from '../../Utils/helpers';
+import { notifyError, notifySuccess } from '../../Utils/helpers';
+import ConfirmDialog from '../Layout/ConfirmDialog';
 import { addToCart } from '../../actions/cartActions';
 import { getColorImages, getColors } from '../../Utils/productImages';
 import ProductCard from './ProductCard';
@@ -162,6 +163,8 @@ function ProductDetailsSkeleton() {
 // Separate component so the selected image, size, color, and quantity reset whenever the product changes
 function ProductInfo({ product }) {
     const dispatch = useDispatch();
+    const [confirm, setConfirm] = useState({ open: false });
+    const closeConfirm = () => setConfirm((current) => ({ ...current, open: false }));
     const firstAvailable = product.variants.find((v) => v.stock > 0) || product.variants[0];
 
     const [activeImage, setActiveImage] = useState(0);
@@ -184,9 +187,14 @@ function ProductInfo({ product }) {
         }
     }, [isDeleted, isAdmin, dispatch, navigate]);
 
-    const handleDelete = async () => {
-        const confirmed = await confirmDelete(`Delete "${product.name}"? Its images and reviews will be removed too.`);
-        if (confirmed) dispatch(deleteProduct(product._id));
+    const handleDelete = () => {
+        setConfirm({
+            open: true,
+            title: 'Are you sure?',
+            text: `Delete "${product.name}"? Its images and reviews will be removed too.`,
+            confirmText: 'Yes, delete',
+            onConfirm: () => dispatch(deleteProduct(product._id)),
+        });
     };
 
     const sizes = [...new Set(product.variants.map((v) => v.size))];
@@ -476,6 +484,7 @@ function ProductInfo({ product }) {
                 </div>
             </div>
         </Drawer>
+        <ConfirmDialog {...confirm} onClose={closeConfirm} />
         </>
     );
 }

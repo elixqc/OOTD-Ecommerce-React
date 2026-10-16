@@ -33,7 +33,8 @@ import WarningAmberRoundedIcon from '@mui/icons-material/WarningAmberRounded';
 import { deleteProduct, deleteProducts, getAdminProducts, setProductActive } from '../../actions/productActions';
 import { clearErrors } from '../../actions/userActions';
 import { DELETE_PRODUCT_RESET, CATEGORIES } from '../../constants/productConstants';
-import { confirmDelete, notifyError, notifySuccess, peso } from '../../Utils/helpers';
+import { notifyError, notifySuccess, peso } from '../../Utils/helpers';
+import ConfirmDialog from '../Layout/ConfirmDialog';
 
 // Same palette as the dashboard
 const NEUTRAL = '#8a8f98';
@@ -87,8 +88,9 @@ function EmptyState({ filtering, onClear }) {
 
 export default function ProductsList() {
     const dispatch = useDispatch();
+    const [confirm, setConfirm] = useState({ open: false });
+    const closeConfirm = () => setConfirm((current) => ({ ...current, open: false }));
     const { products, loading, error } = useSelector((state) => state.adminProducts);
-    const { loading: deleting, isDeleted, deletedCount, error: deleteError } = useSelector((state) => state.product);
 
     const [keyword, setKeyword] = useState('');
     const [categoryFilter, setCategoryFilter] = useState('All');
@@ -190,16 +192,24 @@ export default function ProductsList() {
     };
     const selectedIds = getSelectedIds(selectionModel);
 
-    const handleDelete = async (product) => {
-        const confirmed = await confirmDelete(`Delete "${product.name}"? Its images and reviews will be removed too.`);
-        if (confirmed) dispatch(deleteProduct(product._id));
+    const handleDelete = (product) => {
+        setConfirm({
+            open: true,
+            title: 'Are you sure?',
+            text: `Delete "${product.name}"? Its images and reviews will be removed too.`,
+            confirmText: 'Yes, delete',
+            onConfirm: () => dispatch(deleteProduct(product._id)),
+        });
     };
 
-    const handleBulkDelete = async () => {
-        const confirmed = await confirmDelete(
-            `Delete ${selectedIds.length} selected product${selectedIds.length === 1 ? '' : 's'}? Their images and reviews will be removed too.`
-        );
-        if (confirmed) dispatch(deleteProducts(selectedIds));
+    const handleBulkDelete = () => {
+        setConfirm({
+            open: true,
+            title: 'Are you sure?',
+            text: `Delete ${selectedIds.length} selected product${selectedIds.length === 1 ? '' : 's'}? Their images and reviews will be removed too.`,
+            confirmText: 'Yes, delete',
+            onConfirm: () => dispatch(deleteProducts(selectedIds)),
+        });
     };
 
     const handleToggleActive = async (product) => {
@@ -541,6 +551,7 @@ export default function ProductsList() {
                     }}
                 />
             </Box>
+            <ConfirmDialog {...confirm} onClose={closeConfirm} />
         </>
     );
 }

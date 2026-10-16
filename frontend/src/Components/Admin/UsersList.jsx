@@ -29,7 +29,8 @@ import TuneRoundedIcon from '@mui/icons-material/TuneRounded';
 import VisibilityOutlinedIcon from '@mui/icons-material/VisibilityOutlined';
 import { clearErrors, getAllUsers, updateUser } from '../../actions/userActions';
 import { UPDATE_USER_RESET } from '../../constants/userConstants';
-import { confirmAction, formatDate, notifyError, notifySuccess, peso } from '../../Utils/helpers';
+import { formatDate, notifyError, notifySuccess, peso } from '../../Utils/helpers';
+import ConfirmDialog from '../Layout/ConfirmDialog';
 
 // Same palette as the dashboard, products and orders pages
 const NEUTRAL = '#8a8f98';

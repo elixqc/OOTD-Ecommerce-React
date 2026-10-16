@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { Alert, Avatar, Box, Button, Chip, IconButton, Skeleton, Tooltip, Typography } from '@mui/material';
@@ -12,7 +12,8 @@ import PhoneOutlinedIcon from '@mui/icons-material/PhoneOutlined';
 import ReceiptLongOutlinedIcon from '@mui/icons-material/ReceiptLongOutlined';
 import { clearErrors, getUserDetails, updateUser } from '../../actions/userActions';
 import { UPDATE_USER_RESET } from '../../constants/userConstants';
-import { confirmAction, formatDate, notifyError, notifySuccess, peso, shortOrderId } from '../../Utils/helpers';
+import { formatDate, notifyError, notifySuccess, peso, shortOrderId } from '../../Utils/helpers';
+import ConfirmDialog from '../Layout/ConfirmDialog';
 
 // Same palette as the dashboard, products and orders pages
 const NEUTRAL = '#8a8f98';
@@ -56,8 +57,9 @@ function InfoRow({ icon, children, muted }) {
 export default function UpdateUser() {
     const { id } = useParams();
     const dispatch = useDispatch();
+    const [confirm, setConfirm] = useState({ open: false });
+    const closeConfirm = () => setConfirm((current) => ({ ...current, open: false }));
     const { user, orderCount, totalSpent, recentOrders, loading, error } = useSelector((state) => state.userDetails);
-    const { loading: updating, isUpdated, updatedUser, error: updateError } = useSelector((state) => state.adminUser);
 
     useEffect(() => {
         dispatch(getUserDetails(id));
@@ -120,16 +122,17 @@ export default function UpdateUser() {
     // Admins don't shop, so skip the order sections unless they really placed an order
     const showOrders = !isAdmin || orderCount > 0;
 
-    const handleToggle = async () => {
+    const handleToggle = () => {
         const deactivating = user.isActive;
-        const confirmed = await confirmAction(
-            deactivating ? 'Deactivate this account?' : 'Activate this account?',
-            deactivating
+        setConfirm({
+            open: true,
+            title: deactivating ? 'Deactivate this account?' : 'Activate this account?',
+            text: deactivating
                 ? `${user.name} won't be able to log in or use their account until you activate it again.`
                 : `${user.name} will be able to log in again.`,
-            deactivating ? 'Yes, deactivate' : 'Yes, activate'
-        );
-        if (confirmed) dispatch(updateUser(user._id, !deactivating));
+            confirmText: deactivating ? 'Yes, deactivate' : 'Yes, activate',
+            onConfirm: () => dispatch(updateUser(user._id, !deactivating)),
+        });
     };
 
     return (
@@ -308,6 +311,7 @@ export default function UpdateUser() {
                     </Box>
                 </Box>
             </Box>
+            <ConfirmDialog {...confirm} onClose={closeConfirm} />
         </>
     );
 }

@@ -35,7 +35,8 @@ import TuneRoundedIcon from '@mui/icons-material/TuneRounded';
 import VisibilityOutlinedIcon from '@mui/icons-material/VisibilityOutlined';
 import { deleteReview, getAdminReviews } from '../../actions/reviewActions';
 import { clearErrors } from '../../actions/userActions';
-import { confirmDelete, formatDate, notifyError, notifySuccess } from '../../Utils/helpers';
+import { formatDate, notifyError, notifySuccess } from '../../Utils/helpers';
+import ConfirmDialog from '../Layout/ConfirmDialog';
 
 // Same palette as the dashboard, products, orders and users pages
 const NEUTRAL = '#8a8f98';
@@ -93,6 +94,8 @@ function EmptyState({ filtering, onClear }) {
 
 export default function ReviewsList() {
     const dispatch = useDispatch();
+    const [confirm, setConfirm] = useState({ open: false });
+    const closeConfirm = () => setConfirm((current) => ({ ...current, open: false }));
     const { reviews, loading, error } = useSelector((state) => state.adminReviews);
 
     const [keyword, setKeyword] = useState('');
@@ -169,10 +172,7 @@ export default function ReviewsList() {
         setViewing(review);
     };
 
-    const handleDelete = async (review) => {
-        const confirmed = await confirmDelete(`Remove ${customerName(review)}'s review? This can't be undone.`);
-        if (!confirmed) return;
-
+    const removeReview = async (review) => {
         const message = await dispatch(deleteReview(review._id));
         if (message) {
             notifyError(message);
@@ -183,6 +183,15 @@ export default function ReviewsList() {
         dispatch(getAdminReviews());
     };
 
+    const handleDelete = (review) => {
+        setConfirm({
+            open: true,
+            title: 'Are you sure?',
+            text: `Remove ${customerName(review)}'s review? This can't be undone.`,
+            confirmText: 'Yes, delete',
+            onConfirm: () => removeReview(review),
+        });
+    };
     const columns = [
         {
             field: 'product',
@@ -531,6 +540,7 @@ export default function ReviewsList() {
                     </>
                 )}
             </Dialog>
+            <ConfirmDialog {...confirm} onClose={closeConfirm} />
         </>
     );
 }

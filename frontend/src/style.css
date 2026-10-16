@@ -349,6 +349,11 @@ body {
     border-left: 4px solid var(--brand-accent);
 }
 
+/* Sonner sets its own border, so match its attribute to win */
+[data-sonner-toast].ootd-toast {
+    border-left: 4px solid var(--brand-accent);
+}
+
 @media (max-width: 700px) {
     .form-grid {
         grid-template-columns: 1fr;

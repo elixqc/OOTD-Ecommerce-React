@@ -1,43 +1,11 @@
-import Swal from 'sweetalert2';
 
-const Toast = Swal.mixin({
-    toast: true,
-    position: 'bottom-end',
-    showConfirmButton: false,
-    timer: 3000,
-    timerProgressBar: true,
-    customClass: { popup: 'ootd-toast' },
-});
+import { toast } from 'sonner';
 
-export const notifySuccess = (title) => Toast.fire({ icon: 'success', title });
-export const notifyError = (title) => Toast.fire({ icon: 'error', title });
-export const notifyInfo = (title) => Toast.fire({ icon: 'info', title });
 
-// Returns true if the admin confirms
-export const confirmDelete = async (text) => {
-    const result = await Swal.fire({
-        title: 'Are you sure?',
-        text,
-        icon: 'warning',
-        showCancelButton: true,
-        confirmButtonColor: '#c8553d',
-        confirmButtonText: 'Yes, delete',
-    });
-    return result.isConfirmed;
-};
 
-// Same wording as the confirmDelete popup, but for other actions (e.g. cancelling an order)
-export const confirmAction = async (title, text, confirmText) => {
-    const result = await Swal.fire({
-        title,
-        text,
-        icon: 'warning',
-        showCancelButton: true,
-        confirmButtonColor: '#c8553d',
-        confirmButtonText: confirmText,
-    });
-    return result.isConfirmed;
-};
+export const notifySuccess = (title) => toast.success(title);
+export const notifyError = (title) => toast.error(title);
+export const notifyInfo = (title) => toast.info(title);
 
 export const peso = (amount) => `₱${(Math.round(amount * 100) / 100).toLocaleString()}`;
 

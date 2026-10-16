@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import {
@@ -26,7 +26,8 @@ import ReceiptLongOutlinedIcon from '@mui/icons-material/ReceiptLongOutlined';
 import { downloadReceipt, getOrderDetails, updateOrder } from '../../actions/orderActions';
 import { clearErrors } from '../../actions/userActions';
 import { NEXT_ORDER_STATUSES, UPDATE_ORDER_RESET } from '../../constants/orderConstants';
-import { confirmAction, formatDate, notifyError, notifySuccess, peso, shortOrderId } from '../../Utils/helpers';
+import { formatDate, notifyError, notifySuccess, peso, shortOrderId } from '../../Utils/helpers';
+import ConfirmDialog from '../Layout/ConfirmDialog';
 
 // Same palette as the dashboard, products and orders pages
 const NEUTRAL = '#8a8f98';
@@ -59,8 +60,9 @@ function SummaryRow({ label, children, bold }) {
 export default function ProcessOrder() {
     const { id } = useParams();
     const dispatch = useDispatch();
+    const [confirm, setConfirm] = useState({ open: false });
+    const closeConfirm = () => setConfirm((current) => ({ ...current, open: false }));
     const { order, loading, error } = useSelector((state) => state.orderDetails);
-    const { loading: updating, isUpdated, error: updateError } = useSelector((state) => state.order);
 
     useEffect(() => {
         dispatch(getOrderDetails(id));
@@ -122,14 +124,16 @@ export default function ProcessOrder() {
     const activeStep = order.orderStatus === 'Delivered' ? STEPS.length : STEPS.indexOf(order.orderStatus);
     const itemCount = order.orderItems.reduce((sum, i) => sum + i.quantity, 0);
 
-    const handleUpdate = async (status) => {
+    const handleUpdate = (status) => {
         if (status === 'Cancelled') {
-            const confirmed = await confirmAction(
-                'Cancel this order?',
-                "The items will go back in stock, and this can't be undone.",
-                'Yes, cancel order'
-            );
-            if (!confirmed) return;
+            setConfirm({
+                open: true,
+                title: 'Cancel this order?',
+                text: "The items will go back in stock, and this can't be undone.",
+                confirmText: 'Yes, cancel order',
+                onConfirm: () => dispatch(updateOrder(order._id, status)),
+            });
+            return;
         }
         dispatch(updateOrder(order._id, status));
     };
@@ -326,6 +330,7 @@ export default function ProcessOrder() {
                     </Box>
                 </Box>
             </Box>
+            <ConfirmDialog {...confirm} onClose={closeConfirm} />
         </>
     );
 }
