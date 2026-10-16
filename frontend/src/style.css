@@ -2613,11 +2613,11 @@ body {
     flex-shrink: 0;
     width: 240px;
     height: 100vh;
-    transition: width 0.2s ease;
+    transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .admin-side-wrap.collapsed {
-    width: 76px;
+    width: 72px;
 }
 
 .admin-side {
@@ -2650,22 +2650,30 @@ body {
 }
 
 .admin-side-toggle svg {
-    transition: transform 0.2s ease;
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .admin-side-wrap.collapsed .admin-side-toggle svg {
     transform: rotate(180deg);
 }
 
+/* Text fades instead of disappearing. On open it waits a moment so it doesn't show before there is room. */
 .admin-side-text {
     white-space: nowrap;
+    transition: opacity 0.2s ease 0.1s;
+}
+
+.admin-side-wrap.collapsed .admin-side-text {
+    opacity: 0;
+    pointer-events: none;
+    transition-delay: 0s;
 }
 
 .admin-side-brand {
     display: flex;
     align-items: center;
     gap: 10px;
-    padding: 0 10px;
+    padding: 0 7px;
     margin-bottom: 24px;
     color: var(--brand-dark);
     font-size: 1.15rem;
@@ -2685,11 +2693,21 @@ body {
     font-size: 0.95rem;
 }
 
+/* Section labels slide shut instead of popping out */
 .admin-side-label {
+    max-height: 40px;
     margin: 14px 0 6px;
     padding: 0 12px;
+    overflow: hidden;
     color: #a0a5ad;
     font-size: 0.78rem;
+    transition: opacity 0.2s ease 0.1s, max-height 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+        margin 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.admin-side-wrap.collapsed .admin-side-label {
+    max-height: 0;
+    margin: 12px 0 0;
 }
 
 .admin-side-nav {
@@ -2698,6 +2716,7 @@ body {
     gap: 2px;
 }
 
+/* Padding and gap stay the same when collapsed, so the icons never move sideways */
 .admin-side-nav a {
     display: flex;
     align-items: center;
@@ -2741,44 +2760,6 @@ body {
     gap: 10px;
     padding: 0 6px;
     min-width: 0;
-}
-
-/* Collapsed: icons only */
-.admin-side-wrap.collapsed .admin-side {
-    padding: 20px 10px;
-}
-
-.admin-side-wrap.collapsed .admin-side-text {
-    display: none;
-}
-
-.admin-side-wrap.collapsed .admin-side-brand {
-    justify-content: center;
-    padding: 0;
-}
-
-.admin-side-wrap.collapsed .admin-side-nav + .admin-side-nav {
-    margin-top: 12px;
-}
-
-.admin-side-wrap.collapsed .admin-side-nav a {
-    justify-content: center;
-    gap: 0;
-    padding: 10px;
-}
-
-.admin-side-wrap.collapsed .admin-side-user {
-    justify-content: center;
-    padding: 0;
-}
-
-.admin-side-wrap.collapsed .admin-side-footer .MuiButton-root {
-    min-width: 0;
-    justify-content: center !important;
-}
-
-.admin-side-wrap.collapsed .admin-side-footer .MuiButton-startIcon {
-    margin: 0;
 }
 .dash-stats {
     display: grid;
