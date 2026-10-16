@@ -128,21 +128,26 @@ export const allUsersReducer = (state = { users: [] }, action) => {
 };
 
 // Admin: one account
-export const userDetailsReducer = (state = { user: null, orderCount: 0 }, action) => {
+export const userDetailsReducer = (state = { user: null, orderCount: 0, totalSpent: 0, recentOrders: [] }, action) => {
     switch (action.type) {
         case USER_DETAILS_REQUEST:
             return { ...state, loading: true, error: null };
         case USER_DETAILS_SUCCESS:
-            return { loading: false, user: action.payload.user, orderCount: action.payload.orderCount };
+            return {
+                loading: false,
+                user: action.payload.user,
+                orderCount: action.payload.orderCount,
+                totalSpent: action.payload.totalSpent,
+                recentOrders: action.payload.recentOrders,
+            };
         case USER_DETAILS_FAIL:
-            return { loading: false, user: null, orderCount: 0, error: action.payload };
+            return { loading: false, user: null, orderCount: 0, totalSpent: 0, recentOrders: [], error: action.payload };
         case CLEAR_ERRORS:
             return { ...state, error: null };
         default:
             return state;
     }
 };
-
 // Admin: activate / deactivate
 export const adminUserReducer = (state = {}, action) => {
     switch (action.type) {

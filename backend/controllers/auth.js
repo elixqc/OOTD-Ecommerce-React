@@ -132,7 +132,26 @@ const userNotFound = (res) => res.status(404).json({ success: false, message: 'U
 
 // GET /api/v1/admin/users
 exports.allUsers = async (req, res) => {
-    const users = await User.find().select('-clerkId -wishlist').sort({ createdAt: -1 });
+    const [found, orderStats] = await Promise.all([
+        User.find().select('-clerkId -wishlist').sort({ createdAt: -1 }).lean(),
+        // Orders and money spent per user. Cancelled orders don't count as spent.
+        Order.aggregate([
+            {
+                $group: {
+                    _id: '$user',
+                    orderCount: { $sum: 1 },
+                    totalSpent: { $sum: { $cond: [{ $ne: ['$orderStatus', 'Cancelled'] }, '$totalPrice', 0] } },
+                },
+            },
+        ]),
+    ]);
+
+    const statsById = new Map(orderStats.map((s) => [String(s._id), s]));
+    const users = found.map((u) => {
+        const stats = statsById.get(String(u._id));
+        return { ...u, orderCount: stats?.orderCount || 0, totalSpent: stats?.totalSpent || 0 };
+    });
+
     return res.status(200).json({ success: true, count: users.length, users });
 };
 
@@ -143,8 +162,26 @@ exports.getUserDetails = async (req, res) => {
     const user = await User.findById(req.params.id).select('-clerkId -wishlist');
     if (!user) return userNotFound(res);
 
-    const orderCount = await Order.countDocuments({ user: user._id });
-    return res.status(200).json({ success: true, user, orderCount });
+    const [orderStats, recentOrders] = await Promise.all([
+        Order.aggregate([
+            { $match: { user: user._id } },
+            {
+                $group: {
+                    _id: null,
+                    orderCount: { $sum: 1 },
+                    totalSpent: { $sum: { $cond: [{ $ne: ['$orderStatus', 'Cancelled'] }, '$totalPrice', 0] } },
+                },
+            },
+        ]),
+        Order.find({ user: user._id })
+            .sort({ createdAt: -1 })
+            .limit(5)
+            .select('orderItems.name totalPrice orderStatus createdAt')
+            .lean(),
+    ]);
+
+    const { orderCount = 0, totalSpent = 0 } = orderStats[0] || {};
+    return res.status(200).json({ success: true, user, orderCount, totalSpent, recentOrders });
 };
 
 // PUT /api/v1/admin/user/:id   body: { isActive: true | false }

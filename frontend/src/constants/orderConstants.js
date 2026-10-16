@@ -25,7 +25,7 @@ export const UPDATE_ORDER_RESET = 'UPDATE_ORDER_RESET';
 export const ORDER_STATUSES = ['Processing', 'Shipped', 'Delivered', 'Cancelled'];
 export const NEXT_ORDER_STATUSES = {
     Processing: ['Shipped', 'Cancelled'],
-    Shipped: ['Delivered', 'Cancelled'],
+    Shipped: ['Delivered'],
     Delivered: [],
     Cancelled: [],
 };

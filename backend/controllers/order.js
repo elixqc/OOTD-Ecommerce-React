@@ -5,7 +5,7 @@ const User = require('../models/user');
 const { buildReceiptPdf } = require('../utils/receipt');
 const { sendOrderStatusEmail } = require('../utils/email');
 const { shortOrderId } = require('../utils/orderFormat');
-const { getColorImageUrl } = require('../utils/productImages');
+const { getColorImageUrl, getColorImages } = require('../utils/productImages');
 const { PAYMENT_METHODS } = require('../utils/constants');
 
 const SHIPPING_PRICE = 0;
@@ -14,12 +14,38 @@ const MAX_QUANTITY_PER_ITEM = 20;
 // Order status flow. Delivered and Cancelled are final.
 const NEXT_STATUSES = {
     Processing: ['Shipped', 'Cancelled'],
-    Shipped: ['Delivered', 'Cancelled'],
+    Shipped: ['Delivered'],
     Delivered: [],
     Cancelled: [],
 };
 
 const fail = (res, status, message) => res.status(status).json({ success: false, message });
+
+// Order lines keep the photo from the day of purchase, which may have been deleted since.
+// If that photo is no longer on the product, swap in the current photo for the same product
+// and color. Accepts one order or a list, and returns plain objects with the fixed images.
+const withCurrentImages = async (orders) => {
+    const list = Array.isArray(orders) ? orders : [orders];
+    const ids = [...new Set(list.flatMap((o) => o.orderItems.map((i) => String(i.product))))];
+    const products = await Product.find({ _id: { $in: ids } });
+    const productMap = new Map(products.map((p) => [String(p._id), p]));
+
+    const fixed = list.map((order) => {
+        const plain = order.toObject();
+        plain.orderItems = plain.orderItems.map((item) => {
+            const product = productMap.get(String(item.product));
+            if (!product) return item; // product was deleted entirely: keep the old photo
+
+            const stillThere = getColorImages(product, item.color).some((img) => img.url === item.image);
+            if (stillThere) return item;
+
+            return { ...item, image: getColorImageUrl(product, item.color) || item.image };
+        });
+        return plain;
+    });
+
+    return Array.isArray(orders) ? fixed : fixed[0];
+};
 
 const reserveStock = async ({ product, size, color, quantity }) => {
     const result = await Product.updateOne(
@@ -156,8 +182,8 @@ exports.newOrder = async (req, res) => {
 
 // GET /api/v1/orders/me
 exports.myOrders = async (req, res) => {
-    const orders = await Order.find({ user: req.user._id }).sort({ createdAt: -1 });
-    return res.status(200).json({ success: true, count: orders.length, orders });
+    const found = await Order.find({ user: req.user._id }).sort({ createdAt: -1 });
+    const orders = await withCurrentImages(found);
 };
 
 // GET /api/v1/order/:id   (the order's owner, or an admin)
@@ -173,12 +199,13 @@ exports.getSingleOrder = async (req, res) => {
         return fail(res, 404, 'Order not found');
     }
 
-    return res.status(200).json({ success: true, order });
+    return res.status(200).json({ success: true, order: await withCurrentImages(order) });
 };
 
 // GET /api/v1/admin/orders
 exports.allOrders = async (req, res) => {
-    const orders = await Order.find().populate('user', 'name email').sort({ createdAt: -1 });
+    const found = await Order.find().populate('user', 'name email').sort({ createdAt: -1 });
+    const orders = await withCurrentImages(found);
 
     // Cancelled orders don't count as sales
     const totalAmount = orders

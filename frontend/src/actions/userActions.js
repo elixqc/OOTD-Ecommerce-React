@@ -96,7 +96,15 @@ export const getUserDetails = (id) => async (dispatch) => {
     try {
         dispatch({ type: USER_DETAILS_REQUEST });
         const { data } = await api.get(`/admin/user/${id}`);
-        dispatch({ type: USER_DETAILS_SUCCESS, payload: { user: data.user, orderCount: data.orderCount } });
+        dispatch({
+            type: USER_DETAILS_SUCCESS,
+            payload: {
+                user: data.user,
+                orderCount: data.orderCount,
+                totalSpent: data.totalSpent,
+                recentOrders: data.recentOrders,
+            },
+        });
     } catch (error) {
         dispatch({ type: USER_DETAILS_FAIL, payload: getErrorMessage(error) });
     }
