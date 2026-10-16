@@ -31,6 +31,7 @@ import ReviewsList from './Components/Admin/ReviewsList';
 import UsersList from './Components/Admin/UsersList';
 import UpdateUser from './Components/Admin/UpdateUser';
 import SSOCallback from './Components/User/SSOCallback';
+import NotFound from './Components/Layout/NotFound';
 import { ContactPage, FaqPage, PrivacyPage, ReturnPage, ShippingPage, TermsPage } from './Components/Support/SupportPages';
 
 // Every time the page changes, start at the top
@@ -87,7 +88,7 @@ function App() {
                     <Route path="/terms" element={<><MetaData title="Terms of Service" /><TermsPage /></>} />
                     <Route path="/privacy" element={<><MetaData title="Privacy Policy" /><PrivacyPage /></>} />
 
-                    <Route path="*" element={<h2>Page not found</h2>} />
+                    <Route path="*" element={<NotFound />} />
                 </Route>
 
                 {/* Checkout: slim header, form on the left, order summary on the right */}
