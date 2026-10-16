@@ -611,6 +611,14 @@ body {
     gap: 8px;
 }
 
+.product-rating .MuiRating-iconFilled {
+    color: var(--brand-dark);
+}
+
+.product-rating .MuiRating-iconEmpty {
+    color: #cfcfcf;
+}
+
 .product-description {
     white-space: pre-line;
 }
@@ -640,13 +648,34 @@ body {
 .qty-control {
     display: inline-flex;
     align-items: center;
-    gap: 4px;
+    justify-content: space-between;
+    width: 140px;
+    height: 48px;
+    padding: 0 8px;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    background: #fff;
+    color: var(--brand-dark);
+}
+
+.qty-control .MuiIconButton-root {
+    padding: 6px;
+    color: var(--brand-dark);
+}
+
+.qty-control .MuiIconButton-root.Mui-disabled {
+    color: #bdbdbd;
+}
+
+.qty-control .MuiSvgIcon-root {
+    font-size: 20px;
 }
 
 .qty-value {
     min-width: 28px;
     text-align: center;
-    font-weight: 600;
+    font-size: 0.9rem;
+    font-weight: 400;
 }
 
 /* ---------- Cart ---------- */
@@ -1772,8 +1801,14 @@ body {
     position: absolute !important;
     top: 50%;
     transform: translateY(-50%);
-    background: rgba(255, 255, 255, 0.92) !important;
-    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
+    color: var(--brand-dark) !important;
+    background: rgba(255, 255, 255, 0.55) !important;
+    backdrop-filter: blur(4px);
+    box-shadow: none !important;
+}
+
+.gallery-arrow:hover {
+    background: rgba(255, 255, 255, 0.85) !important;
 }
 
 .gallery-arrow-left {
@@ -2018,6 +2053,11 @@ body {
     font-size: 0.75rem;
     line-height: 1.2;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+    transition: background-color 0.25s;
+}
+
+.product-card:hover .product-badge:not(.sold-out) {
+    background: rgba(255, 255, 255, 0.5);
 }
 
 .product-badge.sold-out {

@@ -299,9 +299,9 @@ function ProductInfo({ product }) {
                 </Typography>
 
                 <div className="product-rating">
-                    <Rating value={product.ratings} precision={0.5} readOnly />
-                    <Typography variant="body2" color="text.secondary">
-                        ({product.numOfReviews} review{product.numOfReviews === 1 ? '' : 's'})
+                    <Rating value={product.ratings} precision={0.5} size="small" readOnly />
+                    <Typography variant="body2">
+                        {product.numOfReviews} review{product.numOfReviews === 1 ? '' : 's'}
                     </Typography>
                 </div>
 
@@ -392,7 +392,7 @@ function ProductInfo({ product }) {
                 ) : (
                     <>
                         <div className="option-group">
-                            <Typography variant="subtitle2">Quantity</Typography>
+                            <Typography variant="body2">Quantity:</Typography>
                             <div className="qty-control">
                                 <IconButton
                                     size="small"
