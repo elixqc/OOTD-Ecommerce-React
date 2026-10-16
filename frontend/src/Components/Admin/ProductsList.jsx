@@ -91,6 +91,7 @@ export default function ProductsList() {
     const [confirm, setConfirm] = useState({ open: false });
     const closeConfirm = () => setConfirm((current) => ({ ...current, open: false }));
     const { products, loading, error } = useSelector((state) => state.adminProducts);
+    const { loading: deleting, isDeleted, deletedCount, error: deleteError } = useSelector((state) => state.product);
 
     const [keyword, setKeyword] = useState('');
     const [categoryFilter, setCategoryFilter] = useState('All');

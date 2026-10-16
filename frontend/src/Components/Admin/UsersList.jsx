@@ -88,6 +88,8 @@ function EmptyState({ filtering, onClear }) {
 
 export default function UsersList() {
     const dispatch = useDispatch();
+    const [confirm, setConfirm] = useState({ open: false });
+    const closeConfirm = () => setConfirm((current) => ({ ...current, open: false }));
     const { users, loading, error } = useSelector((state) => state.allUsers);
     const { isUpdated, updatedUser, error: updateError } = useSelector((state) => state.adminUser);
 
@@ -160,16 +162,17 @@ export default function UsersList() {
         setDateTo('');
     };
 
-    const handleToggle = async (user) => {
+    const handleToggle = (user) => {
         const deactivating = user.isActive;
-        const confirmed = await confirmAction(
-            deactivating ? 'Deactivate this account?' : 'Activate this account?',
-            deactivating
+        setConfirm({
+            open: true,
+            title: deactivating ? 'Deactivate this account?' : 'Activate this account?',
+            text: deactivating
                 ? `${user.name} won't be able to log in or use their account until you activate it again.`
                 : `${user.name} will be able to log in again.`,
-            deactivating ? 'Yes, deactivate' : 'Yes, activate'
-        );
-        if (confirmed) dispatch(updateUser(user._id, !deactivating));
+            confirmText: deactivating ? 'Yes, deactivate' : 'Yes, activate',
+            onConfirm: () => dispatch(updateUser(user._id, !deactivating)),
+        });
     };
 
     const columns = [
@@ -445,6 +448,7 @@ export default function UsersList() {
                     }}
                 />
             </Box>
+            <ConfirmDialog {...confirm} onClose={closeConfirm} />
         </>
     );
 }

@@ -63,7 +63,8 @@ export default function ProcessOrder() {
     const [confirm, setConfirm] = useState({ open: false });
     const closeConfirm = () => setConfirm((current) => ({ ...current, open: false }));
     const { order, loading, error } = useSelector((state) => state.orderDetails);
-
+    const { loading: updating, isUpdated, error: updateError } = useSelector((state) => state.order);
+    
     useEffect(() => {
         dispatch(getOrderDetails(id));
     }, [dispatch, id]);

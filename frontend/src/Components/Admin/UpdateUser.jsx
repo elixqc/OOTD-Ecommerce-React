@@ -60,6 +60,7 @@ export default function UpdateUser() {
     const [confirm, setConfirm] = useState({ open: false });
     const closeConfirm = () => setConfirm((current) => ({ ...current, open: false }));
     const { user, orderCount, totalSpent, recentOrders, loading, error } = useSelector((state) => state.userDetails);
+    const { loading: updating, isUpdated, updatedUser, error: updateError } = useSelector((state) => state.adminUser);
 
     useEffect(() => {
         dispatch(getUserDetails(id));
