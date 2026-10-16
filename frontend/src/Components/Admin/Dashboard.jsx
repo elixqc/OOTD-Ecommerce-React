@@ -1,12 +1,17 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Link } from 'react-router-dom';
-import { useSelector } from 'react-redux';
+import { Link, useNavigate } from 'react-router-dom';
+import { useDispatch, useSelector } from 'react-redux';
 import {
+    Avatar,
     Box,
     Button,
     Chip,
+    Divider,
     IconButton,
     LinearProgress,
+    ListItemIcon,
+    Menu,
+    MenuItem,
     Paper,
     Skeleton,
     Table,
@@ -29,8 +34,12 @@ import CancelOutlinedIcon from '@mui/icons-material/CancelOutlined';
 import ChevronLeftRoundedIcon from '@mui/icons-material/ChevronLeftRounded';
 import ChevronRightRoundedIcon from '@mui/icons-material/ChevronRightRounded';
 import Inventory2OutlinedIcon from '@mui/icons-material/Inventory2Outlined';
+import KeyboardArrowDownRoundedIcon from '@mui/icons-material/KeyboardArrowDownRounded';
+import LogoutOutlinedIcon from '@mui/icons-material/LogoutOutlined';
+import PersonOutlineRoundedIcon from '@mui/icons-material/PersonOutlineRounded';
 import PeopleOutlinedIcon from '@mui/icons-material/PeopleOutlined';
 import ShowChartIcon from '@mui/icons-material/ShowChart';
+import StorefrontOutlinedIcon from '@mui/icons-material/StorefrontOutlined';
 import {
     Area,
     Bar,
@@ -43,6 +52,7 @@ import {
     YAxis,
 } from 'recharts';
 import api from '../../api';
+import { logout } from '../../actions/userActions';
 import { formatDate, notifyError, peso } from '../../Utils/helpers';
 
 const SALES_COLOR = '#355070';
@@ -50,6 +60,7 @@ const ORDERS_COLOR = '#e0a458';
 const GOOD = '#2e9e6b';
 const BAD = '#e5584f';
 const NEUTRAL = '#8a8f98';
+const MINT = '#5fc9a0';
 
 // ---------- date helpers (local time, YYYY-MM-DD for <input type="date">) ----------
 const toInputDate = (d) =>
@@ -107,6 +118,99 @@ function ChangeChip({ value, invert = false }) {
                 {`${up ? '+' : ''}${value.toFixed(1)}%`}
             </Typography>
         </Box>
+    );
+}
+
+// Green circle + "₱2,330.00 (+2.5%)" line under the big sales number
+function SalesDelta({ diff, percent }) {
+    const up = diff >= 0;
+    const color = diff === 0 ? NEUTRAL : up ? MINT : BAD;
+    const Icon = up ? ArrowUpwardRoundedIcon : ArrowDownwardRoundedIcon;
+    const percentText = percent === null ? 'New' : `${percent >= 0 ? '+' : ''}${percent.toFixed(1)}%`;
+
+    return (
+        <Box sx={{ display: 'inline-flex', alignItems: 'center', gap: 1 }}>
+            <Box sx={{ width: 16, height: 16, borderRadius: '50%', bgcolor: color, color: '#fff', display: 'grid', placeItems: 'center' }}>
+                <Icon sx={{ fontSize: 11 }} />
+            </Box>
+            <Typography component="span" sx={{ fontSize: 13, fontWeight: 500, color }}>
+                {`${diff < 0 ? '-' : ''}${peso(Math.abs(diff))} (${percentText})`}
+            </Typography>
+        </Box>
+    );
+}
+
+// Avatar pill in the top right that opens the account menu
+function UserMenu({ user }) {
+    const dispatch = useDispatch();
+    const navigate = useNavigate();
+    const [anchorEl, setAnchorEl] = useState(null);
+    const open = Boolean(anchorEl);
+    const close = () => setAnchorEl(null);
+    const go = (path) => {
+        close();
+        navigate(path);
+    };
+
+    return (
+        <>
+            <Button
+                color="inherit"
+                className="dash-user-btn"
+                onClick={(e) => setAnchorEl(e.currentTarget)}
+                aria-label="Account menu"
+                aria-haspopup="menu"
+                aria-expanded={open}
+            >
+                <Avatar src={user?.avatar?.url || undefined} alt={user?.name} sx={{ width: 32, height: 32 }}>
+                    {user?.name?.[0]}
+                </Avatar>
+                <KeyboardArrowDownRoundedIcon fontSize="small" className={`dash-user-chevron${open ? ' open' : ''}`} />
+            </Button>
+
+            <Menu
+                anchorEl={anchorEl}
+                open={open}
+                onClose={close}
+                anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+                transformOrigin={{ vertical: 'top', horizontal: 'right' }}
+                slotProps={{ paper: { className: 'dash-user-menu' } }}
+            >
+                <Box className="dash-user-menu-head">
+                    <Typography sx={{ fontWeight: 700 }} noWrap>
+                        {user?.name}
+                    </Typography>
+                    <Typography variant="body2" color="text.secondary" noWrap>
+                        {user?.email}
+                    </Typography>
+                </Box>
+                <Divider />
+                <MenuItem onClick={() => go('/me')}>
+                    <ListItemIcon>
+                        <PersonOutlineRoundedIcon fontSize="small" />
+                    </ListItemIcon>
+                    My profile
+                </MenuItem>
+                <MenuItem onClick={() => go('/')}>
+                    <ListItemIcon>
+                        <StorefrontOutlinedIcon fontSize="small" />
+                    </ListItemIcon>
+                    Back to store
+                </MenuItem>
+                <Divider />
+                <MenuItem
+                    onClick={() => {
+                        close();
+                        dispatch(logout());
+                    }}
+                >
+                    <ListItemIcon>
+                        <LogoutOutlinedIcon fontSize="small" />
+                    </ListItemIcon>
+                    Logout
+                </MenuItem>
+            </Menu>
+        </>
     );
 }
 
@@ -319,9 +423,9 @@ export default function Dashboard() {
 
     return (
         <>
-            {/* Greeting + today's date */}
-            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 2, flexWrap: 'wrap', mb: 3 }}>
-                <Box>
+            {/* Top bar: greeting on the left, date + account menu on the right */}
+            <Box className="dash-header">
+                <Box sx={{ minWidth: 0 }}>
                     <Typography variant="h5" component="h1" sx={{ fontWeight: 700 }}>
                         {greeting()}, {firstName}!
                     </Typography>
@@ -329,12 +433,18 @@ export default function Dashboard() {
                         Here&apos;s what&apos;s happening with your store today
                     </Typography>
                 </Box>
-                <Chip
-                    icon={<CalendarMonthOutlinedIcon />}
-                    label={new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}
-                    variant="outlined"
-                    sx={{ height: 40, borderRadius: 99, px: 0.5, fontWeight: 500 }}
-                />
+
+                <Box className="dash-header-right">
+                    <Box className="dash-date">
+                        <Box className="dash-date-icon">
+                            <CalendarMonthOutlinedIcon fontSize="small" />
+                        </Box>
+                        <Typography component="span" sx={{ fontWeight: 500, fontSize: 14 }}>
+                            {new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}
+                        </Typography>
+                    </Box>
+                    <UserMenu user={user} />
+                </Box>
             </Box>
 
             {/* KPI cards */}
@@ -376,16 +486,13 @@ export default function Dashboard() {
                         {initialLoad ? (
                             <Skeleton width={220} height={64} />
                         ) : (
-                            <Typography component="p" sx={{ fontSize: { xs: 36, md: 44 }, fontWeight: 700, lineHeight: 1.1 }}>
+                            <Typography component="p" sx={{ fontSize: { xs: 36, md: 44 }, fontWeight: 400, lineHeight: 1.1, letterSpacing: '-0.02em', color: '#12141c' }}>
                                 {peso(stats?.totalSales ?? 0)}
                             </Typography>
                         )}
                         {stats && previous && (
-                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: 1, flexWrap: 'wrap' }}>
-                                <ChangeChip value={salesChange} />
-                                <Typography variant="body2" color="text.secondary">
-                                    {`${salesDiff >= 0 ? '+' : '-'}${peso(Math.abs(salesDiff))} vs previous period`}
-                                </Typography>
+                            <Box sx={{ mt: 1.5 }}>
+                                <SalesDelta diff={salesDiff} percent={salesChange} />
                             </Box>
                         )}
                         {stats && (
@@ -538,7 +645,6 @@ export default function Dashboard() {
                                 <TableHead>
                                     <TableRow>
                                         <TableCell>Order ID</TableCell>
-                                        <TableCell>Customer</TableCell>
                                         <TableCell>Item</TableCell>
                                         <TableCell>Date</TableCell>
                                         <TableCell>Total</TableCell>
@@ -553,13 +659,12 @@ export default function Dashboard() {
                                                     {order.orderId}
                                                 </Link>
                                             </TableCell>
-                                            <TableCell>{order.customer}</TableCell>
                                             <TableCell sx={{ maxWidth: 200 }}>
                                                 <Typography variant="body2" noWrap>
                                                     {order.item}
                                                 </Typography>
                                             </TableCell>
-                                            <TableCell sx={{ whiteSpace: 'nowrap' }}>{formatDate(order.createdAt)}</TableCell>
+                                            <TableCell sx={{ whiteSpace: 'nowrap', color: NEUTRAL }}>{formatDate(order.createdAt)}</TableCell>
                                             <TableCell sx={{ fontWeight: 600 }}>{peso(order.totalPrice)}</TableCell>
                                             <TableCell>
                                                 <Chip size="small" variant="outlined" label={order.status} color={STATUS_COLORS[order.status] ?? 'default'} />

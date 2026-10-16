@@ -1,16 +1,14 @@
 import { useState } from 'react';
 import { Link, NavLink, Outlet } from 'react-router-dom';
-import { useDispatch, useSelector } from 'react-redux';
-import { Avatar, Button, IconButton, Tooltip, Typography } from '@mui/material';
+import { useSelector } from 'react-redux';
+import { IconButton, Tooltip } from '@mui/material';
 import ChevronLeftRoundedIcon from '@mui/icons-material/ChevronLeftRounded';
 import DashboardOutlinedIcon from '@mui/icons-material/DashboardOutlined';
 import Inventory2OutlinedIcon from '@mui/icons-material/Inventory2Outlined';
-import LogoutOutlinedIcon from '@mui/icons-material/LogoutOutlined';
 import PeopleOutlinedIcon from '@mui/icons-material/PeopleOutlined';
 import RateReviewOutlinedIcon from '@mui/icons-material/RateReviewOutlined';
 import ShoppingCartOutlinedIcon from '@mui/icons-material/ShoppingCartOutlined';
 import StorefrontOutlinedIcon from '@mui/icons-material/StorefrontOutlined';
-import { logout } from '../../actions/userActions';
 
 const STORAGE_KEY = 'adminSidebarCollapsed';
 
@@ -34,7 +32,6 @@ const readCollapsed = () => {
 };
 
 export default function AdminLayout() {
-    const dispatch = useDispatch();
     const { user } = useSelector((state) => state.auth);
     const [collapsed, setCollapsed] = useState(readCollapsed);
 
@@ -78,28 +75,6 @@ export default function AdminLayout() {
                             </Link>
                         </Tooltip>
                     </nav>
-
-                    <div className="admin-side-footer">
-                        <div className="admin-side-user">
-                            <Avatar src={user?.avatar?.url || undefined} alt={user?.name} sx={{ width: 36, height: 36 }}>
-                                {user?.name?.[0]}
-                            </Avatar>
-                            <Typography variant="body2" noWrap className="admin-side-text" sx={{ fontWeight: 600 }}>
-                                {user?.name}
-                            </Typography>
-                        </div>
-                        <Tooltip title={collapsed ? 'Logout' : ''} placement="right" arrow>
-                            <Button
-                                color="inherit"
-                                size="small"
-                                startIcon={<LogoutOutlinedIcon />}
-                                onClick={() => dispatch(logout())}
-                                sx={{ justifyContent: 'flex-start', color: '#6b7280' }}
-                            >
-                                <span className="admin-side-text">Logout</span>
-                            </Button>
-                        </Tooltip>
-                    </div>
                 </aside>
 
                 <IconButton

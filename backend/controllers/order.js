@@ -184,6 +184,8 @@ exports.newOrder = async (req, res) => {
 exports.myOrders = async (req, res) => {
     const found = await Order.find({ user: req.user._id }).sort({ createdAt: -1 });
     const orders = await withCurrentImages(found);
+
+    return res.status(200).json({ success: true, count: orders.length, orders });
 };
 
 // GET /api/v1/order/:id   (the order's owner, or an admin)
