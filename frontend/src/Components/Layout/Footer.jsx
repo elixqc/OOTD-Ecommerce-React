@@ -3,19 +3,35 @@ import { Link as RouterLink } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import { Box, IconButton, Link, Stack, Typography } from '@mui/material';
 import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp';
+import { CATEGORIES } from '../../constants/productConstants';
+
+// Shop links go straight to the shop with that category already filtered.
+// toShop tells the footer not to jump to the top first, because the shop page scrolls to the products itself.
+const shopColumn = {
+    title: 'Shop',
+    links: [
+        { to: '/?category=All', label: 'All products', toShop: true },
+        ...CATEGORIES.map((category) => ({
+            to: `/?category=${encodeURIComponent(category)}`,
+            label: category,
+            toShop: true,
+        })),
+    ],
+};
+
+const supportColumn = {
+    title: 'Support',
+    links: [
+        { to: '/support/contact', label: 'Contact Us' },
+        { to: '/support/shipping', label: 'Shipping' },
+        { to: '/support/return', label: 'Return' },
+        { to: '/support/faq', label: 'FAQ' },
+    ],
+};
 
 // What each kind of visitor sees. Add a new role here to give it its own footer.
 // A column has either links ({ to, label }) or plain lines of text.
-const getFooterContent = (role, cartCount) => {
-    const shop = {
-        title: 'Shop',
-        links: [
-            { to: '/', label: 'All products' },
-            { to: '/cart', label: cartCount > 0 ? `Cart (${cartCount})` : 'Cart' },
-        ],
-    };
-    const ordering = { title: 'Ordering', lines: ['Cash on delivery', 'Order updates by email'] };
-
+const getFooterContent = (role) => {
     switch (role) {
         case 'admin':
             return {
@@ -52,15 +68,16 @@ const getFooterContent = (role, cartCount) => {
                 slogan: 'Own. Outfit. Today.',
                 tagline: 'Easy, everyday pieces in the colors you actually want to wear.',
                 columns: [
-                    shop,
+                    shopColumn,
                     {
                         title: 'Account',
                         links: [
                             { to: '/me', label: 'My profile' },
                             { to: '/orders/me', label: 'My orders' },
+                            { to: '/cart', label: 'Cart' },
                         ],
                     },
-                    ordering,
+                    supportColumn,
                 ],
             };
 
@@ -69,15 +86,16 @@ const getFooterContent = (role, cartCount) => {
                 slogan: 'Own. Outfit. Today.',
                 tagline: 'Easy, everyday pieces in the colors you actually want to wear.',
                 columns: [
-                    shop,
+                    shopColumn,
                     {
                         title: 'Account',
                         links: [
                             { to: '/login', label: 'Login' },
                             { to: '/register', label: 'Register' },
+                            { to: '/cart', label: 'Cart' },
                         ],
                     },
-                    ordering,
+                    supportColumn,
                 ],
             };
     }
@@ -114,10 +132,8 @@ function ScrollTopButton() {
 
 export default function Footer() {
     const { user } = useSelector((state) => state.auth);
-    const { cartItems } = useSelector((state) => state.cart);
-    const cartCount = cartItems.reduce((sum, item) => sum + item.quantity, 0);
 
-    const { slogan, tagline, badge, columns } = getFooterContent(user?.role, cartCount);
+    const { slogan, tagline, badge, columns } = getFooterContent(user?.role);
 
     return (
         <Box
@@ -152,6 +168,9 @@ export default function Footer() {
                             }}
                         >
                             OOTD
+                            <Box component="span" sx={{ color: 'secondary.main' }}>
+                                .
+                            </Box>
                         </Typography>
                         {badge && <span className="footer-badge">{badge}</span>}
                     </Stack>
@@ -179,7 +198,7 @@ export default function Footer() {
                                     key={link.label}
                                     component={RouterLink}
                                     to={link.to}
-                                    onClick={scrollToTop}
+                                    onClick={link.toShop ? undefined : scrollToTop}
                                     underline="none"
                                     className="footer-link"
                                     sx={{ fontSize: 14, color: '#666' }}
@@ -201,8 +220,10 @@ export default function Footer() {
             <Box
                 sx={{
                     display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
+                    flexDirection: { xs: 'column', sm: 'row' },
+                    alignItems: { xs: 'flex-start', sm: 'center' },
+                    justifyContent: 'space-between',
+                    gap: 1.5,
                     px: { xs: 3, sm: 6, md: 10 },
                     py: 2,
                     borderTop: '1px solid #e6e6e6',
@@ -211,6 +232,28 @@ export default function Footer() {
                 }}
             >
                 <span>© {new Date().getFullYear()} OOTD. All rights reserved.</span>
+                <Stack direction="row" spacing={3}>
+                    <Link
+                        component={RouterLink}
+                        to="/terms"
+                        onClick={scrollToTop}
+                        underline="none"
+                        className="footer-link"
+                        sx={{ fontSize: 13, color: '#666' }}
+                    >
+                        Terms of Service
+                    </Link>
+                    <Link
+                        component={RouterLink}
+                        to="/privacy"
+                        onClick={scrollToTop}
+                        underline="none"
+                        className="footer-link"
+                        sx={{ fontSize: 13, color: '#666' }}
+                    >
+                        Privacy Policy
+                    </Link>
+                </Stack>
             </Box>
 
             <ScrollTopButton />

@@ -2,7 +2,6 @@ import { useEffect } from 'react';
 import { Route, Routes, useLocation } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
 import { useAuth } from '@clerk/react';
-import { Toaster } from 'sonner';
 import { syncUser } from './actions/userActions';
 import CustomerLayout from './Components/Layout/CustomerLayout';
 import AdminLayout from './Components/Admin/AdminLayout';
@@ -32,7 +31,7 @@ import ReviewsList from './Components/Admin/ReviewsList';
 import UsersList from './Components/Admin/UsersList';
 import UpdateUser from './Components/Admin/UpdateUser';
 import SSOCallback from './Components/User/SSOCallback';
-import NotFound from './Components/Layout/NotFound';
+import { ContactPage, FaqPage, PrivacyPage, ReturnPage, ShippingPage, TermsPage } from './Components/Support/SupportPages';
 
 // Every time the page changes, start at the top
 function ScrollToTop() {
@@ -58,7 +57,6 @@ function App() {
     return (
         <>
             <ScrollToTop />
-            <Toaster position="bottom-right" duration={3000} toastOptions={{ className: 'ootd-toast' }} />
             <Routes>
                 <Route element={<CustomerLayout />}>
                     <Route path="/" element={<><MetaData title="Shop" /><Home /></>} />
@@ -81,7 +79,15 @@ function App() {
                         <Route path="/order/:id" element={<><MetaData title="Order details" /><OrderDetails /></>} />
                     </Route>
 
-                    <Route path="*" element={<NotFound />} />
+                    {/* Support and legal pages (footer links) */}
+                    <Route path="/support/contact" element={<><MetaData title="Contact us" /><ContactPage /></>} />
+                    <Route path="/support/shipping" element={<><MetaData title="Shipping" /><ShippingPage /></>} />
+                    <Route path="/support/return" element={<><MetaData title="Return" /><ReturnPage /></>} />
+                    <Route path="/support/faq" element={<><MetaData title="FAQ" /><FaqPage /></>} />
+                    <Route path="/terms" element={<><MetaData title="Terms of Service" /><TermsPage /></>} />
+                    <Route path="/privacy" element={<><MetaData title="Privacy Policy" /><PrivacyPage /></>} />
+
+                    <Route path="*" element={<h2>Page not found</h2>} />
                 </Route>
 
                 {/* Checkout: slim header, form on the left, order summary on the right */}

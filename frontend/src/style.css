@@ -3132,3 +3132,90 @@ body {
     color: #fff;
     border-color: var(--brand-accent);
 }
+
+
+.support-page > .support-body {
+    animation: none;
+}
+
+.support-page > .support-help.support-help {
+    animation-delay: 0.6s;
+}
+
+.support-stagger > * {
+    animation: page-enter-rise 0.5s cubic-bezier(0.22, 1, 0.36, 1) backwards;
+}
+
+.support-stagger > *:nth-child(1) { animation-delay: var(--base, 0s); }
+.support-stagger > *:nth-child(2) { animation-delay: calc(var(--base, 0s) + 0.07s); }
+.support-stagger > *:nth-child(3) { animation-delay: calc(var(--base, 0s) + 0.14s); }
+.support-stagger > *:nth-child(4) { animation-delay: calc(var(--base, 0s) + 0.21s); }
+.support-stagger > *:nth-child(5) { animation-delay: calc(var(--base, 0s) + 0.28s); }
+.support-stagger > *:nth-child(6) { animation-delay: calc(var(--base, 0s) + 0.35s); }
+.support-stagger > *:nth-child(7) { animation-delay: calc(var(--base, 0s) + 0.42s); }
+.support-stagger > *:nth-child(n + 8) { animation-delay: calc(var(--base, 0s) + 0.49s); }
+
+.support-body {
+    --base: 0.15s;
+}
+
+/* Cards: soft lift on hover, and the icon circle turns dark like the sort-by arrow in the shop */
+.support-card {
+    transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
+}
+
+.support-card-link:hover,
+.support-card-link:focus-visible {
+    transform: translateY(-3px);
+    border-color: var(--brand-dark);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+}
+
+.support-card-icon {
+    transition: background-color 0.25s ease, color 0.25s ease;
+}
+
+.support-card-link:hover .support-card-icon,
+.support-card-link:focus-visible .support-card-icon {
+    background: var(--brand-dark);
+    color: #fff;
+}
+
+.support-card-arrow {
+    transition: transform 0.25s ease;
+}
+
+.support-card-link:hover .support-card-arrow,
+.support-card-link:focus-visible .support-card-arrow {
+    transform: translateX(4px);
+}
+
+/* Step list with a connecting line */
+.support-steps > li {
+    position: relative;
+}
+
+.support-steps > li:not(:last-child)::before {
+    content: '';
+    position: absolute;
+    left: 17px;
+    top: 40px;
+    bottom: 4px;
+    width: 1px;
+    background: #d9d5cf;
+}
+
+/* Page links (Contact, Shipping, Return, FAQ) */
+.support-nav .MuiChip-root {
+    transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .support-stagger > *,
+    .support-card,
+    .support-card-icon,
+    .support-card-arrow {
+        animation: none;
+        transition: none;
+    }
+}
