@@ -16,10 +16,6 @@ import {
     UPDATE_ORDER_SUCCESS,
     UPDATE_ORDER_FAIL,
     UPDATE_ORDER_RESET,
-    DELETE_ORDER_REQUEST,
-    DELETE_ORDER_SUCCESS,
-    DELETE_ORDER_FAIL,
-    DELETE_ORDER_RESET,
 } from '../constants/orderConstants';
 import { CLEAR_ERRORS } from '../constants/userConstants';
 
@@ -85,23 +81,17 @@ export const adminOrdersReducer = (state = { orders: [], totalAmount: 0 }, actio
     }
 };
 
-// Admin: updating or deleting an order
+// Admin: updating an order
 export const orderReducer = (state = {}, action) => {
     switch (action.type) {
         case UPDATE_ORDER_REQUEST:
-        case DELETE_ORDER_REQUEST:
             return { ...state, loading: true };
         case UPDATE_ORDER_SUCCESS:
             return { ...state, loading: false, isUpdated: true };
-        case DELETE_ORDER_SUCCESS:
-            return { ...state, loading: false, isDeleted: true };
         case UPDATE_ORDER_FAIL:
-        case DELETE_ORDER_FAIL:
             return { ...state, loading: false, error: action.payload };
         case UPDATE_ORDER_RESET:
             return { ...state, isUpdated: false };
-        case DELETE_ORDER_RESET:
-            return { ...state, isDeleted: false };
         case CLEAR_ERRORS:
             return { ...state, error: null };
         default:

@@ -20,10 +20,6 @@ export const UPDATE_ORDER_SUCCESS = 'UPDATE_ORDER_SUCCESS';
 export const UPDATE_ORDER_FAIL = 'UPDATE_ORDER_FAIL';
 export const UPDATE_ORDER_RESET = 'UPDATE_ORDER_RESET';
 
-export const DELETE_ORDER_REQUEST = 'DELETE_ORDER_REQUEST';
-export const DELETE_ORDER_SUCCESS = 'DELETE_ORDER_SUCCESS';
-export const DELETE_ORDER_FAIL = 'DELETE_ORDER_FAIL';
-export const DELETE_ORDER_RESET = 'DELETE_ORDER_RESET';
 
 // These must match backend/utils/constants.js and NEXT_STATUSES in backend/controllers/order.js
 export const ORDER_STATUSES = ['Processing', 'Shipped', 'Delivered', 'Cancelled'];

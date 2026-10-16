@@ -219,20 +219,6 @@ exports.updateOrder = async (req, res) => {
     return res.status(200).json({ success: true, order });
 };
 
-// DELETE /api/v1/admin/order/:id
-exports.deleteOrder = async (req, res) => {
-    if (!mongoose.isValidObjectId(req.params.id)) return fail(res, 404, 'Order not found');
-
-    const order = await Order.findByIdAndDelete(req.params.id);
-    if (!order) return fail(res, 404, 'Order not found');
-
-    // An order that was still open had its stock reserved, so release it
-    if (order.orderStatus === 'Processing' || order.orderStatus === 'Shipped') {
-        await restoreStock(order.orderItems);
-    }
-
-    return res.status(200).json({ success: true, message: 'Order deleted' });
-};
 
 // GET /api/v1/order/:id/receipt   (the order's owner, or an admin)
 exports.downloadReceipt = async (req, res) => {
