@@ -29,6 +29,7 @@ import ProductCard from './ProductCard';
 import ListReviews from '../Review/ListReviews';
 import { Accordion, AccordionDetails, AccordionSummary } from '@mui/material';
 import { DELETE_PRODUCT_RESET } from '../../constants/productConstants';
+import NotFound from '../Layout/NotFound';
 
 const VISIBLE_COLORS = 6;
 
@@ -482,7 +483,7 @@ function ProductInfo({ product }) {
 export default function ProductDetails() {
     const { id } = useParams();
     const dispatch = useDispatch();
-    const { product, error } = useSelector((state) => state.productDetails);
+    const { product, error, status } = useSelector((state) => state.productDetails);
     const { products: related } = useSelector((state) => state.relatedProducts);
 
     useEffect(() => {
@@ -493,6 +494,10 @@ export default function ProductDetails() {
 
     // The store can still hold the previously viewed product for one render
     const ready = product && product._id === id;
+
+    if (error && (status === 404 || status === 400)) {
+        return <NotFound />;
+    }
 
     if (error) {
         return (

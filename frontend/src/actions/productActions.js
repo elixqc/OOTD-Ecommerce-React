@@ -41,7 +41,7 @@ export const getProductDetails = (id, silent = false, admin = false) => async (d
         const { data } = await api.get(admin ? `/admin/product/${id}` : `/product/${id}`);
         dispatch({ type: PRODUCT_DETAILS_SUCCESS, payload: data.product });
     } catch (error) {
-        dispatch({ type: PRODUCT_DETAILS_FAIL, payload: getErrorMessage(error) });
+        dispatch({ type: PRODUCT_DETAILS_FAIL, payload: getErrorMessage(error), status: error.response?.status });
     }
 };
 
