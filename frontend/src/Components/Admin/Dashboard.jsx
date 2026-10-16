@@ -247,7 +247,7 @@ function TopSellers({ items, loading }) {
 
                     {/* key makes the text fade in again each time the product changes */}
                     <Box key={current} className="dash-caption">
-                        <Chip size="small" variant="outlined" label={`#${current + 1} top seller`} sx={{ mb: 1, borderRadius: 99, bgcolor: 'rgba(255,255,255,0.6)' }} />
+                        <Chip size="small" variant="outlined" label={`# ${current + 1} TOP SELLER`} sx={{ mb: 1, borderRadius: 99, bgcolor: 'rgba(255,255,255,0.6)' }} />
                         <Typography sx={{ fontWeight: 700 }} noWrap>
                             {item.name}
                         </Typography>

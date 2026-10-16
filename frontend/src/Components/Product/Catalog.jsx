@@ -16,6 +16,7 @@ import { peso } from '../../Utils/helpers';
 import FilterDrawer from './FilterDrawer';
 import ProductCard from './ProductCard';
 import ProductCardSkeleton from './ProductCardSkeleton';
+import { useSearchParams } from 'react-router-dom';
 
 const PAGE_SIZE = 8; // same as the limit in getProducts
 const emptyFilters = {
@@ -47,20 +48,26 @@ export default function Catalog() {
     const dispatch = useDispatch();
     const { products, loading, error, hasMore, page, total } = useSelector((state) => state.catalog);
 
-    const [filters, setFilters] = useState(emptyFilters);
-    const [searchText, setSearchText] = useState('');
+    const [searchParams, setSearchParams] = useSearchParams();
+    const keyword = (searchParams.get('q') || '').trim();
+
+    const [options, setFilters] = useState(emptyFilters);
+    const filters = useMemo(() => ({ ...options, keyword }), [options, keyword]);
+
+    const clearKeyword = () =>
+        setSearchParams(
+            (prev) => {
+                const next = new URLSearchParams(prev);
+                next.delete('q');
+                return next;
+            },
+            { replace: true }
+        );
     const [drawerOpen, setDrawerOpen] = useState(false);
     const [maxPrice, setMaxPrice] = useState(0);
     const sentinel = useRef(null);
 
     // Search applies by itself shortly after typing stops, so there is no Apply button to press
-    useEffect(() => {
-        const timer = setTimeout(() => {
-            const keyword = searchText.trim();
-            setFilters((prev) => (prev.keyword === keyword ? prev : { ...prev, keyword }));
-        }, 400);
-        return () => clearTimeout(timer);
-    }, [searchText]);
 
     // Highest price in the shop, used as the end of the price slider in the filter drawer
     useEffect(() => {
@@ -110,7 +117,7 @@ export default function Catalog() {
     const removeChip = (reset) => setFilters((prev) => ({ ...prev, ...reset }));
 
     const clearAll = () => {
-        setSearchText('');
+        clearKeyword();
         setFilters({ ...emptyFilters, sort: filters.sort });
     };
 
@@ -216,7 +223,7 @@ export default function Catalog() {
             {hasAnyFilter && (
                 <div className="catalog-chips">
                     {filters.keyword && (
-                        <Chip label={`“${filters.keyword}”`} onDelete={() => setSearchText('')} />
+                        <Chip label={`“${filters.keyword}”`} onDelete={clearKeyword} />
                     )}
                     {activeChips.map((chip) => (
                         <Chip key={chip.key} label={chip.label} onDelete={() => removeChip(chip.reset)} />

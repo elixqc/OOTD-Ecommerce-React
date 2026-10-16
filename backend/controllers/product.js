@@ -219,6 +219,12 @@ exports.deleteProducts = async (req, res) => {
 
 // Escapes regex characters so a keyword like "(" can't break the search
 const escapeRegex = (text) => text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+// Search words that mean a gender. "men" must not be matched as text, or it would also hit "Women".
+const GENDER_WORDS = {
+    men: 'Men', man: 'Men', mens: 'Men', male: 'Men', guys: 'Men', boys: 'Men',
+    women: 'Women', woman: 'Women', womens: 'Women', female: 'Women', ladies: 'Women', girls: 'Women',
+    unisex: 'Unisex',
+};
 
 const toNumber = (value) => (value === undefined || value === '' || Array.isArray(value) ? NaN : Number(value));
 
@@ -240,8 +246,13 @@ exports.getProducts = async (req, res) => {
     const filter = { isActive: { $ne: false } };
 
     if (typeof keyword === 'string' && keyword.trim()) {
-        const pattern = new RegExp(escapeRegex(keyword.trim()), 'i');
-        filter.$or = [{ name: pattern }, { category: pattern }, { brand: pattern }];
+        const words = keyword.trim().split(/\s+/).slice(0, 6);
+        filter.$and = words.map((word) => {
+            const gender = GENDER_WORDS[word.toLowerCase().replace(/['’]/g, '')];
+            if (gender) return { gender: gender === 'Unisex' ? 'Unisex' : { $in: [gender, 'Unisex'] } };
+            const pattern = new RegExp(escapeRegex(word), 'i');
+            return { $or: [{ name: pattern }, { category: pattern }, { brand: pattern }] };
+        });
     }
 
     if (CATEGORIES.includes(category)) {

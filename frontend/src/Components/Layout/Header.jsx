@@ -33,6 +33,8 @@ import DashboardOutlinedIcon from '@mui/icons-material/DashboardOutlined';
 import LogoutOutlinedIcon from '@mui/icons-material/LogoutOutlined';
 import LoginOutlinedIcon from '@mui/icons-material/LoginOutlined';
 import PersonAddAltOutlinedIcon from '@mui/icons-material/PersonAddAltOutlined';
+import SearchIcon from '@mui/icons-material/Search';
+import SearchOverlay from './SearchOverlay';
 import { logout } from '../../actions/userActions';
 import { notifySuccess } from '../../Utils/helpers';
 
@@ -77,6 +79,7 @@ export default function Header() {
 
     const [anchorEl, setAnchorEl] = useState(null);
     const [drawerOpen, setDrawerOpen] = useState(false);
+    const [searchOpen, setSearchOpen] = useState(false);
     const closeMenu = () => setAnchorEl(null);
     const closeDrawer = () => setDrawerOpen(false);
 
@@ -168,11 +171,16 @@ export default function Header() {
                     {/* Right: cart and account */}
                     <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 0.5 }}>
                         {!isAdmin && (
-                            <IconButton color="inherit" component={Link} to="/cart" aria-label="Shopping cart">
-                                <Badge badgeContent={cartCount} max={99} color="secondary">
-                                    <ShoppingBagOutlinedIcon />
-                                </Badge>
-                            </IconButton>
+                            <>
+                                <IconButton color="inherit" aria-label="Search products" onClick={() => setSearchOpen(true)}>
+                                    <SearchIcon />
+                                </IconButton>
+                                <IconButton color="inherit" component={Link} to="/cart" aria-label="Shopping cart">
+                                    <Badge badgeContent={cartCount} max={99} color="secondary">
+                                        <ShoppingBagOutlinedIcon />
+                                    </Badge>
+                                </IconButton>
+                            </>
                         )}
 
                         {loading ? (
@@ -265,6 +273,7 @@ export default function Header() {
                         )}
                     </Box>
                 </Toolbar>
+                <SearchOverlay open={searchOpen} onClose={() => setSearchOpen(false)} />
             </AppBar>
 
             {/* Mobile drawer */}
