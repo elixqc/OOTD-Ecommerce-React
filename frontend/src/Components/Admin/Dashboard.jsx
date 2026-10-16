@@ -502,7 +502,10 @@ export default function Dashboard() {
                                         />
                                     )}
                                     {chartType === 'bar' && (
-                                        <Bar yAxisId="sales" dataKey="total" name="Sales" fill={SALES_COLOR} radius={[6, 6, 0, 0]} maxBarSize={36} />
+                                        <Bar yAxisId="sales" dataKey="total" name="Sales" fill={SALES_COLOR} radius={[6, 6, 0, 0]} maxBarSize={28} />
+                                    )}
+                                    {chartType === 'bar' && (
+                                        <Bar yAxisId="orders" dataKey="orders" name="Orders" fill={ORDERS_COLOR} radius={[6, 6, 0, 0]} maxBarSize={28} />
                                     )}
                                 </ComposedChart>
                             </ResponsiveContainer>

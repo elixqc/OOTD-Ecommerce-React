@@ -1,7 +1,9 @@
 import { useEffect } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { Link, useNavigate, useParams } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
-import { CircularProgress, Typography } from '@mui/material';
+import { Box, Button, Chip, IconButton, Skeleton, Typography } from '@mui/material';
+import ArrowBackRoundedIcon from '@mui/icons-material/ArrowBackRounded';
+import OpenInNewRoundedIcon from '@mui/icons-material/OpenInNewRounded';
 import { getProductDetails, updateProduct } from '../../actions/productActions';
 import { clearErrors } from '../../actions/userActions';
 import { UPDATE_PRODUCT_RESET } from '../../constants/productConstants';
@@ -38,11 +40,51 @@ export default function UpdateProduct() {
 
     return (
         <>
-            <Typography variant="h4" component="h1" className="page-title">
-                Edit product
-            </Typography>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 3, flexWrap: 'wrap' }}>
+                <IconButton
+                    component={Link}
+                    to="/admin/products"
+                    aria-label="Back to products"
+                    sx={{ border: '1px solid #eceef2', borderRadius: '12px' }}
+                >
+                    <ArrowBackRoundedIcon />
+                </IconButton>
+                <Box sx={{ minWidth: 0, flex: 1 }}>
+                    <Typography variant="h5" component="h1" sx={{ fontWeight: 700 }}>
+                        Edit product
+                    </Typography>
+                    <Typography variant="body2" color="text.secondary" noWrap>
+                        {product ? product.name : 'Loading…'}
+                    </Typography>
+                </Box>
+                {product && (
+                    <>
+                        <Chip
+                            size="small"
+                            variant="outlined"
+                            label={product.isActive === false ? 'Hidden' : 'Active'}
+                            color={product.isActive === false ? 'default' : 'success'}
+                        />
+                        <Button
+                            component={Link}
+                            to={`/product/${id}`}
+                            target="_blank"
+                            rel="noreferrer"
+                            size="small"
+                            color="inherit"
+                            endIcon={<OpenInNewRoundedIcon fontSize="small" />}
+                            sx={{ borderRadius: 99, color: '#8a8f98' }}
+                        >
+                            View in shop
+                        </Button>
+                    </>
+                )}
+            </Box>
             {loadingDetails || !product ? (
-                <CircularProgress />
+                <Box sx={{ display: 'grid', gap: 3, gridTemplateColumns: { xs: '1fr', lg: '1fr 340px' } }}>
+                    <Skeleton variant="rounded" height={420} sx={{ borderRadius: '16px' }} />
+                    <Skeleton variant="rounded" height={420} sx={{ borderRadius: '16px' }} />
+                </Box>
             ) : (
                 <ProductForm
                     product={product}

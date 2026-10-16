@@ -2,8 +2,23 @@ import { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useFormik } from 'formik';
 import * as Yup from 'yup';
-import { Alert, Button, Card, IconButton, MenuItem, TextField, Typography } from '@mui/material';
-import DeleteIcon from '@mui/icons-material/Delete';
+import {
+    Alert,
+    Box,
+    Button,
+    Divider,
+    IconButton,
+    InputAdornment,
+    MenuItem,
+    Paper,
+    TextField,
+    ToggleButton,
+    ToggleButtonGroup,
+    Tooltip,
+    Typography,
+} from '@mui/material';
+import AddRoundedIcon from '@mui/icons-material/AddRounded';
+import DeleteOutlinedIcon from '@mui/icons-material/DeleteOutlined';
 import {
     ACCEPTED_IMAGE_TYPES,
     CATEGORIES,
@@ -15,6 +30,41 @@ import { discardUploadedImage, uploadProductImage } from '../../actions/productA
 import { notifyError } from '../../Utils/helpers';
 import { prepareImage } from '../../Utils/imageFile';
 import ColorImageUploader from './ColorImageUploader';
+
+const BORDER = '#eceef2';
+const NEUTRAL = '#8a8f98';
+
+const fieldSx = { '& .MuiOutlinedInput-root': { borderRadius: '12px' } };
+
+// A white rounded panel with a title, the same look as the dashboard and products page
+function Section({ title, subtitle, children, sx }) {
+    return (
+        <Paper elevation={0} sx={{ p: { xs: 2, md: 3 }, border: `1px solid ${BORDER}`, borderRadius: '16px', ...sx }}>
+            <Typography variant="h6" component="h2" sx={{ fontWeight: 700, fontSize: 17 }}>
+                {title}
+            </Typography>
+            {subtitle && (
+                <Typography variant="body2" color="text.secondary" sx={{ mt: 0.25 }}>
+                    {subtitle}
+                </Typography>
+            )}
+            <Box sx={{ mt: 2.5 }}>{children}</Box>
+        </Paper>
+    );
+}
+
+function SummaryRow({ label, value }) {
+    return (
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', py: 0.75 }}>
+            <Typography variant="body2" color="text.secondary">
+                {label}
+            </Typography>
+            <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                {value}
+            </Typography>
+        </Box>
+    );
+}
 
 const validationSchema = Yup.object({
     name: Yup.string()
@@ -288,205 +338,300 @@ export default function ProductForm({ product, onSubmit, submitLabel, loading })
 
     const colorLabel = (c) => c.name.trim() || 'Unnamed color';
 
+    const totalStock = values.variants.reduce((sum, v) => sum + (Number(v.stock) || 0), 0);
+    const totalPhotos = colors.reduce((sum, c) => sum + c.images.length, 0);
+
     return (
-        <Card className="form-card">
-            <form onSubmit={handleSubmit} noValidate>
-                <Typography variant="h6" className="form-section-title">
-                    Product details
-                </Typography>
-                <div className="form-grid">
-                    <TextField
-                        label="Product name"
-                        name="name"
-                        className="form-grid-full"
-                        value={values.name}
-                        onChange={formik.handleChange}
-                        error={Boolean(errors.name)}
-                        helperText={errors.name}
-                    />
-                    <TextField
-                        label="Description"
-                        name="description"
-                        multiline
-                        minRows={3}
-                        className="form-grid-full"
-                        value={values.description}
-                        onChange={formik.handleChange}
-                        error={Boolean(errors.description)}
-                        helperText={errors.description}
-                    />
-                    <TextField
-                        label="Price (₱)"
-                        name="price"
-                        type="number"
-                        value={values.price}
-                        onChange={formik.handleChange}
-                        error={Boolean(errors.price)}
-                        helperText={errors.price}
-                    />
-                    <TextField
-                        select
-                        label="Category"
-                        name="category"
-                        value={values.category}
-                        onChange={formik.handleChange}
-                        error={Boolean(errors.category)}
-                        helperText={errors.category}
-                    >
-                        {CATEGORIES.map((category) => (
-                            <MenuItem key={category} value={category}>
-                                {category}
-                            </MenuItem>
-                        ))}
-                    </TextField>
-                    <TextField
-                        label="Brand"
-                        name="brand"
-                        value={values.brand}
-                        onChange={formik.handleChange}
-                        error={Boolean(errors.brand)}
-                        helperText={errors.brand}
-                    />
-                    <TextField
-                        select
-                        label="Gender"
-                        name="gender"
-                        value={values.gender}
-                        onChange={formik.handleChange}
-                        error={Boolean(errors.gender)}
-                        helperText={errors.gender}
-                    >
-                        {GENDERS.map((gender) => (
-                            <MenuItem key={gender} value={gender}>
-                                {gender}
-                            </MenuItem>
-                        ))}
-                    </TextField>
-                    <TextField
-                        label="Material"
-                        name="material"
-                        className="form-grid-full"
-                        value={values.material}
-                        onChange={formik.handleChange}
-                        error={Boolean(errors.material)}
-                        helperText={errors.material}
-                    />
-                </div>
-
-                <Typography variant="h6" className="form-section-title">
-                    Colors and photos
-                </Typography>
-                <Typography variant="body2" color="text.secondary" className="form-hint">
-                    Each color gets its own photos. Shoppers see them when they pick that color.
-                </Typography>
-                {hasLegacyPhotos && (
-                    <Alert severity="info" sx={{ mb: 2 }}>
-                        This product still uses its old shared photos. Colors without their own photos keep showing those.
-                    </Alert>
-                )}
-
-                {colors.map((color) => (
-                    <div className="color-card" key={color.id}>
-                        <div className="color-card-header">
+        <form onSubmit={handleSubmit} noValidate>
+            <Box
+                sx={{
+                    display: 'grid',
+                    gap: 3,
+                    alignItems: 'start',
+                    gridTemplateColumns: { xs: 'minmax(0, 1fr)', lg: 'minmax(0, 1fr) 340px' },
+                }}
+            >
+                {/* ---------- Left: what the product is ---------- */}
+                <Box sx={{ display: 'grid', gap: 3, minWidth: 0 }}>
+                    <Section title="Product details" subtitle="The name and description shoppers see in the shop.">
+                        <Box sx={{ display: 'grid', gap: 2 }}>
                             <TextField
-                                label="Color name"
-                                size="small"
-                                placeholder="e.g. Navy blue"
-                                value={color.name}
-                                onChange={(e) => {
-                                    const name = e.target.value;
-                                    updateColor(color.id, () => ({ name }));
-                                    setColorErrors((prev) => ({ ...prev, [color.id]: undefined }));
-                                }}
-                                error={Boolean(colorErrors[color.id]) && !color.name.trim()}
+                                label="Product name"
+                                name="name"
+                                sx={fieldSx}
+                                value={values.name}
+                                onChange={formik.handleChange}
+                                error={Boolean(errors.name)}
+                                helperText={errors.name}
                             />
-                            <IconButton
-                                aria-label={`Remove ${colorLabel(color)}`}
-                                onClick={() => removeColor(color)}
-                                disabled={colors.length === 1 || color.images.some((i) => i.uploading)}
-                            >
-                                <DeleteIcon />
-                            </IconButton>
-                        </div>
-                        <ColorImageUploader
-                            images={color.images}
-                            onFiles={(files) => handleFiles(color.id, files)}
-                            onRemove={(img) => removePhoto(color.id, img)}
-                            onMakeMain={(img) => makeMain(color.id, img)}
-                        />
-                        {colorErrors[color.id] && <p className="field-error">{colorErrors[color.id]}</p>}
-                    </div>
-                ))}
-                <Button variant="outlined" size="small" onClick={addColor}>
-                    Add color
-                </Button>
+                            <TextField
+                                label="Description"
+                                name="description"
+                                multiline
+                                minRows={4}
+                                sx={fieldSx}
+                                value={values.description}
+                                onChange={formik.handleChange}
+                                error={Boolean(errors.description)}
+                                helperText={errors.description}
+                            />
+                        </Box>
+                    </Section>
 
-                <Typography variant="h6" className="form-section-title">
-                    Sizes and stock
-                </Typography>
-                {values.variants.map((variant, index) => (
-                    <div className="variant-row" key={index}>
-                        <TextField
-                            label="Size"
-                            name={`variants.${index}.size`}
-                            className="variant-field"
-                            size="small"
-                            value={variant.size}
-                            onChange={formik.handleChange}
-                            error={Boolean(variantError(index, 'size'))}
-                            helperText={variantError(index, 'size')}
-                        />
-                        <TextField
-                            select
-                            label="Color"
-                            name={`variants.${index}.colorId`}
-                            className="variant-field"
-                            size="small"
-                            value={colors.some((c) => c.id === variant.colorId) ? variant.colorId : ''}
-                            onChange={formik.handleChange}
-                            error={Boolean(variantError(index, 'colorId'))}
-                            helperText={variantError(index, 'colorId')}
-                        >
-                            {colors.map((c) => (
-                                <MenuItem key={c.id} value={c.id}>
-                                    {colorLabel(c)}
-                                </MenuItem>
+                    <Section
+                        title="Colors and photos"
+                        subtitle="Each color gets its own photos. Shoppers see them when they pick that color."
+                    >
+                        {hasLegacyPhotos && (
+                            <Alert severity="info" sx={{ mb: 2, borderRadius: '12px' }}>
+                                This product still uses its old shared photos. Colors without their own photos keep showing those.
+                            </Alert>
+                        )}
+
+                        <Box sx={{ display: 'grid', gap: 2 }}>
+                            {colors.map((color) => (
+                                <Box
+                                    key={color.id}
+                                    sx={{
+                                        p: 2,
+                                        border: '1px solid',
+                                        borderColor: colorErrors[color.id] ? 'error.main' : BORDER,
+                                        borderRadius: '14px',
+                                        bgcolor: '#fafbfc',
+                                    }}
+                                >
+                                    <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 1.5 }}>
+                                        <TextField
+                                            label="Color name"
+                                            size="small"
+                                            placeholder="e.g. Navy blue"
+                                            sx={{ ...fieldSx, flex: '1 1 auto', maxWidth: 320, bgcolor: '#fff', borderRadius: '12px' }}
+                                            value={color.name}
+                                            onChange={(e) => {
+                                                const name = e.target.value;
+                                                updateColor(color.id, () => ({ name }));
+                                                setColorErrors((prev) => ({ ...prev, [color.id]: undefined }));
+                                            }}
+                                            error={Boolean(colorErrors[color.id]) && !color.name.trim()}
+                                        />
+                                        <Tooltip title={colors.length === 1 ? 'A product needs at least one color' : 'Remove color'}>
+                                            <span>
+                                                <IconButton
+                                                    aria-label={`Remove ${colorLabel(color)}`}
+                                                    onClick={() => removeColor(color)}
+                                                    disabled={colors.length === 1 || color.images.some((i) => i.uploading)}
+                                                >
+                                                    <DeleteOutlinedIcon />
+                                                </IconButton>
+                                            </span>
+                                        </Tooltip>
+                                    </Box>
+                                    <ColorImageUploader
+                                        images={color.images}
+                                        onFiles={(files) => handleFiles(color.id, files)}
+                                        onRemove={(img) => removePhoto(color.id, img)}
+                                        onMakeMain={(img) => makeMain(color.id, img)}
+                                    />
+                                    {colorErrors[color.id] && (
+                                        <Typography variant="caption" color="error" component="p" sx={{ mt: 0.5 }}>
+                                            {colorErrors[color.id]}
+                                        </Typography>
+                                    )}
+                                </Box>
                             ))}
-                        </TextField>
-                        <TextField
-                            label="Stock"
-                            name={`variants.${index}.stock`}
-                            type="number"
-                            className="variant-field"
-                            size="small"
-                            value={variant.stock}
-                            onChange={formik.handleChange}
-                            error={Boolean(variantError(index, 'stock'))}
-                            helperText={variantError(index, 'stock')}
-                        />
-                        <IconButton
-                            aria-label="Remove variant"
-                            onClick={() => removeVariant(index)}
-                            disabled={values.variants.length === 1}
-                        >
-                            <DeleteIcon />
-                        </IconButton>
-                    </div>
-                ))}
-                {typeof errors.variants === 'string' && <p className="field-error">{errors.variants}</p>}
-                <Button variant="outlined" size="small" onClick={addVariant}>
-                    Add size
-                </Button>
+                        </Box>
 
-                <div className="form-actions">
-                    <Button component={Link} to="/admin/products">
-                        Cancel
-                    </Button>
-                    <Button type="submit" variant="contained" disabled={loading || uploading}>
-                        {uploading ? 'Uploading photos...' : loading ? 'Saving...' : submitLabel}
-                    </Button>
-                </div>
-            </form>
-        </Card>
+                        <Button startIcon={<AddRoundedIcon />} onClick={addColor} sx={{ mt: 2, borderRadius: 99 }}>
+                            Add color
+                        </Button>
+                    </Section>
+
+                    <Section title="Sizes and stock" subtitle="One row for each size and color combination you sell.">
+                        <Box sx={{ display: 'grid', gap: 1.5 }}>
+                            {values.variants.map((variant, index) => (
+                                <Box
+                                    key={index}
+                                    sx={{
+                                        display: 'grid',
+                                        gap: 1.5,
+                                        alignItems: 'start',
+                                        gridTemplateColumns: { xs: 'repeat(2, minmax(0, 1fr)) auto', sm: 'minmax(0, 1fr) minmax(0, 1.3fr) minmax(0, 1fr) auto' },
+                                    }}
+                                >
+                                    <TextField
+                                        label="Size"
+                                        name={`variants.${index}.size`}
+                                        size="small"
+                                        sx={fieldSx}
+                                        value={variant.size}
+                                        onChange={formik.handleChange}
+                                        error={Boolean(variantError(index, 'size'))}
+                                        helperText={variantError(index, 'size')}
+                                    />
+                                    <TextField
+                                        select
+                                        label="Color"
+                                        name={`variants.${index}.colorId`}
+                                        size="small"
+                                        sx={fieldSx}
+                                        value={colors.some((c) => c.id === variant.colorId) ? variant.colorId : ''}
+                                        onChange={formik.handleChange}
+                                        error={Boolean(variantError(index, 'colorId'))}
+                                        helperText={variantError(index, 'colorId')}
+                                    >
+                                        {colors.map((c) => (
+                                            <MenuItem key={c.id} value={c.id}>
+                                                {colorLabel(c)}
+                                            </MenuItem>
+                                        ))}
+                                    </TextField>
+                                    <TextField
+                                        label="Stock"
+                                        name={`variants.${index}.stock`}
+                                        type="number"
+                                        size="small"
+                                        sx={fieldSx}
+                                        value={variant.stock}
+                                        onChange={formik.handleChange}
+                                        error={Boolean(variantError(index, 'stock'))}
+                                        helperText={variantError(index, 'stock')}
+                                    />
+                                    <Tooltip title={values.variants.length === 1 ? 'Keep at least one size' : 'Remove'}>
+                                        <span>
+                                            <IconButton
+                                                aria-label="Remove variant"
+                                                onClick={() => removeVariant(index)}
+                                                disabled={values.variants.length === 1}
+                                            >
+                                                <DeleteOutlinedIcon />
+                                            </IconButton>
+                                        </span>
+                                    </Tooltip>
+                                </Box>
+                            ))}
+                        </Box>
+                        {typeof errors.variants === 'string' && (
+                            <Typography variant="caption" color="error" component="p" sx={{ mt: 1 }}>
+                                {errors.variants}
+                            </Typography>
+                        )}
+                        <Button startIcon={<AddRoundedIcon />} onClick={addVariant} sx={{ mt: 2, borderRadius: 99 }}>
+                            Add size
+                        </Button>
+                    </Section>
+                </Box>
+
+                {/* ---------- Right: price, organization, summary ---------- */}
+                <Box sx={{ display: 'grid', gap: 3, minWidth: 0, position: { lg: 'sticky' }, top: { lg: 24 } }}>
+                    <Section title="Pricing and organization">
+                        <Box sx={{ display: 'grid', gap: 2 }}>
+                            <TextField
+                                label="Price"
+                                name="price"
+                                type="number"
+                                sx={fieldSx}
+                                value={values.price}
+                                onChange={formik.handleChange}
+                                error={Boolean(errors.price)}
+                                helperText={errors.price}
+                                slotProps={{ input: { startAdornment: <InputAdornment position="start">₱</InputAdornment> } }}
+                            />
+                            <TextField
+                                select
+                                label="Category"
+                                name="category"
+                                sx={fieldSx}
+                                value={values.category}
+                                onChange={formik.handleChange}
+                                error={Boolean(errors.category)}
+                                helperText={errors.category}
+                            >
+                                {CATEGORIES.map((category) => (
+                                    <MenuItem key={category} value={category}>
+                                        {category}
+                                    </MenuItem>
+                                ))}
+                            </TextField>
+
+                            <Box>
+                                <Typography variant="caption" sx={{ color: NEUTRAL, display: 'block', mb: 0.75 }}>
+                                    Gender
+                                </Typography>
+                                <ToggleButtonGroup
+                                    exclusive
+                                    fullWidth
+                                    size="small"
+                                    value={values.gender}
+                                    onChange={(_, value) => value && formik.setFieldValue('gender', value)}
+                                    aria-label="Gender"
+                                    sx={{
+                                        gap: 1,
+                                        '& .MuiToggleButtonGroup-grouped': {
+                                            textTransform: 'none',
+                                            margin: 0,
+                                            border: '1px solid #e0e0e0',
+                                            borderRadius: '12px',
+                                            '&:not(:first-of-type), &:not(:last-of-type)': { borderRadius: '12px' },
+                                            '&.Mui-selected': { borderColor: 'var(--brand-dark)' },
+                                        },
+                                    }}
+                                >
+                                    {GENDERS.map((gender) => (
+                                        <ToggleButton key={gender} value={gender}>
+                                            {gender}
+                                        </ToggleButton>
+                                    ))}
+                                </ToggleButtonGroup>
+                                {errors.gender && (
+                                    <Typography variant="caption" color="error" component="p" sx={{ mt: 0.5 }}>
+                                        {errors.gender}
+                                    </Typography>
+                                )}
+                            </Box>
+
+                            <TextField
+                                label="Brand"
+                                name="brand"
+                                sx={fieldSx}
+                                value={values.brand}
+                                onChange={formik.handleChange}
+                                error={Boolean(errors.brand)}
+                                helperText={errors.brand}
+                            />
+                            <TextField
+                                label="Material"
+                                name="material"
+                                sx={fieldSx}
+                                value={values.material}
+                                onChange={formik.handleChange}
+                                error={Boolean(errors.material)}
+                                helperText={errors.material}
+                            />
+                        </Box>
+                    </Section>
+
+                    <Section title="Summary">
+                        <SummaryRow label="Colors" value={colors.length} />
+                        <SummaryRow label="Size / color rows" value={values.variants.length} />
+                        <SummaryRow label="Photos" value={totalPhotos} />
+                        <SummaryRow label="Total stock" value={totalStock} />
+                        <Divider sx={{ my: 2, borderColor: BORDER }} />
+                        <Button
+                            type="submit"
+                            variant="contained"
+                            disableElevation
+                            fullWidth
+                            disabled={loading || uploading}
+                            sx={{ borderRadius: 99, height: 44 }}
+                        >
+                            {uploading ? 'Uploading photos...' : loading ? 'Saving...' : submitLabel}
+                        </Button>
+                        <Button component={Link} to="/admin/products" color="inherit" fullWidth sx={{ mt: 1, borderRadius: 99, color: NEUTRAL }}>
+                            Cancel
+                        </Button>
+                    </Section>
+                </Box>
+            </Box>
+        </form>
     );
 }
