@@ -240,11 +240,11 @@ function ProductInfo({ product }) {
 
     const outOfStock = !selected || selected.stock === 0;
 
-    let stockLabel = <Chip label="In stock" size="small" color="success" />;
+    let stockLabel = <Chip label="IN STOCK" size="small" color="success" />;
     if (outOfStock) {
-        stockLabel = <Chip label="Out of stock" size="small" color="error" />;
+        stockLabel = <Chip label="OUT OF STOCK" size="small" color="error" />;
     } else if (selected.stock <= 5) {
-        stockLabel = <Chip label={`Only ${selected.stock} left`} size="small" color="warning" />;
+        stockLabel = <Chip label={`ONLY ${selected.stock} LEFT`} size="small" color="warning" />;
     }
 
     return (

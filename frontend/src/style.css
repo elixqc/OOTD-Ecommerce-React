@@ -48,73 +48,75 @@ body {
     min-height: 100vh;
 }
 
-/* Footer */
-.site-footer {
-    margin-top: 48px;
-    background: var(--brand-dark);
-    color: #d6d6d6;
+/* Footer: animation only (layout is handled by MUI in Footer.jsx) */
+.footer-marquee-track {
+    animation: footerMarquee 40s linear infinite;
 }
 
-.footer-inner {
-    display: grid;
-    grid-template-columns: 2fr repeat(var(--footer-columns, 3), 1fr);
-    gap: 32px;
-    box-sizing: border-box;
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 40px 16px 32px;
+.footer-marquee:hover .footer-marquee-track {
+    animation-play-state: paused;
 }
 
-.footer-brand p {
-    max-width: 320px;
-    margin: 12px 0 0;
-    font-size: 0.9rem;
-    line-height: 1.5;
+@keyframes footerMarquee {
+    to {
+        transform: translateX(-50%);
+    }
 }
 
-.footer-column {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-    font-size: 0.9rem;
+.footer-link {
+    position: relative;
+    transition: color 0.2s ease;
 }
 
-.footer-column h3 {
-    margin: 0 0 4px;
-    color: #fff;
-    font-size: 0.8rem;
-    font-weight: 600;
-    letter-spacing: 1.5px;
-    text-transform: uppercase;
+.footer-link::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    bottom: -3px;
+    width: 100%;
+    height: 1px;
+    background: var(--brand-accent);
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform 0.25s ease;
 }
 
-.footer-column a {
-    width: fit-content;
-    color: inherit;
-    text-decoration: none;
+.footer-link:hover,
+.footer-link:focus-visible {
+    color: #000;
 }
 
-.footer-column a:hover,
-.footer-column a:focus-visible {
-    color: #fff;
-    text-decoration: underline;
+.footer-link:hover::after,
+.footer-link:focus-visible::after {
+    transform: scaleX(1);
 }
 
-.footer-bottom {
-    padding: 16px;
-    border-top: 1px solid rgba(255, 255, 255, 0.12);
-    text-align: center;
-    font-size: 0.8rem;
-    color: #9a9a9a;
+/* Floating back-to-top button */
+.scroll-top {
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(16px) scale(0.9);
+    transition: opacity 0.25s ease, transform 0.25s ease, visibility 0.25s;
 }
 
-@media (max-width: 700px) {
-    .footer-inner {
-        grid-template-columns: 1fr 1fr;
+.scroll-top-visible {
+    opacity: 1;
+    visibility: visible;
+    transform: none;
+}
+
+.scroll-top-visible:hover {
+    transform: translateY(-3px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .footer-marquee-track {
+        animation: none;
     }
 
-    .footer-brand {
-        grid-column: 1 / -1;
+    .footer-link::after,
+    .scroll-top {
+        transition: none;
     }
 }
 
@@ -2104,6 +2106,36 @@ body {
 .order-card,
 .review-form {
     border: 1px solid #ece9e4;
+}
+
+/* Review form animation only (layout is handled by MUI in ReviewForm.jsx) */
+.review-form {
+    animation: reviewFormIn 0.35s ease-out;
+}
+
+.review-form .MuiRating-root label {
+    transition: transform 0.15s ease;
+}
+
+.review-form .MuiRating-root label:hover {
+    transform: scale(1.2);
+}
+
+@keyframes reviewFormIn {
+    from {
+        opacity: 0;
+        transform: translateY(8px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .review-form {
+        animation: none;
+    }
 }
 
 /* ---------- Checkout (Shopify-style) ---------- */

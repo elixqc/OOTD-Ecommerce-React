@@ -1,7 +1,7 @@
 import { useDispatch } from 'react-redux';
 import { useFormik } from 'formik';
 import * as Yup from 'yup';
-import { Button, FormHelperText, Rating, TextField, Typography } from '@mui/material';
+import { Button, FormHelperText, Paper, Rating, Stack, TextField, Typography } from '@mui/material';
 import { submitReview, updateReview } from '../../actions/reviewActions';
 import { notifyError, notifySuccess } from '../../Utils/helpers';
 
@@ -37,37 +37,49 @@ export default function ReviewForm({ productId, existing, onDone, onCancel }) {
         },
     });
 
-    return (
-        <form onSubmit={formik.handleSubmit} noValidate className="review-form">
-            <Typography variant="subtitle1">{existing ? 'Edit your review' : 'Write a review'}</Typography>
+        return (
+        <Paper
+            component="form"
+            variant="outlined"
+            onSubmit={formik.handleSubmit}
+            noValidate
+            className="review-form"
+            sx={{ p: 3, mb: 3, borderRadius: 2, borderColor: '#ece9e4' }}
+        >
+            <Stack spacing={2}>
+                <Typography variant="subtitle1" fontWeight={600}>
+                    {existing ? 'Edit your review' : 'Write a review'}
+                </Typography>
 
-            <div>
-                <Rating
-                    name="rating"
-                    value={formik.values.rating}
-                    onChange={(e, value) => formik.setFieldValue('rating', value ?? 0)}
+                <div>
+                    <Rating
+                        name="rating"
+                        size="large"
+                        value={formik.values.rating}
+                        onChange={(e, value) => formik.setFieldValue('rating', value ?? 0)}
+                    />
+                    {formik.errors.rating && <FormHelperText error>{formik.errors.rating}</FormHelperText>}
+                </div>
+
+                <TextField
+                    label="Your review (optional)"
+                    name="comment"
+                    multiline
+                    minRows={3}
+                    fullWidth
+                    value={formik.values.comment}
+                    onChange={formik.handleChange}
+                    error={Boolean(formik.errors.comment)}
+                    helperText={formik.errors.comment}
                 />
-                {formik.errors.rating && <FormHelperText error>{formik.errors.rating}</FormHelperText>}
-            </div>
 
-            <TextField
-                label="Your review (optional)"
-                name="comment"
-                multiline
-                minRows={3}
-                fullWidth
-                value={formik.values.comment}
-                onChange={formik.handleChange}
-                error={Boolean(formik.errors.comment)}
-                helperText={formik.errors.comment}
-            />
-
-            <div className="button-row">
-                <Button type="submit" variant="contained" disabled={formik.isSubmitting}>
-                    {formik.isSubmitting ? 'Saving...' : existing ? 'Save changes' : 'Submit review'}
-                </Button>
-                {onCancel && <Button onClick={onCancel}>Cancel</Button>}
-            </div>
-        </form>
+                <Stack direction="row" spacing={1.5} sx={{ pt: 0.5 }}>
+                    <Button type="submit" variant="contained" disabled={formik.isSubmitting}>
+                        {formik.isSubmitting ? 'Saving...' : existing ? 'Save changes' : 'Submit review'}
+                    </Button>
+                    {onCancel && <Button onClick={onCancel}>Cancel</Button>}
+                </Stack>
+            </Stack>
+        </Paper>
     );
 }
