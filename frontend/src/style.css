@@ -967,6 +967,32 @@ body {
     gap: 12px;
 }
 
+.profile-banner-skeleton.MuiSkeleton-root {
+    height: 180px;
+    border-radius: 12px 12px 0 0;
+    transform: none;
+}
+
+.profile-avatar-skeleton.MuiSkeleton-root {
+    width: 112px;
+    height: 112px;
+    margin-top: -56px;
+    border: 4px solid #fff;
+    box-sizing: content-box;
+}
+
+.profile-panel-title-skeleton.MuiSkeleton-root {
+    margin-bottom: 16px;
+}
+
+.profile-row-skeleton-text {
+    flex: 1;
+}
+
+.profile-row-skeleton-link {
+    align-items: center;
+}
+
 .profile-link.MuiListItemButton-root {
     gap: 4px;
     padding: 12px;
@@ -989,6 +1015,11 @@ body {
 @media (max-width: 800px) {
     .profile-grid {
         grid-template-columns: minmax(0, 1fr);
+    }
+
+    .profile-banner,
+    .profile-banner-skeleton.MuiSkeleton-root {
+        height: 140px;
     }
 
     .profile-hero-body {

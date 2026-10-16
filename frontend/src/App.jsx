@@ -54,10 +54,10 @@ function App() {
                     <Route path="/register/*" element={null} />
                 </Route>
                 <Route path="/sso-callback" element={<SSOCallback />} />
+                <Route path="/me" element={<><MetaData title="My profile" /><Profile /></>} />
 
                 {/* Logged-in customers only */}
                 <Route element={<ProtectedRoute />}>
-                    <Route path="/me" element={<><MetaData title="My profile" /><Profile /></>} />
                     <Route path="/me/update" element={<><MetaData title="Update profile" /><UpdateProfile /></>} />
                     <Route path="/password/update/*" element={<><MetaData title="Change password" /><UpdatePassword /></>} />
                     <Route path="/order/success" element={<><MetaData title="Order placed" /><OrderSuccess /></>} />
