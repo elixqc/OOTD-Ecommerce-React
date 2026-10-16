@@ -4,10 +4,10 @@ import { useDispatch, useSelector } from 'react-redux';
 import {
     Button,
     Chip,
-    CircularProgress,
     Drawer,
     IconButton,
     Rating,
+    Skeleton,
     Stack,
     ToggleButton,
     ToggleButtonGroup,
@@ -71,6 +71,89 @@ function InfoSection({ title, children }) {
     );
 }
 
+// Placeholder that mirrors the real page layout while the product loads
+function ProductDetailsSkeleton() {
+    return (
+        <div className="product-skeleton" aria-busy="true" aria-label="Loading product">
+            <Skeleton variant="rounded" width={110} height={32} sx={{ mb: 1 }} />
+
+            <div className="product-detail">
+                {/* Gallery */}
+                <div className="product-gallery">
+                    <Skeleton
+                        variant="rounded"
+                        animation="wave"
+                        sx={{ width: '100%', height: 'auto', aspectRatio: '1 / 1', borderRadius: '8px' }}
+                    />
+                    <div className="product-thumbs">
+                        {[0, 1, 2, 3].map((i) => (
+                            <Skeleton key={i} variant="rounded" animation="wave" width={72} height={72} />
+                        ))}
+                    </div>
+                </div>
+
+                {/* Info */}
+                <div className="product-info">
+                    <Skeleton variant="text" animation="wave" width={90} sx={{ fontSize: '0.875rem' }} />
+                    <Skeleton variant="text" animation="wave" width="75%" sx={{ fontSize: '2.125rem' }} />
+                    <Skeleton variant="text" animation="wave" width={170} />
+                    <Skeleton variant="text" animation="wave" width={110} sx={{ fontSize: '1.5rem' }} />
+
+                    <div className="option-group">
+                        <Skeleton variant="text" animation="wave" width={40} />
+                        <Stack direction="row" spacing={1}>
+                            {[0, 1, 2, 3, 4].map((i) => (
+                                <Skeleton key={i} variant="rounded" animation="wave" width={35} height={29} />
+                            ))}
+                        </Stack>
+                    </div>
+
+                    <div className="option-group">
+                        <Skeleton variant="text" animation="wave" width={140} />
+                        <div className="color-options">
+                            {[0, 1, 2, 3, 4, 5].map((i) => (
+                                <Skeleton key={i} variant="rounded" animation="wave" width={64} height={64} />
+                            ))}
+                        </div>
+                    </div>
+
+                    <Skeleton variant="rounded" animation="wave" width={80} height={24} sx={{ borderRadius: 99 }} />
+
+                    <div className="option-group">
+                        <Skeleton variant="text" animation="wave" width={60} />
+                        <Skeleton variant="rounded" animation="wave" width={110} height={34} />
+                    </div>
+
+                    <Skeleton variant="rounded" animation="wave" width="100%" height={46} />
+
+                    <div className="info-sections">
+                        {[0, 1, 2].map((i) => (
+                            <Skeleton key={i} variant="text" animation="wave" height={48} />
+                        ))}
+                    </div>
+                </div>
+            </div>
+
+            {/* Related products */}
+            <section className="related-products">
+                <Skeleton variant="text" animation="wave" width={220} sx={{ fontSize: '1.5rem', mb: 1 }} />
+                <div className="product-grid">
+                    {[0, 1, 2, 3].map((i) => (
+                        <div key={i}>
+                            <Skeleton
+                                variant="rounded"
+                                animation="wave"
+                                sx={{ width: '100%', height: 'auto', aspectRatio: '3 / 4' }}
+                            />
+                            <Skeleton variant="text" animation="wave" width="80%" sx={{ mt: 1 }} />
+                            <Skeleton variant="text" animation="wave" width="40%" />
+                        </div>
+                    ))}
+                </div>
+            </section>
+        </div>
+    );
+}
 
 // Separate component so the selected image, size, color, and quantity reset whenever the product changes
 function ProductInfo({ product }) {
@@ -372,11 +455,7 @@ export default function ProductDetails() {
     }
 
     if (!ready) {
-        return (
-            <div className="catalog-message">
-                <CircularProgress />
-            </div>
-        );
+        return <ProductDetailsSkeleton />;
     }
 
     return (

@@ -322,11 +322,36 @@ exports.dashboardStats = async (req, res) => {
     const granularity = rangeDays === 1 ? 'hour' : rangeDays <= 92 ? 'day' : 'month';
     const dateFormat = { hour: '%H', day: '%Y-%m-%d', month: '%Y-%m' }[granularity];
 
-    const [totals, salesOverTime, productSales, customerSales, totalProducts, totalUsers] = await Promise.all([
+    // The same-length period right before this one, for the "vs previous period" change
+    const periodMs = endExclusive - start;
+    const previousRange = { createdAt: { $gte: new Date(start.getTime() - periodMs), $lt: start } };
+
+    const summarize = (match) =>
         Order.aggregate([
-            { $match: inRange },
-            { $group: { _id: null, totalOrders: { $sum: 1 } } },
-        ]),
+            { $match: match },
+            {
+                $group: {
+                    _id: null,
+                    orders: { $sum: 1 },
+                    completed: { $sum: { $cond: [{ $eq: ['$orderStatus', 'Delivered'] }, 1, 0] } },
+                    cancelled: { $sum: { $cond: [{ $eq: ['$orderStatus', 'Cancelled'] }, 1, 0] } },
+                    sales: { $sum: { $cond: [{ $ne: ['$orderStatus', 'Cancelled'] }, '$totalPrice', 0] } },
+                },
+            },
+        ]);
+
+    const [
+        totals,
+        previousTotals,
+        salesOverTime,
+        productSales,
+        customerSales,
+        recentOrders,
+        totalProducts,
+        totalUsers,
+    ] = await Promise.all([
+        summarize(inRange),
+        summarize(previousRange),
         Order.aggregate([
             { $match: notCancelled },
             {
@@ -342,7 +367,9 @@ exports.dashboardStats = async (req, res) => {
             { $unwind: '$orderItems' },
             {
                 $group: {
-                    _id: '$orderItems.name',
+                    _id: '$orderItems.product',
+                    name: { $first: '$orderItems.name' },
+                    image: { $first: '$orderItems.image' },
                     unitsSold: { $sum: '$orderItems.quantity' },
                     total: { $sum: { $multiply: ['$orderItems.price', '$orderItems.quantity'] } },
                 },
@@ -358,9 +385,19 @@ exports.dashboardStats = async (req, res) => {
             { $lookup: { from: 'users', localField: '_id', foreignField: '_id', as: 'user' } },
             { $project: { total: 1, orders: 1, name: { $ifNull: [{ $arrayElemAt: ['$user.name', 0] }, 'Deleted user'] } } },
         ]),
+        Order.find(inRange).sort({ createdAt: -1 }).limit(5).populate('user', 'name').lean(),
         Product.countDocuments(),
         User.countDocuments(),
     ]);
+
+    // Order lines keep the photo from the day of purchase, which may have been deleted since.
+    // Prefer the product's current cover photo.
+    const currentProducts = await Product.find({ _id: { $in: productSales.map((p) => p._id) } });
+    const coverById = new Map(currentProducts.map((p) => [String(p._id), p.coverImage]));
+
+    const empty = { orders: 0, completed: 0, cancelled: 0, sales: 0 };
+    const current = totals[0] || empty;
+    const previous = previousTotals[0] || empty;
 
     const series = buildBuckets(from, to, granularity).map(({ key, label }) => {
         const found = salesOverTime.find((b) => b._id === key);
@@ -375,13 +412,38 @@ exports.dashboardStats = async (req, res) => {
         from,
         to,
         granularity,
-        totalOrders: totals[0] ? totals[0].totalOrders : 0,
+        totalOrders: current.orders,
+        completedOrders: current.completed,
+        cancelledOrders: current.cancelled,
+        previous: {
+            totalSales: previous.sales,
+            totalOrders: previous.orders,
+            completedOrders: previous.completed,
+            cancelledOrders: previous.cancelled,
+        },
         totalSales,
         averageOrderValue: paidOrders ? totalSales / paidOrders : 0,
         totalProducts,
         totalUsers,
         salesOverTime: series,
-        productSales: productSales.map((p) => ({ name: p._id, unitsSold: p.unitsSold, total: p.total })),
+        productSales: productSales.map((p) => ({
+            name: p.name,
+            image: coverById.get(String(p._id)) || p.image,
+            unitsSold: p.unitsSold,
+            total: p.total,
+        })),
+        recentOrders: recentOrders.map((o) => ({
+            _id: o._id,
+            orderId: shortOrderId(o._id),
+            customer: o.user?.name || 'Deleted user',
+            item:
+                o.orderItems.length > 1
+                    ? `${o.orderItems[0].name} +${o.orderItems.length - 1} more`
+                    : o.orderItems[0]?.name || '',
+            createdAt: o.createdAt,
+            totalPrice: o.totalPrice,
+            status: o.orderStatus,
+        })),
         customerSales: customerSales.map((c) => ({ name: c.name, orders: c.orders, total: c.total })),
     });
 };

@@ -4,7 +4,6 @@ import {
     Badge,
     Button,
     Chip,
-    CircularProgress,
     MenuItem,
     Select,
     Typography,
@@ -16,7 +15,9 @@ import { getProducts, loadMoreProducts } from '../../actions/productActions';
 import { peso } from '../../Utils/helpers';
 import FilterDrawer from './FilterDrawer';
 import ProductCard from './ProductCard';
+import ProductCardSkeleton from './ProductCardSkeleton';
 
+const PAGE_SIZE = 8; // same as the limit in getProducts
 const emptyFilters = {
     keyword: '',
     category: 'All',
@@ -242,17 +243,14 @@ export default function Catalog() {
                 </div>
             )}
 
-            <div className="product-grid">
-                {products.map((product) => (
-                    <ProductCard key={product._id} product={product} />
-                ))}
-            </div>
+            <div className="product-grid" aria-busy={loading}>
+                 {products.map((product) => (
+                     <ProductCard key={product._id} product={product} />
+                 ))}
+                {loading &&
+                    Array.from({ length: PAGE_SIZE }, (_, i) => <ProductCardSkeleton key={`skeleton-${i}`} />)}
+             </div>
 
-            {loading && (
-                <div className="catalog-message">
-                    <CircularProgress />
-                </div>
-            )}
             {!loading && !error && page > 0 && products.length === 0 && (
                 <div className="catalog-message">
                     <Typography>No products match your search.</Typography>

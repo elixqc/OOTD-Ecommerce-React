@@ -1,30 +1,42 @@
 import { useEffect, useMemo, useState } from 'react';
+import { Link } from 'react-router-dom';
+import { useSelector } from 'react-redux';
 import {
-    Avatar,
     Box,
+    Button,
     Chip,
+    IconButton,
     LinearProgress,
     Paper,
     Skeleton,
+    Table,
+    TableBody,
+    TableCell,
+    TableContainer,
+    TableHead,
+    TableRow,
     TextField,
     ToggleButton,
     ToggleButtonGroup,
     Typography,
 } from '@mui/material';
-import { useTheme } from '@mui/material/styles';
-import PaidOutlinedIcon from '@mui/icons-material/PaidOutlined';
-import ShoppingBagOutlinedIcon from '@mui/icons-material/ShoppingBagOutlined';
-import ReceiptLongOutlinedIcon from '@mui/icons-material/ReceiptLongOutlined';
+import AssignmentTurnedInOutlinedIcon from '@mui/icons-material/AssignmentTurnedInOutlined';
+import ArrowDownwardRoundedIcon from '@mui/icons-material/ArrowDownwardRounded';
+import ArrowUpwardRoundedIcon from '@mui/icons-material/ArrowUpwardRounded';
+import BarChartIcon from '@mui/icons-material/BarChart';
+import CalendarMonthOutlinedIcon from '@mui/icons-material/CalendarMonthOutlined';
+import CancelOutlinedIcon from '@mui/icons-material/CancelOutlined';
+import ChevronLeftRoundedIcon from '@mui/icons-material/ChevronLeftRounded';
+import ChevronRightRoundedIcon from '@mui/icons-material/ChevronRightRounded';
 import Inventory2OutlinedIcon from '@mui/icons-material/Inventory2Outlined';
 import PeopleOutlinedIcon from '@mui/icons-material/PeopleOutlined';
 import ShowChartIcon from '@mui/icons-material/ShowChart';
-import BarChartIcon from '@mui/icons-material/BarChart';
 import {
+    Area,
     Bar,
-    BarChart,
     CartesianGrid,
+    ComposedChart,
     Line,
-    LineChart,
     ResponsiveContainer,
     Tooltip,
     XAxis,
@@ -32,6 +44,12 @@ import {
 } from 'recharts';
 import api from '../../api';
 import { formatDate, notifyError, peso } from '../../Utils/helpers';
+
+const SALES_COLOR = '#355070';
+const ORDERS_COLOR = '#e0a458';
+const GOOD = '#2e9e6b';
+const BAD = '#e5584f';
+const NEUTRAL = '#8a8f98';
 
 // ---------- date helpers (local time, YYYY-MM-DD for <input type="date">) ----------
 const toInputDate = (d) =>
@@ -44,71 +62,73 @@ const daysAgo = (n) => {
 };
 
 const PRESETS = [
-    { id: 'today', label: 'Today', range: () => ({ from: daysAgo(0), to: daysAgo(0) }) },
-    { id: '7d', label: 'Last 7 days', range: () => ({ from: daysAgo(6), to: daysAgo(0) }) },
-    { id: '30d', label: 'Last 30 days', range: () => ({ from: daysAgo(29), to: daysAgo(0) }) },
-    { id: '90d', label: 'Last 90 days', range: () => ({ from: daysAgo(89), to: daysAgo(0) }) },
-    { id: 'ytd', label: 'This year', range: () => ({ from: `${new Date().getFullYear()}-01-01`, to: daysAgo(0) }) },
+    { id: '1d', label: '1D', range: () => ({ from: daysAgo(0), to: daysAgo(0) }) },
+    { id: '7d', label: '7D', range: () => ({ from: daysAgo(6), to: daysAgo(0) }) },
+    { id: '30d', label: '30D', range: () => ({ from: daysAgo(29), to: daysAgo(0) }) },
+    { id: '90d', label: '90D', range: () => ({ from: daysAgo(89), to: daysAgo(0) }) },
+    { id: 'ytd', label: 'YTD', range: () => ({ from: `${new Date().getFullYear()}-01-01`, to: daysAgo(0) }) },
 ];
 
-const compactPeso = (v) => `₱${new Intl.NumberFormat('en', { notation: 'compact' }).format(v)}`;
-const truncate = (text, max = 16) => (String(text).length > max ? `${String(text).slice(0, max - 1)}…` : text);
+const greeting = () => {
+    const hour = new Date().getHours();
+    if (hour < 12) return 'Good Morning';
+    if (hour < 18) return 'Good Afternoon';
+    return 'Good Evening';
+};
+
+// null means there was nothing in the previous period to compare with
+const pctChange = (current, previous) => {
+    if (!previous) return current > 0 ? null : 0;
+    return ((current - previous) / previous) * 100;
+};
+
+const STATUS_COLORS = { Processing: 'warning', Shipped: 'info', Delivered: 'success', Cancelled: 'error' };
 
 // ---------- small presentational pieces ----------
-function StatCard({ label, value, icon, color, loading }) {
+function ChangeChip({ value, invert = false }) {
+    if (value === null) {
+        return (
+            <Typography component="span" sx={{ fontSize: 12, fontWeight: 600, color: NEUTRAL }}>
+                New
+            </Typography>
+        );
+    }
+    const up = value >= 0;
+    const good = invert ? !up : up;
+    const color = value === 0 ? NEUTRAL : good ? GOOD : BAD;
+    const Icon = up ? ArrowUpwardRoundedIcon : ArrowDownwardRoundedIcon;
+
     return (
-        <Paper
-            variant="outlined"
-            sx={{ p: 2.5, display: 'flex', alignItems: 'center', gap: 2, borderRadius: 3, bgcolor: 'background.paper' }}
-        >
-            <Avatar sx={{ bgcolor: `${color}1f`, color, width: 48, height: 48 }}>{icon}</Avatar>
+        <Box sx={{ display: 'inline-flex', alignItems: 'center', gap: 0.75 }}>
+            <Box sx={{ width: 16, height: 16, borderRadius: '50%', bgcolor: color, color: '#fff', display: 'grid', placeItems: 'center' }}>
+                <Icon sx={{ fontSize: 11 }} />
+            </Box>
+            <Typography component="span" sx={{ fontSize: 12, fontWeight: 600, color }}>
+                {`${up ? '+' : ''}${value.toFixed(1)}%`}
+            </Typography>
+        </Box>
+    );
+}
+
+function StatCard({ label, value, icon, change, invert, loading }) {
+    return (
+        <Paper elevation={0} className="dash-stat">
+            <Box className="dash-stat-icon">{icon}</Box>
             <Box sx={{ minWidth: 0 }}>
                 <Typography variant="body2" color="text.secondary" noWrap>
                     {label}
                 </Typography>
                 {loading ? (
-                    <Skeleton width={90} height={32} />
+                    <Skeleton width={90} height={34} />
                 ) : (
-                    <Typography variant="h5" component="p" sx={{ fontWeight: 700, lineHeight: 1.25 }} noWrap>
-                        {value}
-                    </Typography>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.25, flexWrap: 'wrap' }}>
+                        <Typography component="p" sx={{ fontSize: 26, fontWeight: 700, lineHeight: 1.3 }}>
+                            {value}
+                        </Typography>
+                        {change !== undefined && <ChangeChip value={change} invert={invert} />}
+                    </Box>
                 )}
             </Box>
-        </Paper>
-    );
-}
-
-function ChartCard({ title, subtitle, action, empty, loading, height = 320, sx, children }) {
-    return (
-        <Paper variant="outlined" sx={{ p: 3, borderRadius: 3, minWidth: 0, ...sx }}>
-            <Box sx={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 2, mb: 2, flexWrap: 'wrap' }}>
-                <Box>
-                    <Typography variant="h6" component="h2" sx={{ fontWeight: 700 }}>
-                        {title}
-                    </Typography>
-                    {subtitle && (
-                        <Typography variant="body2" color="text.secondary">
-                            {subtitle}
-                        </Typography>
-                    )}
-                </Box>
-                {action}
-            </Box>
-
-            {loading ? (
-                <Skeleton variant="rounded" height={height} />
-            ) : empty ? (
-                <Box sx={{ height, display: 'grid', placeItems: 'center', textAlign: 'center' }}>
-                    <Box>
-                        <ShowChartIcon sx={{ fontSize: 40, color: 'text.disabled' }} />
-                        <Typography color="text.secondary">No sales in this period</Typography>
-                    </Box>
-                </Box>
-            ) : (
-                <Box sx={{ width: '100%', height }}>
-                    <ResponsiveContainer>{children}</ResponsiveContainer>
-                </Box>
-            )}
         </Paper>
     );
 }
@@ -117,23 +137,147 @@ function SalesTooltip({ active, payload, label }) {
     if (!active || !payload?.length) return null;
     const row = payload[0].payload;
     return (
-        <Paper elevation={4} sx={{ p: 1.5, borderRadius: 2 }}>
-            <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>
-                {label}
+        <Box className="dash-tooltip">
+            <Typography sx={{ fontWeight: 700, mb: 1 }}>{label}</Typography>
+            <Box className="dash-tooltip-row">
+                <span style={{ background: SALES_COLOR }} />
+                <em>Sales</em>
+                <strong>{peso(row.total)}</strong>
+            </Box>
+            <Box className="dash-tooltip-row">
+                <span style={{ background: ORDERS_COLOR }} />
+                <em>Orders</em>
+                <strong>{row.orders}</strong>
+            </Box>
+        </Box>
+    );
+}
+
+// Shows the product photo, or a grey tile with its initial when the image link is broken
+function ProductImage({ src, name }) {
+    const [failed, setFailed] = useState(false);
+    if (!src || failed) {
+        return <Box className="dash-slide-img dash-slide-fallback">{name?.[0]}</Box>;
+    }
+    return <Box component="img" src={src} alt={name} className="dash-slide-img" onError={() => setFailed(true)} />;
+}
+
+const SLIDE_SHIFT = 100; // px between the center tile and the ones beside it
+
+// Top sellers carousel. Tiles glide into place when you move through the list.
+function TopSellers({ items, loading }) {
+    // Keeps counting up or down (never wraps), so tiles slide smoothly instead of jumping
+    const [index, setIndex] = useState(0);
+    const count = items.length;
+    const mod = (k) => ((k % count) + count) % count;
+    const current = count ? mod(index) : 0;
+    const item = count ? items[current] : null;
+
+    const slots = [];
+    if (count) for (let k = index - 2; k <= index + 2; k++) slots.push(k);
+
+    const onKeyDown = (event) => {
+        if (count < 2) return;
+        if (event.key === 'ArrowLeft') setIndex(index - 1);
+        if (event.key === 'ArrowRight') setIndex(index + 1);
+    };
+
+    return (
+        <Paper elevation={0} className="dash-congrats">
+            <Typography variant="h5" component="h2" sx={{ fontWeight: 700 }}>
+                Congratulations!
             </Typography>
-            <Typography variant="body2">Sales: {peso(row.total)}</Typography>
-            <Typography variant="body2" color="text.secondary">
-                Orders: {row.orders}
+            <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
+                Some of your products already have the highest buyers.
             </Typography>
+
+            {loading ? (
+                <Skeleton variant="rounded" height={210} sx={{ mt: 3 }} />
+            ) : count === 0 ? (
+                <Box sx={{ height: 210, display: 'grid', placeItems: 'center', mt: 3 }}>
+                    <Typography color="text.secondary">No sales in this period</Typography>
+                </Box>
+            ) : (
+                <>
+                    <Box
+                        className="dash-carousel"
+                        role="group"
+                        aria-roledescription="carousel"
+                        aria-label="Top selling products"
+                        tabIndex={0}
+                        onKeyDown={onKeyDown}
+                    >
+                        <Box className="dash-stage">
+                            {slots.map((k) => {
+                                const offset = k - index;
+                                const visible = offset === 0 || (offset === 1 && count >= 2) || (offset === -1 && count >= 3);
+                                const product = items[mod(k)];
+                                return (
+                                    <button
+                                        key={k}
+                                        type="button"
+                                        className={`dash-slide${offset === 0 ? ' active' : ''}`}
+                                        style={{
+                                            transform: `translate(calc(-50% + ${offset * SLIDE_SHIFT}px), -50%) scale(${offset === 0 ? 1 : 0.7})`,
+                                            opacity: visible ? (offset === 0 ? 1 : 0.75) : 0,
+                                            zIndex: offset === 0 ? 2 : 1,
+                                        }}
+                                        disabled={offset === 0 || !visible}
+                                        aria-hidden={!visible}
+                                        aria-label={`Show ${product.name}`}
+                                        onClick={() => setIndex(k)}
+                                    >
+                                        <ProductImage src={product.image} name={product.name} />
+                                    </button>
+                                );
+                            })}
+                        </Box>
+
+                        {count > 1 && (
+                            <>
+                                <IconButton size="small" className="dash-carousel-arrow left" aria-label="Previous product" onClick={() => setIndex(index - 1)}>
+                                    <ChevronLeftRoundedIcon fontSize="small" />
+                                </IconButton>
+                                <IconButton size="small" className="dash-carousel-arrow right" aria-label="Next product" onClick={() => setIndex(index + 1)}>
+                                    <ChevronRightRoundedIcon fontSize="small" />
+                                </IconButton>
+                            </>
+                        )}
+                    </Box>
+
+                    {/* key makes the text fade in again each time the product changes */}
+                    <Box key={current} className="dash-caption">
+                        <Chip size="small" variant="outlined" label={`#${current + 1} top seller`} sx={{ mb: 1, borderRadius: 99, bgcolor: 'rgba(255,255,255,0.6)' }} />
+                        <Typography sx={{ fontWeight: 700 }} noWrap>
+                            {item.name}
+                        </Typography>
+                        <Typography variant="body2" color="text.secondary">
+                            {item.unitsSold} sold · {peso(item.total)}
+                        </Typography>
+                    </Box>
+
+                    {count > 1 && (
+                        <Box className="dash-dots">
+                            {items.map((product, i) => (
+                                <button
+                                    key={`${product.name}-${i}`}
+                                    type="button"
+                                    className={`dash-dot${i === current ? ' active' : ''}`}
+                                    aria-label={`Show ${product.name}`}
+                                    onClick={() => setIndex(index + (i - current))}
+                                />
+                            ))}
+                        </Box>
+                    )}
+                </>
+            )}
         </Paper>
     );
 }
 
 // ---------- page ----------
 export default function Dashboard() {
-    const theme = useTheme();
-    const accent = theme.palette.secondary.main;
-    const dark = theme.palette.primary.main;
+    const { user } = useSelector((state) => state.auth);
 
     const [range, setRange] = useState(() => PRESETS.find((p) => p.id === 'ytd').range()); // this year by default
     const [chartType, setChartType] = useState('line');
@@ -167,166 +311,265 @@ export default function Dashboard() {
 
     const hasSales = stats?.salesOverTime.some((b) => b.total > 0);
     const initialLoad = loading && !stats;
-    const periodLabel = stats ? `${formatDate(stats.from)} – ${formatDate(stats.to)}` : '';
-
-    const salesChartProps = {
-        data: stats?.salesOverTime ?? [],
-        margin: { top: 8, right: 16, left: 0, bottom: 0 },
-    };
-    const salesAxes = (
-        <>
-            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke={theme.palette.divider} />
-            <XAxis dataKey="label" tickLine={false} axisLine={false} minTickGap={24} />
-            <YAxis tickFormatter={compactPeso} tickLine={false} axisLine={false} width={64} />
-            <Tooltip content={<SalesTooltip />} cursor={{ fill: 'rgba(0,0,0,0.04)' }} />
-        </>
-    );
+    const previous = stats?.previous;
+    const salesDiff = stats && previous ? stats.totalSales - previous.totalSales : 0;
+    const salesChange = stats && previous ? pctChange(stats.totalSales, previous.totalSales) : 0;
+    const firstName = user?.name?.split(' ')[0] ?? 'there';
+    const dataLength = stats?.salesOverTime.length ?? 0;
 
     return (
         <>
-            <Box sx={{ mb: 3 }}>
-                <Typography variant="h4" component="h1" sx={{ fontWeight: 800 }}>
-                    Sales dashboard
-                </Typography>
-                <Typography color="text.secondary">
-                    {periodLabel ? `Showing ${periodLabel}` : 'Choose a date range to see how the store is doing'}
-                </Typography>
+            {/* Greeting + today's date */}
+            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 2, flexWrap: 'wrap', mb: 3 }}>
+                <Box>
+                    <Typography variant="h5" component="h1" sx={{ fontWeight: 700 }}>
+                        {greeting()}, {firstName}!
+                    </Typography>
+                    <Typography variant="body2" color="text.secondary">
+                        Here&apos;s what&apos;s happening with your store today
+                    </Typography>
+                </Box>
+                <Chip
+                    icon={<CalendarMonthOutlinedIcon />}
+                    label={new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}
+                    variant="outlined"
+                    sx={{ height: 40, borderRadius: 99, px: 0.5, fontWeight: 500 }}
+                />
             </Box>
 
-            {/* Filters */}
-            <Paper variant="outlined" sx={{ p: 2.5, mb: 3, borderRadius: 3, position: 'relative', overflow: 'hidden' }}>
-                {loading && stats && <LinearProgress color="secondary" sx={{ position: 'absolute', inset: '0 0 auto 0' }} />}
-                <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2, alignItems: 'center' }}>
-                    <TextField
-                        label="From"
-                        type="date"
-                        size="small"
-                        value={range.from}
-                        error={Boolean(rangeError)}
-                        onChange={(e) => setRange((r) => ({ ...r, from: e.target.value }))}
-                        slotProps={{ inputLabel: { shrink: true }, htmlInput: { max: range.to || undefined } }}
-                    />
-                    <TextField
-                        label="To"
-                        type="date"
-                        size="small"
-                        value={range.to}
-                        error={Boolean(rangeError)}
-                        helperText={rangeError}
-                        onChange={(e) => setRange((r) => ({ ...r, to: e.target.value }))}
-                        slotProps={{ inputLabel: { shrink: true }, htmlInput: { min: range.from || undefined } }}
-                    />
+            {/* KPI cards */}
+            <Box className="dash-stats">
+                <StatCard label="Total products" value={stats?.totalProducts ?? 0} icon={<Inventory2OutlinedIcon />} loading={initialLoad} />
+                <StatCard
+                    label="Completed orders"
+                    value={stats?.completedOrders ?? 0}
+                    icon={<AssignmentTurnedInOutlinedIcon />}
+                    change={stats && previous ? pctChange(stats.completedOrders, previous.completedOrders) : undefined}
+                    loading={initialLoad}
+                />
+                <StatCard
+                    label="Cancelled orders"
+                    value={stats?.cancelledOrders ?? 0}
+                    icon={<CancelOutlinedIcon />}
+                    change={stats && previous ? pctChange(stats.cancelledOrders, previous.cancelledOrders) : undefined}
+                    invert
+                    loading={initialLoad}
+                />
+                <StatCard label="Customers" value={stats?.totalUsers ?? 0} icon={<PeopleOutlinedIcon />} loading={initialLoad} />
+            </Box>
 
-                    <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, ml: { md: 'auto' } }}>
+            {/* Sales report */}
+            <Box className="dash-report">
+                {loading && stats && <LinearProgress color="secondary" sx={{ position: 'absolute', inset: '0 0 auto 0' }} />}
+
+                <Box className="dash-report-side">
+                    <Box>
+                        <Typography variant="h6" component="h2" sx={{ fontWeight: 700 }}>
+                            Your sales report
+                        </Typography>
+                        <Typography variant="body2" color="text.secondary">
+                            {stats ? `${formatDate(stats.from)} – ${formatDate(stats.to)}` : 'Pick a date range'}
+                        </Typography>
+                    </Box>
+
+                    <Box sx={{ my: 3 }}>
+                        {initialLoad ? (
+                            <Skeleton width={220} height={64} />
+                        ) : (
+                            <Typography component="p" sx={{ fontSize: { xs: 36, md: 44 }, fontWeight: 700, lineHeight: 1.1 }}>
+                                {peso(stats?.totalSales ?? 0)}
+                            </Typography>
+                        )}
+                        {stats && previous && (
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: 1, flexWrap: 'wrap' }}>
+                                <ChangeChip value={salesChange} />
+                                <Typography variant="body2" color="text.secondary">
+                                    {`${salesDiff >= 0 ? '+' : '-'}${peso(Math.abs(salesDiff))} vs previous period`}
+                                </Typography>
+                            </Box>
+                        )}
+                        {stats && (
+                            <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
+                                {stats.totalOrders} orders · avg. {peso(stats.averageOrderValue)}
+                            </Typography>
+                        )}
+                    </Box>
+
+                    <Box className="dash-presets">
                         {PRESETS.map((p) => (
-                            <Chip
+                            <Button
                                 key={p.id}
-                                label={p.label}
-                                clickable
-                                color={activePreset === p.id ? 'secondary' : 'default'}
-                                variant={activePreset === p.id ? 'filled' : 'outlined'}
+                                size="small"
+                                disableElevation
+                                variant={activePreset === p.id ? 'contained' : 'text'}
+                                color={activePreset === p.id ? 'primary' : 'inherit'}
                                 onClick={() => setRange(p.range())}
-                            />
+                                sx={{ borderRadius: 99, minWidth: 0, px: 1.75, fontWeight: 500, color: activePreset === p.id ? undefined : NEUTRAL }}
+                            >
+                                {p.label}
+                            </Button>
                         ))}
                     </Box>
                 </Box>
-            </Paper>
 
-            {/* KPI cards */}
-            <Box
-                sx={{
-                    display: 'grid',
-                    gap: 2,
-                    mb: 3,
-                    gridTemplateColumns: { xs: 'repeat(1, 1fr)', sm: 'repeat(2, 1fr)', lg: 'repeat(5, 1fr)' },
-                }}
-            >
-                <StatCard label="Total sales" value={peso(stats?.totalSales ?? 0)} icon={<PaidOutlinedIcon />} color="#c8553d" loading={initialLoad} />
-                <StatCard label="Orders" value={stats?.totalOrders ?? 0} icon={<ShoppingBagOutlinedIcon />} color="#355070" loading={initialLoad} />
-                <StatCard label="Avg. order value" value={peso(stats?.averageOrderValue ?? 0)} icon={<ReceiptLongOutlinedIcon />} color="#6a8d92" loading={initialLoad} />
-                <StatCard label="Products" value={stats?.totalProducts ?? 0} icon={<Inventory2OutlinedIcon />} color="#e0a458" loading={initialLoad} />
-                <StatCard label="Users" value={stats?.totalUsers ?? 0} icon={<PeopleOutlinedIcon />} color="#8c6a5d" loading={initialLoad} />
+                <Box className="dash-report-chart">
+                    {/* Date range filter + chart type */}
+                    <Box sx={{ display: 'flex', flexWrap: 'wrap', alignItems: 'flex-start', justifyContent: 'flex-end', gap: 1.5, mb: 2 }}>
+                        <TextField
+                            label="From"
+                            type="date"
+                            size="small"
+                            value={range.from}
+                            error={Boolean(rangeError)}
+                            onChange={(e) => setRange((r) => ({ ...r, from: e.target.value }))}
+                            slotProps={{ inputLabel: { shrink: true }, htmlInput: { max: range.to || undefined } }}
+                        />
+                        <TextField
+                            label="To"
+                            type="date"
+                            size="small"
+                            value={range.to}
+                            error={Boolean(rangeError)}
+                            helperText={rangeError}
+                            onChange={(e) => setRange((r) => ({ ...r, to: e.target.value }))}
+                            slotProps={{ inputLabel: { shrink: true }, htmlInput: { min: range.from || undefined } }}
+                        />
+                        <ToggleButtonGroup
+                            exclusive
+                            size="small"
+                            value={chartType}
+                            onChange={(_, value) => value && setChartType(value)}
+                            aria-label="Chart type"
+                            sx={{ height: 40 }}
+                        >
+                            <ToggleButton value="line" aria-label="Line chart">
+                                <ShowChartIcon fontSize="small" />
+                            </ToggleButton>
+                            <ToggleButton value="bar" aria-label="Bar chart">
+                                <BarChartIcon fontSize="small" />
+                            </ToggleButton>
+                        </ToggleButtonGroup>
+                    </Box>
+
+                    {initialLoad ? (
+                        <Skeleton variant="rounded" height={300} />
+                    ) : !hasSales ? (
+                        <Box sx={{ height: 300, display: 'grid', placeItems: 'center', textAlign: 'center' }}>
+                            <Box>
+                                <ShowChartIcon sx={{ fontSize: 40, color: 'text.disabled' }} />
+                                <Typography color="text.secondary">No sales in this period</Typography>
+                            </Box>
+                        </Box>
+                    ) : (
+                        <Box sx={{ width: '100%', height: 300 }}>
+                            <ResponsiveContainer>
+                                <ComposedChart data={stats.salesOverTime} margin={{ top: 8, right: 8, left: 8, bottom: 0 }}>
+                                    <defs>
+                                        <linearGradient id="salesFill" x1="0" y1="0" x2="0" y2="1">
+                                            <stop offset="0%" stopColor={SALES_COLOR} stopOpacity={0.18} />
+                                            <stop offset="100%" stopColor={SALES_COLOR} stopOpacity={0} />
+                                        </linearGradient>
+                                    </defs>
+                                    <CartesianGrid strokeDasharray="3 6" horizontal={false} stroke="#d9dce2" />
+                                    <XAxis dataKey="label" tickLine={false} axisLine={false} minTickGap={24} tick={{ fill: NEUTRAL, fontSize: 12 }} />
+                                    <YAxis yAxisId="sales" hide domain={[0, (max) => Math.ceil(max * 1.2) || 1]} />
+                                    <YAxis yAxisId="orders" orientation="right" hide domain={[0, (max) => Math.ceil(max * 1.4) || 1]} />
+                                    <Tooltip content={<SalesTooltip />} cursor={{ stroke: '#c5c9d1', strokeDasharray: '3 3' }} />
+
+                                    {chartType === 'line' && (
+                                        <Area
+                                            yAxisId="sales"
+                                            type="monotone"
+                                            dataKey="total"
+                                            name="Sales"
+                                            stroke={SALES_COLOR}
+                                            strokeWidth={2.5}
+                                            fill="url(#salesFill)"
+                                            dot={dataLength <= 31}
+                                            activeDot={{ r: 5 }}
+                                        />
+                                    )}
+                                    {chartType === 'line' && (
+                                        <Line
+                                            yAxisId="orders"
+                                            type="monotone"
+                                            dataKey="orders"
+                                            name="Orders"
+                                            stroke={ORDERS_COLOR}
+                                            strokeWidth={2.5}
+                                            dot={false}
+                                            activeDot={{ r: 5 }}
+                                        />
+                                    )}
+                                    {chartType === 'bar' && (
+                                        <Bar yAxisId="sales" dataKey="total" name="Sales" fill={SALES_COLOR} radius={[6, 6, 0, 0]} maxBarSize={36} />
+                                    )}
+                                </ComposedChart>
+                            </ResponsiveContainer>
+                        </Box>
+                    )}
+                </Box>
             </Box>
 
-            {/* Sales over time: line or bar */}
-            <ChartCard
-                title="Sales over time"
-                subtitle={stats ? `Per ${stats.granularity} · cancelled orders excluded` : undefined}
-                empty={!hasSales}
-                loading={initialLoad}
-                height={340}
-                sx={{ mb: 3 }}
-                action={
-                    <ToggleButtonGroup
-                        exclusive
-                        size="small"
-                        value={chartType}
-                        onChange={(_, value) => value && setChartType(value)}
-                        aria-label="Chart type"
-                    >
-                        <ToggleButton value="line" aria-label="Line chart">
-                            <ShowChartIcon fontSize="small" sx={{ mr: 0.5 }} /> Line
-                        </ToggleButton>
-                        <ToggleButton value="bar" aria-label="Bar chart">
-                            <BarChartIcon fontSize="small" sx={{ mr: 0.5 }} /> Bar
-                        </ToggleButton>
-                    </ToggleButtonGroup>
-                }
-            >
-                {chartType === 'line' ? (
-                    <LineChart {...salesChartProps}>
-                        {salesAxes}
-                        <Line
-                            type="monotone"
-                            dataKey="total"
-                            name="Sales"
-                            stroke={accent}
-                            strokeWidth={3}
-                            dot={(stats?.salesOverTime.length ?? 0) <= 31}
-                            activeDot={{ r: 6 }}
-                        />
-                    </LineChart>
-                ) : (
-                    <BarChart {...salesChartProps}>
-                        {salesAxes}
-                        <Bar dataKey="total" name="Sales" fill={accent} radius={[6, 6, 0, 0]} />
-                    </BarChart>
-                )}
-            </ChartCard>
+            {/* Last transactions + top sellers */}
+            <Box className="dash-bottom">
+                <Box sx={{ minWidth: 0 }}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
+                        <Typography variant="h6" component="h2" sx={{ fontWeight: 700 }}>
+                            Last transactions
+                        </Typography>
+                        <Button component={Link} to="/admin/orders" size="small" color="inherit" sx={{ color: NEUTRAL }}>
+                            View all
+                        </Button>
+                    </Box>
 
-            {/* Rankings */}
-            <Box sx={{ display: 'grid', gap: 3, gridTemplateColumns: { xs: '1fr', lg: 'repeat(2, 1fr)' } }}>
-                <ChartCard
-                    title="Top products"
-                    subtitle="By sales in the selected period"
-                    empty={stats?.productSales.length === 0}
-                    loading={initialLoad}
-                    height={Math.max(260, (stats?.productSales.length ?? 0) * 38)}
-                >
-                    <BarChart data={stats?.productSales ?? []} layout="vertical" margin={{ top: 0, right: 16, left: 0, bottom: 0 }}>
-                        <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke={theme.palette.divider} />
-                        <XAxis type="number" tickFormatter={compactPeso} tickLine={false} axisLine={false} />
-                        <YAxis type="category" dataKey="name" width={130} tickFormatter={(v) => truncate(v, 18)} tickLine={false} axisLine={false} />
-                        <Tooltip formatter={(v) => peso(v)} cursor={{ fill: 'rgba(0,0,0,0.04)' }} />
-                        <Bar dataKey="total" name="Sales" fill={accent} radius={[0, 6, 6, 0]} />
-                    </BarChart>
-                </ChartCard>
+                    {initialLoad ? (
+                        <Skeleton variant="rounded" height={260} />
+                    ) : stats?.recentOrders.length === 0 ? (
+                        <Typography color="text.secondary" sx={{ py: 6, textAlign: 'center' }}>
+                            No orders in this period
+                        </Typography>
+                    ) : (
+                        <TableContainer>
+                            <Table size="medium" className="dash-table">
+                                <TableHead>
+                                    <TableRow>
+                                        <TableCell>Order ID</TableCell>
+                                        <TableCell>Customer</TableCell>
+                                        <TableCell>Item</TableCell>
+                                        <TableCell>Date</TableCell>
+                                        <TableCell>Total</TableCell>
+                                        <TableCell>Status</TableCell>
+                                    </TableRow>
+                                </TableHead>
+                                <TableBody>
+                                    {stats?.recentOrders.map((order) => (
+                                        <TableRow key={order._id} hover>
+                                            <TableCell sx={{ fontWeight: 600 }}>
+                                                <Link to={`/admin/order/${order._id}`} className="dash-order-link">
+                                                    {order.orderId}
+                                                </Link>
+                                            </TableCell>
+                                            <TableCell>{order.customer}</TableCell>
+                                            <TableCell sx={{ maxWidth: 200 }}>
+                                                <Typography variant="body2" noWrap>
+                                                    {order.item}
+                                                </Typography>
+                                            </TableCell>
+                                            <TableCell sx={{ whiteSpace: 'nowrap' }}>{formatDate(order.createdAt)}</TableCell>
+                                            <TableCell sx={{ fontWeight: 600 }}>{peso(order.totalPrice)}</TableCell>
+                                            <TableCell>
+                                                <Chip size="small" variant="outlined" label={order.status} color={STATUS_COLORS[order.status] ?? 'default'} />
+                                            </TableCell>
+                                        </TableRow>
+                                    ))}
+                                </TableBody>
+                            </Table>
+                        </TableContainer>
+                    )}
+                </Box>
 
-                <ChartCard
-                    title="Top customers"
-                    subtitle="By total spend in the selected period"
-                    empty={stats?.customerSales.length === 0}
-                    loading={initialLoad}
-                    height={Math.max(260, (stats?.customerSales.length ?? 0) * 38)}
-                >
-                    <BarChart data={stats?.customerSales ?? []} layout="vertical" margin={{ top: 0, right: 16, left: 0, bottom: 0 }}>
-                        <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke={theme.palette.divider} />
-                        <XAxis type="number" tickFormatter={compactPeso} tickLine={false} axisLine={false} />
-                        <YAxis type="category" dataKey="name" width={130} tickFormatter={(v) => truncate(v, 18)} tickLine={false} axisLine={false} />
-                        <Tooltip formatter={(v) => peso(v)} cursor={{ fill: 'rgba(0,0,0,0.04)' }} />
-                        <Bar dataKey="total" name="Spent" fill={dark} radius={[0, 6, 6, 0]} />
-                    </BarChart>
-                </ChartCard>
+                <TopSellers items={stats?.productSales ?? []} loading={initialLoad} />
             </Box>
         </>
     );
