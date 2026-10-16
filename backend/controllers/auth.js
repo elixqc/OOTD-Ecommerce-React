@@ -51,15 +51,24 @@ exports.registerUser = async (req, res) => {
     }
 
     // Mongoose checks name length and required fields
-    user = await User.create({
-        clerkId,
-        name: name || clerkUser.fullName || email.split('@')[0],
-        email,
-        phone,
-        avatar: avatarData,
-    });
+    try {
+        user = await User.create({
+            clerkId,
+            name: name || clerkUser.fullName || email.split('@')[0],
+            email,
+            phone,
+            avatar: avatarData,
+        });
+        return res.status(201).json({ success: true, user });
+    } catch (err) {
+        // A parallel request already created this user: return it instead of failing
+        if (err.code === 11000) {
+            const existing = await User.findOne({ clerkId });
+            if (existing) return res.status(200).json({ success: true, user: existing });
+        }
+        throw err;
+    }
 
-    return res.status(201).json({ success: true, user });
 };
 
 // GET /api/v1/me

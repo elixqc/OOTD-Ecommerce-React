@@ -2,8 +2,10 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { Button, IconButton, Typography } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
-import DeleteIcon from '@mui/icons-material/Delete';
 import RemoveIcon from '@mui/icons-material/Remove';
+import DeleteOutlineIcon from '@mui/icons-material/DeleteOutlined';
+import ShoppingBagOutlinedIcon from '@mui/icons-material/ShoppingBagOutlined';
+import ArrowBackRoundedIcon from '@mui/icons-material/ArrowBackRounded';
 import { removeFromCart, updateCartQuantity } from '../../actions/cartActions';
 import { notifyInfo, peso } from '../../Utils/helpers';
 
@@ -30,52 +32,63 @@ export default function Cart() {
 
     if (cartItems.length === 0) {
         return (
-            <div className="catalog-message">
-                <Typography variant="h5">Your cart is empty</Typography>
-                <Button variant="contained" component={Link} to="/">
-                    Continue shopping
+            <div className="cart-empty page-enter">
+                <div className="cart-empty-icon">
+                    <ShoppingBagOutlinedIcon />
+                </div>
+                <Typography variant="h5" component="h1" className="cart-empty-title">
+                    Your cart is empty
+                </Typography>
+                <Typography color="text.secondary" className="cart-empty-text">
+                    Looks like you haven't added anything yet. Find something you love and it'll show up here.
+                </Typography>
+                <Button variant="contained" component={Link} to="/" className="cart-empty-btn">
+                    Start shopping
                 </Button>
             </div>
         );
     }
 
     return (
-        <>
-            <Typography variant="h4" component="h1" className="page-title">
-                Shopping cart
-            </Typography>
+        <div className="cart-page page-enter">
+            <div className="cart-header">
+                <Typography variant="h4" component="h1" className="cart-title">
+                    Shopping cart
+                </Typography>
+                <Typography color="text.secondary">
+                    {totalQuantity} {totalQuantity === 1 ? 'item' : 'items'}
+                </Typography>
+            </div>
 
             <div className="cart-layout">
-                <div>
+                <div className="cart-list">
                     {cartItems.map((item) => (
-                        <div className="cart-item" key={item.key}>
-                            <Link to={`/product/${item.product}`}>
-                                <img src={item.image} alt={item.name} className="cart-item-image" />
+                        <div className="cart-row" key={item.key}>
+                            <Link to={`/product/${item.product}`} className="cart-row-image-link">
+                                <img src={item.image} alt={item.name} className="cart-row-image" />
                             </Link>
 
-                            <div>
-                                <Typography
-                                    variant="subtitle1"
-                                    component={Link}
-                                    to={`/product/${item.product}`}
-                                    className="cart-item-name"
-                                >
+                            <div className="cart-row-info">
+                                <Link to={`/product/${item.product}`} className="cart-row-name">
                                     {item.name}
-                                </Typography>
+                                </Link>
+                                <div className="cart-row-tags">
+                                    <span className="cart-tag">Size: {item.size}</span>
+                                    <span className="cart-tag">Color: {item.color}</span>
+                                </div>
                                 <Typography variant="body2" color="text.secondary">
-                                    Size: {item.size} · Color: {item.color}
+                                    {peso(item.price)} each
                                 </Typography>
-                                <Typography variant="body2">{peso(item.price)} each</Typography>
                             </div>
 
-                            <div className="qty-control">
+                            <div className="cart-row-qty">
                                 <IconButton
                                     size="small"
                                     aria-label="Decrease quantity"
                                     onClick={() => dispatch(updateCartQuantity(item.key, item.quantity - 1))}
                                     disabled={item.quantity <= 1}
                                 >
-                                    <RemoveIcon />
+                                    <RemoveIcon fontSize="small" />
                                 </IconButton>
                                 <span className="qty-value">{item.quantity}</span>
                                 <IconButton
@@ -84,43 +97,48 @@ export default function Cart() {
                                     onClick={() => dispatch(updateCartQuantity(item.key, item.quantity + 1))}
                                     disabled={item.quantity >= item.stock}
                                 >
-                                    <AddIcon />
+                                    <AddIcon fontSize="small" />
                                 </IconButton>
                             </div>
 
-                            <Typography variant="subtitle1" className="cart-item-subtotal">
-                                {peso(item.price * item.quantity)}
-                            </Typography>
+                            <Typography className="cart-row-subtotal">{peso(item.price * item.quantity)}</Typography>
 
                             <IconButton
-                                color="error"
+                                className="cart-row-remove"
                                 aria-label={`Remove ${item.name} from cart`}
                                 onClick={() => dispatch(removeFromCart(item.key))}
                             >
-                                <DeleteIcon />
+                                <DeleteOutlineIcon />
                             </IconButton>
                         </div>
                     ))}
+
+                    <Button component={Link} to="/" startIcon={<ArrowBackRoundedIcon />} className="cart-continue">
+                        Continue shopping
+                    </Button>
                 </div>
 
                 <aside className="cart-summary">
-                    <Typography variant="h6">Order summary</Typography>
+                    <Typography component="h2" className="cart-summary-title">
+                        Order summary
+                    </Typography>
                     <div className="cart-summary-row">
-                        <span>Items ({totalQuantity})</span>
+                        <span>Subtotal ({totalQuantity})</span>
                         <span>{peso(total)}</span>
+                    </div>
+                    <div className="cart-summary-row">
+                        <span>Shipping</span>
+                        <span>Free</span>
                     </div>
                     <div className="cart-summary-row cart-summary-total">
                         <span>Total</span>
                         <span>{peso(total)}</span>
                     </div>
-                    <Button variant="contained" onClick={handleCheckout}>
+                    <Button variant="contained" size="large" onClick={handleCheckout} className="cart-checkout-btn">
                         Proceed to checkout
-                    </Button>
-                    <Button component={Link} to="/">
-                        Continue shopping
                     </Button>
                 </aside>
             </div>
-        </>
+        </div>
     );
 }

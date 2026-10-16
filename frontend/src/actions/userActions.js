@@ -23,15 +23,23 @@ import {
 import { CLEAR_CART } from '../constants/cartConstants';
 import { loadUserCart } from './cartActions';
 // Gets the MongoDB user for the signed-in Clerk user, registering them first if they're new
-const fetchProfile = async () => {
-    try {
-        const { data } = await api.get('/me');
-        return data.user;
-    } catch (err) {
-        if (err.response?.status !== 404) throw err;
-        const { data } = await api.post('/register', {});
-        return data.user;
-    }
+let pendingProfile = null;
+
+const fetchProfile = () => {
+    if (pendingProfile) return pendingProfile;
+    pendingProfile = (async () => {
+        try {
+            const { data } = await api.get('/me');
+            return data.user;
+        } catch (err) {
+            if (err.response?.status !== 404) throw err;
+            const { data } = await api.post('/register', {});
+            return data.user;
+        }
+    })().finally(() => {
+        pendingProfile = null;
+    });
+    return pendingProfile;
 };
 
 // Runs when Clerk finishes loading and whenever the sign-in state changes

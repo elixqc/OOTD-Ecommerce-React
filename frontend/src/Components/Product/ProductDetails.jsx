@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Link, useParams } from 'react-router-dom';
+import { Link, useNavigate, useParams } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import {
     Button,
@@ -18,14 +18,17 @@ import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
 import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 import CloseIcon from '@mui/icons-material/Close';
 import RemoveIcon from '@mui/icons-material/Remove';
+import EditOutlinedIcon from '@mui/icons-material/EditOutlined';
+import DeleteOutlinedIcon from '@mui/icons-material/DeleteOutlined';
 import MetaData from '../Layout/MetaData';
-import { getProductDetails, getRelatedProducts } from '../../actions/productActions';
+import { getProductDetails, getRelatedProducts, deleteProduct } from '../../actions/productActions';
+import { confirmDelete, notifyError, notifySuccess } from '../../Utils/helpers';
 import { addToCart } from '../../actions/cartActions';
-import { notifyError, notifySuccess } from '../../Utils/helpers';
 import { getColorImages, getColors } from '../../Utils/productImages';
 import ProductCard from './ProductCard';
 import ListReviews from '../Review/ListReviews';
 import { Accordion, AccordionDetails, AccordionSummary } from '@mui/material';
+import { DELETE_PRODUCT_RESET } from '../../constants/productConstants';
 
 const VISIBLE_COLORS = 6;
 
@@ -165,6 +168,25 @@ function ProductInfo({ product }) {
     const [color, setColor] = useState(firstAvailable.color);
     const [quantity, setQuantity] = useState(1);
     const [colorsOpen, setColorsOpen] = useState(false);
+
+    const navigate = useNavigate();
+    const { user } = useSelector((state) => state.auth);
+    const { loading: deleting, isDeleted } = useSelector((state) => state.product);
+    const isAdmin = user?.role === 'admin';
+
+    // After a delete succeeds, go back to the admin product list
+    useEffect(() => {
+        if (isDeleted && isAdmin) {
+            notifySuccess('Product deleted');
+            dispatch({ type: DELETE_PRODUCT_RESET });
+            navigate('/admin/products', { replace: true });
+        }
+    }, [isDeleted, isAdmin, dispatch, navigate]);
+
+    const handleDelete = async () => {
+        const confirmed = await confirmDelete(`Delete "${product.name}"? Its images and reviews will be removed too.`);
+        if (confirmed) dispatch(deleteProduct(product._id));
+    };
 
     const sizes = [...new Set(product.variants.map((v) => v.size))];
     const colorNames = getColors(product);
@@ -342,39 +364,68 @@ function ProductInfo({ product }) {
 
                 <div>{stockLabel}</div>
 
-                <div className="option-group">
-                    <Typography variant="subtitle2">Quantity</Typography>
-                    <div className="qty-control">
-                        <IconButton
-                            size="small"
-                            aria-label="Decrease quantity"
-                            onClick={() => setQuantity((q) => q - 1)}
-                            disabled={quantity <= 1}
+                {isAdmin ? (
+                    <div className="admin-product-actions">
+                        <Button
+                            variant="contained"
+                            size="large"
+                            fullWidth
+                            component={Link}
+                            to={`/admin/product/${product._id}`}
+                            startIcon={<EditOutlinedIcon />}
+                            className="admin-btn admin-btn-primary"
                         >
-                            <RemoveIcon />
-                        </IconButton>
-                        <span className="qty-value">{quantity}</span>
-                        <IconButton
-                            size="small"
-                            aria-label="Increase quantity"
-                            onClick={() => setQuantity((q) => q + 1)}
-                            disabled={outOfStock || quantity >= selected.stock}
+                            Edit product
+                        </Button>
+                        <Button
+                            variant="outlined"
+                            size="large"
+                            fullWidth
+                            startIcon={<DeleteOutlinedIcon />}
+                            onClick={handleDelete}
+                            disabled={deleting}
+                            className="admin-btn admin-btn-danger"
                         >
-                            <AddIcon />
-                        </IconButton>
+                            {deleting ? 'Deleting...' : 'Delete product'}
+                        </Button>
                     </div>
-                </div>
+                ) : (
+                    <>
+                        <div className="option-group">
+                            <Typography variant="subtitle2">Quantity</Typography>
+                            <div className="qty-control">
+                                <IconButton
+                                    size="small"
+                                    aria-label="Decrease quantity"
+                                    onClick={() => setQuantity((q) => q - 1)}
+                                    disabled={quantity <= 1}
+                                >
+                                    <RemoveIcon />
+                                </IconButton>
+                                <span className="qty-value">{quantity}</span>
+                                <IconButton
+                                    size="small"
+                                    aria-label="Increase quantity"
+                                    onClick={() => setQuantity((q) => q + 1)}
+                                    disabled={outOfStock || quantity >= selected.stock}
+                                >
+                                    <AddIcon />
+                                </IconButton>
+                            </div>
+                        </div>
 
-                <Button
-                    variant="contained"
-                    size="large"
-                    fullWidth
-                    className="add-to-cart"
-                    onClick={handleAddToCart}
-                    disabled={outOfStock}
-                >
-                    {outOfStock ? 'Out of stock' : 'Add to cart'}
-                </Button>
+                        <Button
+                            variant="contained"
+                            size="large"
+                            fullWidth
+                            className="add-to-cart"
+                            onClick={handleAddToCart}
+                            disabled={outOfStock}
+                        >
+                            {outOfStock ? 'Out of stock' : 'Add to cart'}
+                        </Button>
+                    </>
+                )}
 
                 <div className="info-sections">
                     <InfoSection title="Product description">
