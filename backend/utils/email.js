@@ -1,6 +1,9 @@
-const nodemailer = require('nodemailer');
+
+const { Resend } = require('resend');
 const { buildReceiptPdf } = require('./receipt');
 const { shortOrderId, money, formatDate, escapeHtml } = require('./orderFormat');
+
+const resend = new Resend(process.env.RESEND_API_KEY);
 
 // What the customer is told for each status
 const STATUS_MESSAGES = {
@@ -109,31 +112,39 @@ exports.buildOrderEmail = (order, user) => {
 // If SMTP isn't set up, it just logs that it skipped the email.
 exports.sendOrderStatusEmail = async (order, user) => {
     try {
-        if (!user?.email) return;
+        if (!user?.email) {
+            console.warn('Order email skipped: customer email is missing.');
+            return;
+        }
 
-        const mailer = getTransporter();
-        if (!mailer) {
-            console.warn('Email skipped: SMTP_HOST, SMTP_USER and SMTP_PASS are not set in config/.env');
+        if (!process.env.RESEND_API_KEY || !process.env.EMAIL_FROM) {
+            console.error('Order email failed: missing Resend configuration.');
             return;
         }
 
         const pdf = await buildReceiptPdf(order, user);
         const { subject, html, text } = exports.buildOrderEmail(order, user);
 
-        await mailer.sendMail({
-            from: process.env.EMAIL_FROM || `OOTD <${process.env.SMTP_USER}>`,
-            to: user.email,
+        const { data, error } = await resend.emails.send({
+            from: process.env.EMAIL_FROM,
+            to: [user.email],
             subject,
-            text,
             html,
+            text,
             attachments: [
                 {
                     filename: `OOTD-receipt-${shortOrderId(order._id).slice(1)}.pdf`,
-                    content: pdf,
-                    contentType: 'application/pdf',
+                    content: pdf.toString('base64'),
                 },
             ],
         });
+
+        if (error) {
+            console.error('Order email failed:', error);
+            return;
+        }
+
+        console.log('Order email accepted by Resend:', data?.id);
     } catch (error) {
         console.error('Order email failed:', error.message);
     }
