@@ -15,8 +15,6 @@ const loadImage = (file) =>
         img.src = url;
     });
 
-// Shrinks a photo before upload (phone photos are often 5-10 MB) and returns a data URL.
-// JPEG on a white background keeps files small and avoids black boxes from transparent PNGs.
 export const prepareImage = async (file) => {
     const img = await loadImage(file);
     const scale = Math.min(1, MAX_EDGE / Math.max(img.width, img.height));

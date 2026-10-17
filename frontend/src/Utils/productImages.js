@@ -8,7 +8,7 @@ export const getColorImages = (product, color) => {
 
 export const getColorImageUrl = (product, color) => getColorImages(product, color)[0]?.url || product.coverImage || '';
 
-// Every color on the product, in the order the admin entered them
+
 export const getColors = (product) => {
     const seen = new Set();
     return product.variants
@@ -21,7 +21,6 @@ export const getColors = (product) => {
         });
 };
 
-// The two photos a catalog card shows: the cover, and the next photo of the same color for hover
 export const getCardImages = (product) => {
     const gallery = product.colorImages?.find((c) => c.images?.length);
     const photos = gallery ? gallery.images : product.images || [];

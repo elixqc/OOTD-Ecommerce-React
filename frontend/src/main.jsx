@@ -9,6 +9,7 @@ import App from './App.jsx';
 import store from './store';
 import theme from './theme';
 import './style.css';
+import { Toaster } from 'sonner';
 
 createRoot(document.getElementById('root')).render(
     <StrictMode>
@@ -24,6 +25,7 @@ createRoot(document.getElementById('root')).render(
                         <ThemeProvider theme={theme}>
                             <CssBaseline />
                             <App />
+                            <Toaster richColors position="top-right" toastOptions={{ className: 'ootd-toast' }} />
                         </ThemeProvider>
                     </StyledEngineProvider>
                 </ClerkProvider>
