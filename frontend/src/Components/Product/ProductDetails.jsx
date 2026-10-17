@@ -30,6 +30,7 @@ import ListReviews from '../Review/ListReviews';
 import { Accordion, AccordionDetails, AccordionSummary } from '@mui/material';
 import { DELETE_PRODUCT_RESET } from '../../constants/productConstants';
 import NotFound from '../Layout/NotFound';
+import WishlistButton from './WishlistButton';
 
 const VISIBLE_COLORS = 6;
 
@@ -451,16 +452,18 @@ function ProductInfo({ product }) {
                             </div>
                         </div>
 
-                        <Button
-                            variant="contained"
-                            size="large"
-                            fullWidth
-                            className="add-to-cart"
-                            onClick={handleAddToCart}
-                            disabled={outOfStock}
-                        >
-                            {outOfStock ? 'Out of stock' : 'Add to cart'}
-                        </Button>
+                        <div className="add-to-cart-row">
+                            <Button
+                                variant="contained"
+                                size="large"
+                                className="add-to-cart"
+                                onClick={handleAddToCart}
+                                disabled={outOfStock}
+                            >
+                                {outOfStock ? 'Out of stock' : 'Add to cart'}
+                            </Button>
+                            <WishlistButton product={product} variant="detail" />
+                        </div>
                     </>
                 )}
 

@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom';
 import { Rating } from '@mui/material';
+import WishlistButton from './WishlistButton';
 
 const NEW_FOR_DAYS = 30;
 
@@ -25,6 +26,7 @@ export default function ProductCard({ product }) {
                 {hoverImage && (
                     <img src={hoverImage} alt="" aria-hidden="true" className="product-card-img-hover" loading="lazy" />
                 )}
+                <WishlistButton product={product} variant="card" />
                 {badge && <span className={badge === 'Sold out' ? 'product-badge sold-out' : 'product-badge'}>{badge}</span>}
             </div>
 

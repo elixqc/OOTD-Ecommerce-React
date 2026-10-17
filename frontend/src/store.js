@@ -12,7 +12,8 @@ import {
     relatedProductsReducer,
 } from './reducers/productReducers';
 import { cartReducer } from './reducers/cartReducers';
-import { productReviewsReducer, reviewStatusReducer, adminReviewsReducer, myReviewsReducer } from './reducers/reviewReducers';
+import { wishlistReducer } from './reducers/wishlistReducers';
+import { productReviewsReducer, reviewStatusReducer, adminReviewsReducer, myReviewsReducer, myReviewListReducer } from './reducers/reviewReducers';
 import {
     newOrderReducer,
     myOrdersReducer,
@@ -45,6 +46,8 @@ const reducer = combineReducers({
     reviewStatus: reviewStatusReducer,
     adminReviews: adminReviewsReducer,
     myReviews: myReviewsReducer,
+    wishlist: wishlistReducer, 
+    myReviewList: myReviewListReducer,
 });
 
 // Restore the saved cart, ignoring anything that doesn't look like a cart line

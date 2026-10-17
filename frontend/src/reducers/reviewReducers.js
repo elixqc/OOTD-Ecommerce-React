@@ -11,8 +11,11 @@ import {
     MY_REVIEWS_REQUEST,
     MY_REVIEWS_SUCCESS,
     MY_REVIEWS_FAIL,
+    MY_REVIEW_LIST_REQUEST,
+    MY_REVIEW_LIST_SUCCESS,
+    MY_REVIEW_LIST_FAIL,
 } from '../constants/reviewConstants';
-import { CLEAR_ERRORS } from '../constants/userConstants';
+import { CLEAR_ERRORS, LOGOUT_SUCCESS } from '../constants/userConstants';
 
 // productId says which product the list belongs to, because the store can
 // still hold the previous product's reviews while a new page loads
@@ -80,6 +83,26 @@ export const myReviewsReducer = (state = { reviews: [] }, action) => {
             return { loading: false, reviews: action.payload };
         case MY_REVIEWS_FAIL:
             return { ...state, loading: false, error: action.payload };
+        case CLEAR_ERRORS:
+            return { ...state, error: null };
+        default:
+            return state;
+    }
+};
+
+// The "My reviews" page: full reviews with their product. Kept apart from myReviews above,
+// where product is just an id that the order page compares against.
+export const myReviewListReducer = (state = { reviews: [], loading: false, loaded: false }, action) => {
+    switch (action.type) {
+        case MY_REVIEW_LIST_REQUEST:
+            return { ...state, loading: true };
+        case MY_REVIEW_LIST_SUCCESS:
+            return { loading: false, loaded: true, reviews: action.payload };
+        case MY_REVIEW_LIST_FAIL:
+            return { ...state, loading: false, error: action.payload };
+        // Never carry one person's reviews over to the next person on this browser
+        case LOGOUT_SUCCESS:
+            return { reviews: [], loading: false, loaded: false };
         case CLEAR_ERRORS:
             return { ...state, error: null };
         default:

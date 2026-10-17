@@ -74,6 +74,8 @@ const getFooterContent = (role) => {
                         links: [
                             { to: '/me', label: 'My profile' },
                             { to: '/orders/me', label: 'My orders' },
+                            { to: '/reviews/me', label: 'My reviews' },
+                            { to: '/wishlist', label: 'My wishlist' },
                             { to: '/cart', label: 'Cart' },
                         ],
                     },

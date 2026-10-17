@@ -48,7 +48,7 @@ export default function ReviewForm({ productId, existing, onDone, onCancel }) {
         >
             <Stack spacing={2}>
                 <Typography variant="subtitle1" fontWeight={600}>
-                    {existing ? 'Edit your review' : 'Write a review'}
+                    {existing ? <strong>Edit your review</strong> : <strong>Write a review</strong>}
                 </Typography>
 
                 <div>

@@ -35,6 +35,8 @@ import LoginOutlinedIcon from '@mui/icons-material/LoginOutlined';
 import PersonAddAltOutlinedIcon from '@mui/icons-material/PersonAddAltOutlined';
 import SearchIcon from '@mui/icons-material/Search';
 import SearchOverlay from './SearchOverlay';
+import FavoriteBorderIcon from '@mui/icons-material/FavoriteBorder';
+import RateReviewOutlinedIcon from '@mui/icons-material/RateReviewOutlined';
 import { logout } from '../../actions/userActions';
 import { notifySuccess } from '../../Utils/helpers';
 
@@ -73,6 +75,7 @@ export default function Header() {
     const navigate = useNavigate();
     const { user, loading } = useSelector((state) => state.auth);
     const { cartItems } = useSelector((state) => state.cart);
+    const wishlistCount = useSelector((state) => state.wishlist.items.length);
     const isAdmin = user?.role === 'admin';
     const cartCount = cartItems.reduce((sum, item) => sum + item.quantity, 0);
     const scrolled = useScrollTrigger({ disableHysteresis: true, threshold: 0 });
@@ -175,6 +178,11 @@ export default function Header() {
                                 <IconButton color="inherit" aria-label="Search products" onClick={() => setSearchOpen(true)}>
                                     <SearchIcon />
                                 </IconButton>
+                                <IconButton color="inherit" component={Link} to="/wishlist" aria-label="Wishlist">
+                                    <Badge badgeContent={wishlistCount} max={99} color="secondary">
+                                        <FavoriteBorderIcon />
+                                    </Badge>
+                                </IconButton>
                                 <IconButton color="inherit" component={Link} to="/cart" aria-label="Shopping cart">
                                     <Badge badgeContent={cartCount} max={99} color="secondary">
                                         <ShoppingBagOutlinedIcon />
@@ -236,6 +244,22 @@ export default function Header() {
                                         </ListItemIcon>
                                         Change password
                                     </MenuItem>
+                                    {!isAdmin && (
+                                        <MenuItem component={Link} to="/wishlist" onClick={closeMenu}>
+                                            <ListItemIcon>
+                                                <FavoriteBorderIcon fontSize="small" />
+                                            </ListItemIcon>
+                                            My wishlist
+                                        </MenuItem>
+                                    )}
+                                    {!isAdmin && (
+                                        <MenuItem component={Link} to="/reviews/me" onClick={closeMenu}>
+                                            <ListItemIcon>
+                                                <RateReviewOutlinedIcon fontSize="small" />
+                                            </ListItemIcon>
+                                            My reviews
+                                        </MenuItem>
+                                    )}
                                     {!isAdmin && (
                                         <MenuItem component={Link} to="/orders/me" onClick={closeMenu}>
                                             <ListItemIcon>

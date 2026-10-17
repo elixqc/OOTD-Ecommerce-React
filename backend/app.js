@@ -5,6 +5,7 @@ const auth = require('./routes/auth');
 const products = require('./routes/product');
 const orders = require('./routes/order');
 const reviews = require('./routes/review');
+const wishlist = require('./routes/wishlist');   
 
 const app = express();
 const { clerkMiddleware } = require('@clerk/express');
@@ -26,6 +27,7 @@ app.use('/api/v1', auth);
 app.use('/api/v1', products);
 app.use('/api/v1', orders);
 app.use('/api/v1', reviews);
+app.use('/api/v1', wishlist); 
 
 // Unknown route
 app.use((req, res) => {

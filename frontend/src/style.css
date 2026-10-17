@@ -425,7 +425,7 @@ body {
 .filter-drawer.MuiDrawer-paper {
     width: 400px;
     max-width: 100vw;
-    background: var(--brand-bg);
+    background: white;
 }
 
 .filter-drawer-header {
@@ -3362,4 +3362,157 @@ body {
         animation: none;
         transition: none;
     }
+}
+
+/* Wishlist */
+.wishlist-btn {
+    color: var(--brand-dark) !important;
+    transition: transform 0.2s, background-color 0.2s, color 0.2s;
+}
+
+.wishlist-btn.saved {
+    color: var(--brand-accent) !important;
+}
+
+.wishlist-btn.saved .MuiSvgIcon-root {
+    animation: wishlist-pop 0.35s ease;
+}
+
+@keyframes wishlist-pop {
+    0%   { transform: scale(0.6); }
+    60%  { transform: scale(1.25); }
+    100% { transform: scale(1); }
+}
+
+/* small round heart on the top-right of a product photo */
+.wishlist-btn-card {
+    position: absolute !important;
+    top: 8px;
+    right: 8px;
+    z-index: 2;
+    padding: 6px !important;
+    background: rgba(255, 255, 255, 0.9) !important;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+
+.wishlist-btn-card:hover {
+    background: #fff !important;
+    transform: scale(1.08);
+}
+
+.wishlist-btn-card .MuiSvgIcon-root {
+    font-size: 20px;
+}
+
+/* square button next to "Add to cart" on the product page */
+.add-to-cart-row {
+    display: flex;
+    gap: 10px;
+    margin: 4px 0 8px;
+}
+
+.add-to-cart-row .add-to-cart {
+    flex: 1;
+    margin: 0;
+}
+
+.wishlist-btn-detail {
+    width: 56px;
+    border: 1px solid var(--brand-dark) !important;
+    border-radius: 0 !important;
+}
+
+.wishlist-btn-detail:hover {
+    background: rgba(0, 0, 0, 0.04) !important;
+}
+
+.wishlist-btn-detail.saved {
+    border-color: var(--brand-accent) !important;
+}
+
+/* wishlist page: reuses the cart's rows, header and empty state */
+.wishlist-row {
+    grid-template-columns: 96px 1fr auto auto;
+}
+
+.wishlist-row-price.MuiTypography-root {
+    font-weight: 700;
+}
+
+.wishlist-tag-out {
+    background: var(--brand-dark);
+    border-color: var(--brand-dark);
+    color: #fff;
+}
+
+.wishlist-view-btn.MuiButton-root {
+    padding: 6px 18px;
+    border-radius: 999px;
+    border-color: #e5e0d8;
+    color: var(--brand-dark);
+    text-transform: none;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.wishlist-view-btn.MuiButton-root:hover {
+    border-color: var(--brand-dark);
+    background: transparent;
+}
+
+@media (max-width: 600px) {
+    .wishlist-row {
+        grid-template-columns: 80px 1fr auto;
+        grid-template-areas:
+            'img info remove'
+            'view view view';
+    }
+
+    .wishlist-view-btn.MuiButton-root {
+        grid-area: view;
+    }
+}
+
+/* My reviews page: cart rows with room for the review text */
+.my-review-row {
+    grid-template-columns: 96px 1fr auto auto;
+    align-items: start;
+}
+
+.my-review-row .wishlist-view-btn,
+.my-review-row .cart-row-remove {
+    align-self: center;
+}
+
+.my-review-meta {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.my-review-comment.MuiTypography-root {
+    color: #444;
+    line-height: 1.5;
+    white-space: pre-line;
+    overflow-wrap: anywhere;
+}
+
+.my-review-noimage {
+    background: var(--brand-bg);
+    border: 1px solid #ece9e4;
+}
+
+@media (max-width: 600px) {
+    .my-review-row {
+        grid-template-columns: 80px 1fr auto;
+        grid-template-areas:
+            'img info remove'
+            'edit edit edit';
+    }
+
+    .my-review-row .cart-row-image-link { grid-area: img; }
+    .my-review-row .cart-row-info { grid-area: info; }
+    .my-review-row .cart-row-remove { grid-area: remove; align-self: start; }
+    .my-review-row .wishlist-view-btn.MuiButton-root { grid-area: edit; }
 }

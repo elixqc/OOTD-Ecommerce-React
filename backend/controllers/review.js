@@ -218,3 +218,16 @@ exports.getMyReviews = async (req, res) => {
     const reviews = await Review.find({ user: req.user._id }).select('product rating comment');
     return res.status(200).json({ success: true, reviews });
 };
+
+// GET /api/v1/reviews/me/details
+// The "My reviews" page: every review the customer wrote, newest first, with enough of the
+// product (name, price, photos) to show a row. Comments are returned as written (the author's own).
+exports.getMyReviewDetails = async (req, res) => {
+    const reviews = await Review.find({ user: req.user._id })
+        .populate('product', 'name price category images colorImages isActive')
+        .sort({ createdAt: -1 })
+        .select('-user -__v')
+        .lean();
+
+    return res.status(200).json({ success: true, count: reviews.length, reviews });
+};

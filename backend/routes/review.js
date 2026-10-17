@@ -9,10 +9,12 @@ const {
     deleteReview,
     getAdminReviews,
     getMyReviews,
+    getMyReviewDetails,
 } = require('../controllers/review');
 const { isAuthenticatedUser, authorizeRoles } = require('../middlewares/auth');
 
 router.get('/reviews/me', isAuthenticatedUser, getMyReviews);
+router.get('/reviews/me/details', isAuthenticatedUser, getMyReviewDetails); 
 router.get('/product/:id/reviews', getProductReviews);
 router.get('/product/:id/review-status', isAuthenticatedUser, getReviewStatus);
 router.post('/product/:id/review', isAuthenticatedUser, createReview);

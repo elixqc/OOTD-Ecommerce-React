@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import { Route, Routes, useLocation } from 'react-router-dom';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { useAuth } from '@clerk/react';
 import { syncUser } from './actions/userActions';
 import CustomerLayout from './Components/Layout/CustomerLayout';
@@ -29,6 +29,9 @@ import OrdersList from './Components/Admin/OrdersList';
 import ProcessOrder from './Components/Admin/ProcessOrder';
 import ReviewsList from './Components/Admin/ReviewsList';
 import UsersList from './Components/Admin/UsersList';
+import { getWishlist } from './actions/wishlistActions';
+import Wishlist from './Components/Wishlist/Wishlist';
+import MyReviews from './Components/Review/MyReviews';
 import UpdateUser from './Components/Admin/UpdateUser';
 import SSOCallback from './Components/User/SSOCallback';
 import NotFound from './Components/Layout/NotFound';
@@ -48,12 +51,19 @@ function ScrollToTop() {
 function App() {
     const dispatch = useDispatch();
     const { isLoaded, isSignedIn } = useAuth();
+    const { user } = useSelector((state) => state.auth);
+    const isCustomer = user?.role === 'customer';
 
     // Load the user from our database once Clerk knows who is signed in
     useEffect(() => {
         if (!isLoaded) return;
         dispatch(syncUser(isSignedIn));
     }, [dispatch, isLoaded, isSignedIn]);
+
+    // Load the customer's saved products so every heart on the site knows what is already saved
+    useEffect(() => {
+        if (isCustomer) dispatch(getWishlist());
+    }, [dispatch, isCustomer]);
 
     return (
         <>
@@ -77,6 +87,8 @@ function App() {
                         <Route path="/password/update/*" element={<><MetaData title="Change password" /><UpdatePassword /></>} />
                         <Route path="/order/success" element={<><MetaData title="Order placed" /><OrderSuccess /></>} />
                         <Route path="/orders/me" element={<><MetaData title="My orders" /><ListOrders /></>} />
+                        <Route path="/wishlist" element={<><MetaData title="My wishlist" /><Wishlist /></>} />
+                        <Route path="/reviews/me" element={<><MetaData title="My reviews" /><MyReviews /></>} />
                         <Route path="/order/:id" element={<><MetaData title="Order details" /><OrderDetails /></>} />
                     </Route>
 

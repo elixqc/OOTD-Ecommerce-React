@@ -14,6 +14,9 @@ import {
     MY_REVIEWS_REQUEST,
     MY_REVIEWS_SUCCESS,
     MY_REVIEWS_FAIL,
+    MY_REVIEW_LIST_REQUEST,
+    MY_REVIEW_LIST_SUCCESS,
+    MY_REVIEW_LIST_FAIL,
 } from '../constants/reviewConstants';
 
 let latestReviewsRequest = 0;
@@ -118,5 +121,17 @@ export const getMyReviews = () => async (dispatch) => {
         dispatch({ type: MY_REVIEWS_SUCCESS, payload: data.reviews });
     } catch (error) {
         dispatch({ type: MY_REVIEWS_FAIL, payload: getErrorMessage(error) });
+    }
+};
+
+
+// The "My reviews" page: the customer's reviews together with the product each one is about
+export const getMyReviewList = () => async (dispatch) => {
+    try {
+        dispatch({ type: MY_REVIEW_LIST_REQUEST });
+        const { data } = await api.get('/reviews/me/details');
+        dispatch({ type: MY_REVIEW_LIST_SUCCESS, payload: data.reviews });
+    } catch (error) {
+        dispatch({ type: MY_REVIEW_LIST_FAIL, payload: getErrorMessage(error) });
     }
 };
