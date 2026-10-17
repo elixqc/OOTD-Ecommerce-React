@@ -376,6 +376,12 @@ const buildBuckets = (from, to, granularity) => {
     return buckets;
 };
 
+// The number on the Orders badge in the admin sidebar: orders still waiting for the admin
+exports.processingCount = async (req, res) => {
+    const count = await Order.countDocuments({ orderStatus: 'Processing' });
+    return res.status(200).json({ success: true, count });
+};
+
 exports.dashboardStats = async (req, res) => {
     const today = new Date().toLocaleDateString('en-CA', { timeZone: TIMEZONE });
     const from = req.query.from || `${today.slice(0, 4)}-01-01`;
