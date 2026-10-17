@@ -21,7 +21,7 @@ export default function ProtectedRoute({ adminOnly = false }) {
     }
 
     if (adminOnly && user.role !== 'admin') {
-        return <Navigate to="/" replace />;
+        return <Navigate to="/" replace state={{ denied: true }} />;
     }
 
     return <Outlet />;
