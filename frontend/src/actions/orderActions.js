@@ -26,8 +26,10 @@ export const createOrder = (orderData) => async (dispatch) => {
         dispatch({ type: NEW_ORDER_SUCCESS, payload: data.order });
         return data.order;
     } catch (error) {
-        dispatch({ type: NEW_ORDER_FAIL, payload: getErrorMessage(error) });
-        return null;
+        const stockIssues = error.response?.data?.stockIssues;
+        // Stock problems get their own modal on the cart page, so no error toast for them
+        dispatch({ type: NEW_ORDER_FAIL, payload: stockIssues ? null : getErrorMessage(error) });
+        return stockIssues ? { stockIssues } : null;
     }
 };
 

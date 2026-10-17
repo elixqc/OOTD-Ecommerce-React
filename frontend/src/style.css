@@ -344,14 +344,31 @@ body {
     margin-top: 24px;
 }
 
-/* SweetAlert toast */
-.ootd-toast {
-    border-left: 4px solid var(--brand-accent);
-}
-
-/* Sonner sets its own border, so match its attribute to win */
+/* Toasts */
 [data-sonner-toast].ootd-toast {
     border-left: 4px solid var(--brand-accent);
+    box-shadow: 0 12px 32px rgba(31, 31, 31, 0.12);
+    font-size: 14px;
+}
+
+[data-sonner-toast].ootd-toast[data-type='success'] {
+    border-left-color: #2e7d5b;
+}
+
+[data-sonner-toast].ootd-toast[data-type='warning'] {
+    border-left-color: #d9a441;
+}
+
+[data-sonner-toast].ootd-toast[data-type='error'] {
+    border-left-color: var(--brand-accent);
+}
+
+[data-sonner-toast].ootd-toast [data-icon] {
+    color: var(--brand-accent);
+}
+
+[data-sonner-toast].ootd-toast[data-type='success'] [data-icon] {
+    color: #2e7d5b;
 }
 
 @media (max-width: 700px) {
@@ -1942,6 +1959,22 @@ body {
     display: block;
     width: 100%;
     height: auto;
+}
+
+@media (max-width: 599px) {
+    .home-hero-img {
+        aspect-ratio: 1 / 1;
+        object-fit: cover;
+        object-position: 67% center;
+    }
+}
+
+/* Phones and tablets: fade the photo into the text area so there's no hard edge */
+@media (max-width: 899px) {
+    .home-hero-img {
+        -webkit-mask-image: linear-gradient(to bottom, #000 82%, transparent 100%);
+        mask-image: linear-gradient(to bottom, #000 82%, transparent 100%);
+    }
 }
 
 /* Phones and tablets: the text sits under the photo */

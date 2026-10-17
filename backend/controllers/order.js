@@ -112,20 +112,21 @@ exports.newOrder = async (req, res) => {
 
     // Build the order lines from the database and do a first stock check
     const builtItems = [];
+    const stockIssues = [];
     for (const line of requested) {
         const product = productMap.get(String(line.product));
-        if (!product || product.isActive === false) return fail(res, 400, 'A product in your cart is no longer available');
+        const variant = product?.variants.find((v) => v.size === line.size && v.color === line.color);
+        const available = !product || product.isActive === false || !variant ? 0 : variant.stock;
 
-        const variant = product.variants.find((v) => v.size === line.size && v.color === line.color);
-        if (!variant) {
-            return fail(res, 400, `${product.name} is no longer available in ${line.size} / ${line.color}`);
-        }
-        if (variant.stock < line.quantity) {
-            const message =
-                variant.stock === 0
-                    ? `${product.name} (${line.size} / ${line.color}) is out of stock`
-                    : `Only ${variant.stock} left of ${product.name} (${line.size} / ${line.color})`;
-            return fail(res, 400, message);
+        if (available < line.quantity) {
+            stockIssues.push({
+                product: String(line.product),
+                name: product?.name || 'An item',
+                size: line.size,
+                color: line.color,
+                available,
+            });
+            continue;
         }
 
         builtItems.push({
@@ -136,6 +137,14 @@ exports.newOrder = async (req, res) => {
             color: line.color,
             price: product.price,
             quantity: line.quantity,
+        });
+    }
+
+    if (stockIssues.length > 0) {
+        return res.status(409).json({
+            success: false,
+            message: 'Some items in your cart are no longer available',
+            stockIssues,
         });
     }
 

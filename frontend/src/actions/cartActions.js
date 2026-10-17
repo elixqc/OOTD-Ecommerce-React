@@ -100,3 +100,19 @@ export const loadUserCart = (user) => (dispatch, getState) => {
         // Storage blocked: the cart just stays as it is
     }
 };
+
+// Removes sold-out lines and lowers quantities to what is still in stock
+export const applyStockIssues = (issues) => (dispatch, getState) => {
+    issues.forEach(({ product, size, color, available }) => {
+        const key = getCartKey(product, size, color);
+        const item = getState().cart.cartItems.find((i) => i.key === key);
+        if (!item) return;
+
+        if (available <= 0) {
+            dispatch({ type: REMOVE_FROM_CART, payload: key });
+        } else {
+            dispatch({ type: ADD_TO_CART, payload: { ...item, quantity: Math.min(item.quantity, available), stock: available } });
+        }
+    });
+    saveCart(getState);
+};

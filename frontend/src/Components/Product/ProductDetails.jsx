@@ -530,9 +530,9 @@ export default function ProductDetails() {
                 ← Back to shop
             </Button>
 
-            <ProductInfo key={product._id} product={product} />
+            <ProductInfo key={`info-${product._id}`} product={product} />
 
-            <ListReviews key={product._id} productId={product._id} />
+            <ListReviews key={`reviews-${product._id}`} productId={product._id} />
 
             {related.length > 0 && (
                 <section className="related-products">

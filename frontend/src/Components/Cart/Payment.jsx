@@ -4,7 +4,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { useFormik } from 'formik';
 import * as Yup from 'yup';
 import { Button, Radio, TextField } from '@mui/material';
-import { clearCart } from '../../actions/cartActions';
+import { applyStockIssues, clearCart } from '../../actions/cartActions';
 import { createOrder } from '../../actions/orderActions';
 import { clearErrors } from '../../actions/userActions';
 import { notifyError, notifySuccess, peso } from '../../Utils/helpers';
@@ -69,6 +69,12 @@ export default function Payment() {
                 paymentMethod: method,
             })
         );
+        if (order?.stockIssues) {
+            orderPlaced.current = true; // stops the "empty cart" redirect from overriding this one
+            dispatch(applyStockIssues(order.stockIssues));
+            navigate('/cart', { replace: true, state: { stockIssues: order.stockIssues } });
+            return;
+        }
         if (!order) return;
 
         orderPlaced.current = true;

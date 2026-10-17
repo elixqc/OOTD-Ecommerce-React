@@ -25,7 +25,17 @@ createRoot(document.getElementById('root')).render(
                         <ThemeProvider theme={theme}>
                             <CssBaseline />
                             <App />
-                            <Toaster richColors position="top-right" toastOptions={{ className: 'ootd-toast' }} />
+                            <Toaster
+                                position="bottom-right"
+                                toastOptions={{ className: 'ootd-toast' }}
+                                style={{
+                                    '--normal-bg': '#ffffff',
+                                    '--normal-text': '#1f1f1f',
+                                    '--normal-border': '#eceef2',
+                                    '--border-radius': '14px',
+                                    fontFamily: '"Helvetica Neue", Helvetica, Arial, sans-serif',
+                                }}
+                            />
                         </ThemeProvider>
                     </StyledEngineProvider>
                 </ClerkProvider>
