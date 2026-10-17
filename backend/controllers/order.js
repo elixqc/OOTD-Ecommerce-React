@@ -68,6 +68,59 @@ const restoreStock = async (items) => {
     );
 };
 
+// How many of a requested line can be bought right now (0 if the product or variant is gone)
+const getAvailable = (product, line) => {
+    const variant = product?.variants.find((v) => v.size === line.size && v.color === line.color);
+    return !product || product.isActive === false || !variant ? 0 : variant.stock;
+};
+
+// POST /api/v1/cart/stock-check   (open to guests: it only reads stock)
+// Tells the cart page which lines can't be bought as they are
+exports.checkCartStock = async (req, res) => {
+    const { items } = req.body;
+    if (!Array.isArray(items)) return fail(res, 400, 'Your cart is invalid');
+
+    // Same merging as newOrder, but unusable lines are skipped instead of rejected
+    const lines = new Map();
+    for (const item of items.slice(0, 100)) {
+        const quantity = Number(item?.quantity);
+        if (
+            !mongoose.isValidObjectId(item?.product) ||
+            typeof item.size !== 'string' ||
+            typeof item.color !== 'string' ||
+            !Number.isInteger(quantity) ||
+            quantity < 1
+        ) {
+            continue;
+        }
+        const key = `${item.product}|${item.size}|${item.color}`;
+        const line = lines.get(key);
+        if (line) line.quantity += quantity;
+        else lines.set(key, { product: item.product, size: item.size, color: item.color, quantity });
+    }
+    const requested = [...lines.values()];
+
+    const products = await Product.find({ _id: { $in: requested.map((l) => l.product) } });
+    const productMap = new Map(products.map((p) => [String(p._id), p]));
+
+    const stockIssues = [];
+    for (const line of requested) {
+        const product = productMap.get(String(line.product));
+        const available = getAvailable(product, line);
+        if (available < line.quantity) {
+            stockIssues.push({
+                product: String(line.product),
+                name: product?.name || 'An item',
+                size: line.size,
+                color: line.color,
+                available,
+            });
+        }
+    }
+
+    return res.status(200).json({ success: true, stockIssues });
+};
+
 // POST /api/v1/order/new
 // The client only sends product, size, color, and quantity. Names, images and
 // prices are read from the database, so they can't be tampered with.
@@ -115,8 +168,7 @@ exports.newOrder = async (req, res) => {
     const stockIssues = [];
     for (const line of requested) {
         const product = productMap.get(String(line.product));
-        const variant = product?.variants.find((v) => v.size === line.size && v.color === line.color);
-        const available = !product || product.isActive === false || !variant ? 0 : variant.stock;
+        const available = getAvailable(product, line);
 
         if (available < line.quantity) {
             stockIssues.push({

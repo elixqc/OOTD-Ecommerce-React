@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 
 const {
+    checkCartStock,
     newOrder,
     myOrders,
     getSingleOrder,
@@ -14,6 +15,7 @@ const { isAuthenticatedUser, authorizeRoles } = require('../middlewares/auth');
 
 const adminOnly = [isAuthenticatedUser, authorizeRoles('admin')];
 
+router.post('/cart/stock-check', checkCartStock);
 router.post('/order/new', isAuthenticatedUser, newOrder);
 router.get('/orders/me', isAuthenticatedUser, myOrders);
 router.get('/order/:id', isAuthenticatedUser, getSingleOrder);

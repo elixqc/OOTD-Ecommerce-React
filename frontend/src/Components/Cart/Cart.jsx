@@ -1,3 +1,4 @@
+import { useEffect, useRef, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { Box, Button, Dialog, DialogActions, DialogContent, DialogTitle, IconButton, Typography } from '@mui/material';
@@ -6,7 +7,7 @@ import RemoveIcon from '@mui/icons-material/Remove';
 import DeleteOutlineIcon from '@mui/icons-material/DeleteOutlined';
 import ShoppingBagOutlinedIcon from '@mui/icons-material/ShoppingBagOutlined';
 import ArrowBackRoundedIcon from '@mui/icons-material/ArrowBackRounded';
-import { removeFromCart, updateCartQuantity } from '../../actions/cartActions';
+import { checkCartStock, removeFromCart, updateCartQuantity } from '../../actions/cartActions';
 import { notifyInfo, peso } from '../../Utils/helpers';
 import WarningAmberRoundedIcon from '@mui/icons-material/WarningAmberRounded';
 
@@ -56,8 +57,23 @@ export default function Cart() {
     const { cartItems } = useSelector((state) => state.cart);
     const { user, loading } = useSelector((state) => state.auth);
     const location = useLocation();
-    const stockIssues = location.state?.stockIssues || [];
-    const closeStockDialog = () => navigate('/cart', { replace: true, state: null });
+    // Problems can come from the checkout redirect (location.state) or from the check below
+    const [stockIssues, setStockIssues] = useState(location.state?.stockIssues || []);
+    const stockChecked = useRef(false);
+
+    // Check the stock as soon as the cart opens, once the saved login has settled
+    useEffect(() => {
+        if (loading || stockChecked.current) return;
+        stockChecked.current = true;
+        dispatch(checkCartStock()).then((issues) => {
+            if (issues.length > 0) setStockIssues(issues);
+        });
+    }, [loading, dispatch]);
+
+    const closeStockDialog = () => {
+        setStockIssues([]);
+        if (location.state) navigate('/cart', { replace: true, state: null });
+    };
 
     const totalQuantity = cartItems.reduce((sum, item) => sum + item.quantity, 0);
     const total = cartItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
