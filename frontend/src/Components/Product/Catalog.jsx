@@ -13,10 +13,11 @@ import TuneIcon from '@mui/icons-material/Tune';
 import api from '../../api';
 import { getProducts, loadMoreProducts } from '../../actions/productActions';
 import { peso } from '../../Utils/helpers';
+import { CATEGORIES } from '../../constants/productConstants';
 import FilterDrawer from './FilterDrawer';
 import ProductCard from './ProductCard';
 import ProductCardSkeleton from './ProductCardSkeleton';
-import { useSearchParams } from 'react-router-dom';
+import { useLocation, useSearchParams } from 'react-router-dom';
 
 const PAGE_SIZE = 8; // same as the limit in getProducts
 const emptyFilters = {
@@ -38,6 +39,9 @@ const SORT_OPTIONS = [
     { value: 'popular', label: 'Most reviewed' },
 ];
 
+// Reads ?category=Tops from the URL (the footer links use it). Unknown values are ignored.
+const categoryFromUrl = (value) => ['All', ...CATEGORIES].find((c) => c.toLowerCase() === (value || '').toLowerCase());
+
 const priceLabel = ({ minPrice, maxPrice }) => {
     if (minPrice !== '' && maxPrice !== '') return `${peso(Number(minPrice))} – ${peso(Number(maxPrice))}`;
     if (minPrice !== '') return `${peso(Number(minPrice))} and up`;
@@ -49,10 +53,18 @@ export default function Catalog() {
     const { products, loading, error, hasMore, page, total } = useSelector((state) => state.catalog);
 
     const [searchParams, setSearchParams] = useSearchParams();
+    const location = useLocation();
     const keyword = (searchParams.get('q') || '').trim();
+    const urlCategory = categoryFromUrl(searchParams.get('category'));
 
-    const [options, setFilters] = useState(emptyFilters);
+    const [options, setFilters] = useState(() => ({ ...emptyFilters, category: urlCategory ?? 'All' }));
     const filters = useMemo(() => ({ ...options, keyword }), [options, keyword]);
+
+    // Footer links like /?category=Tops: apply that category every time one is clicked
+    useEffect(() => {
+        if (!urlCategory) return;
+        setFilters((prev) => (prev.category === urlCategory ? prev : { ...prev, category: urlCategory }));
+    }, [urlCategory, location.key]);
 
     const clearKeyword = () =>
         setSearchParams(
