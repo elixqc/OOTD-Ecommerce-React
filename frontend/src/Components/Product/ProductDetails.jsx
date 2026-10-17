@@ -3,7 +3,6 @@ import { Link, useNavigate, useParams } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import {
     Button,
-    Chip,
     Drawer,
     IconButton,
     Rating,
@@ -203,7 +202,7 @@ function ProductInfo({ product }) {
 
     // Each color has its own photos. Picking a color swaps the whole gallery.
     const images = getColorImages(product, color);
-    const mainImage = images[activeImage] || images[0];
+    
 
     // Load the first photo of every color up front so switching colors feels instant
     useEffect(() => {
@@ -249,19 +248,45 @@ function ProductInfo({ product }) {
 
     const outOfStock = !selected || selected.stock === 0;
 
-    let stockLabel = <Chip label="IN STOCK" size="small" color="success" />;
+    let stockState = 'in';
+    let stockText = 'In stock';
     if (outOfStock) {
-        stockLabel = <Chip label="OUT OF STOCK" size="small" color="error" />;
+        stockState = 'out';
+        stockText = 'Out of stock';
     } else if (selected.stock <= 5) {
-        stockLabel = <Chip label={`ONLY ${selected.stock} LEFT`} size="small" color="warning" />;
+        stockState = 'low';
+        stockText = `Only ${selected.stock} left`;
     }
+
+    const stockLabel = (
+        <span className={`stock-status stock-${stockState}`}>
+            <span className="stock-dot" />
+            {stockText}
+        </span>
+    );
 
     return (
         <>
         <div className="product-detail">
             <div className="product-gallery">
                 <div className="product-gallery-frame">
-                    <img src={mainImage?.url} alt={`${product.name} in ${color}`} className="product-gallery-main" />
+                    <div className="gallery-viewport">
+                        <div
+                            key={color}
+                            className="gallery-track"
+                            style={{ transform: `translateX(-${activeImage * 100}%)` }}
+                        >
+                            {images.map((img, index) => (
+                                <img
+                                    key={img.public_id}
+                                    src={img.url}
+                                    alt={`${product.name} in ${color} ${index + 1}`}
+                                    className="product-gallery-main"
+                                    draggable={false}
+                                />
+                            ))}
+                        </div>
+                    </div>
                     {images.length > 1 && (
                         <>
                             <IconButton
@@ -303,9 +328,12 @@ function ProductInfo({ product }) {
                 <Typography variant="body2" color="text.secondary">
                     {product.brand || product.category}
                 </Typography>
-                <Typography variant="h4" component="h1">
-                    {product.name}
-                </Typography>
+                <div className="product-title-row">
+                    <Typography variant="h4" component="h1">
+                        {product.name}
+                    </Typography>
+                    {stockLabel}
+                </div>
 
                 <div className="product-rating">
                     <Rating value={product.ratings} precision={0.5} size="small" readOnly />
@@ -371,7 +399,7 @@ function ProductInfo({ product }) {
                     )}
                 </div>
 
-                <div>{stockLabel}</div>
+            
 
                 {isAdmin ? (
                     <div className="admin-product-actions">

@@ -291,6 +291,17 @@ export default function ProductForm({ product, onSubmit, submitLabel, loading })
     const makeMain = (colorId, img) =>
         updateColor(colorId, (c) => ({ images: [img, ...c.images.filter((i) => i.key !== img.key)] }));
 
+    const reorderPhotos = (colorId, fromKey, toKey) =>
+        updateColor(colorId, (c) => {
+            const from = c.images.findIndex((i) => i.key === fromKey);
+            const to = c.images.findIndex((i) => i.key === toKey);
+            if (from === -1 || to === -1 || from === to) return { images: c.images };
+            const next = [...c.images];
+            const [moved] = next.splice(from, 1);
+            next.splice(to, 0, moved);
+            return { images: next };
+        });
+
     // ---- sizes ----
     const addVariant = () =>
         formik.setFieldValue('variants', [...values.variants, { size: '', colorId: colors[0]?.id || '', stock: 0 }]);
@@ -431,6 +442,7 @@ export default function ProductForm({ product, onSubmit, submitLabel, loading })
                                         onFiles={(files) => handleFiles(color.id, files)}
                                         onRemove={(img) => removePhoto(color.id, img)}
                                         onMakeMain={(img) => makeMain(color.id, img)}
+                                        onReorder={(fromKey, toKey) => reorderPhotos(color.id, fromKey, toKey)}
                                     />
                                     {colorErrors[color.id] && (
                                         <Typography variant="caption" color="error" component="p" sx={{ mt: 0.5 }}>

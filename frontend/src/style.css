@@ -593,11 +593,14 @@ body {
 }
 
 .product-gallery-main {
+    flex: 0 0 100%;
     width: 100%;
     aspect-ratio: 1 / 1;
     object-fit: cover;
-    border-radius: 8px;
+    border-radius: 0;
+    user-select: none;
 }
+
 
 .product-thumbs {
     display: flex;
@@ -664,6 +667,60 @@ body {
 @media (max-width: 800px) {
     .product-detail {
         grid-template-columns: 1fr;
+    }
+}
+
+/* Title row + stock status */
+.product-title-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+}
+
+.stock-status {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    flex-shrink: 0;
+    font-size: 0.85rem;
+    font-weight: 500;
+    letter-spacing: 0.02em;
+    color: var(--brand-dark);
+    white-space: nowrap;
+}
+
+.stock-dot {
+    position: relative;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--stock-color);
+}
+
+/* soft pulsing halo, only while stock is available */
+.stock-in .stock-dot::after,
+.stock-low .stock-dot::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+    background: var(--stock-color);
+    animation: stock-pulse 2s ease-out infinite;
+}
+
+@keyframes stock-pulse {
+    from { transform: scale(1); opacity: 0.55; }
+    to   { transform: scale(2.6); opacity: 0; }
+}
+
+.stock-in  { --stock-color: #7cc242; }
+.stock-low { --stock-color: #e0a526; }
+.stock-out { --stock-color: var(--brand-accent); color: #8a8f98; }
+
+@media (max-width: 480px) {
+    .product-title-row {
+        align-items: flex-start;
     }
 }
 
@@ -1819,6 +1876,17 @@ body {
     position: relative;
 }
 
+.gallery-viewport {
+    overflow: hidden;
+    border-radius: 8px;
+}
+
+.gallery-track {
+    display: flex;
+    transition: transform 0.45s cubic-bezier(0.4, 0, 0.2, 1);
+    will-change: transform;
+}
+
 .gallery-arrow {
     position: absolute !important;
     top: 50%;
@@ -1852,8 +1920,22 @@ body {
     font-size: 0.75rem;
 }
 
-.product-gallery-main {
-    transition: opacity 0.2s;
+/* Admin photo tiles: drag to reorder */
+.photo-tile {
+    cursor: grab;
+    transition: opacity 0.15s;
+}
+
+.photo-tile:active {
+    cursor: grabbing;
+}
+
+.photo-tile.dragging {
+    opacity: 0.4;
+}
+
+.photo-tile.uploading {
+    cursor: default;
 }
 
 .user-cell {

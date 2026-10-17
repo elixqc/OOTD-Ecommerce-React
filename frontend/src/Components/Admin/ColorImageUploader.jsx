@@ -18,9 +18,10 @@ const overlayButtonSx = {
 
 // Photo tiles + a click / drag-and-drop area for ONE color.
 // The parent owns the images and does the uploading; this only shows them and reports what the admin did.
-export default function ColorImageUploader({ images, onFiles, onRemove, onMakeMain }) {
+export default function ColorImageUploader({ images, onFiles, onRemove, onMakeMain, onReorder }) {
     const input = useRef(null);
     const [dragging, setDragging] = useState(false);
+    const [draggedKey, setDraggedKey] = useState(null); // photo tile currently being dragged to reorder
     const full = images.length >= MAX_IMAGES_PER_COLOR;
 
     const pick = (event) => {
@@ -48,12 +49,27 @@ export default function ColorImageUploader({ images, onFiles, onRemove, onMakeMa
                             border: `1px solid ${BORDER}`,
                             borderRadius: '12px',
                             bgcolor: '#f3f3f3',
+                            
                         }}
+                        className={`photo-tile${draggedKey === img.key ? ' dragging' : ''}${img.uploading ? ' uploading' : ''}`}
+                        draggable={!img.uploading}
+                        onDragStart={(e) => {
+                            setDraggedKey(img.key);
+                            e.dataTransfer.setData('text/plain', img.key); // Firefox needs this to start a drag
+                        }}
+                        onDragEnter={() => draggedKey && draggedKey !== img.key && !img.uploading && onReorder(draggedKey, img.key)}
+                        onDragOver={(e) => draggedKey && e.preventDefault()}
+                        onDrop={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                        }}
+                        onDragEnd={() => setDraggedKey(null)}
                     >
                         <Box
                             component="img"
                             src={img.url}
                             alt=""
+                            draggable={false}
                             sx={{ width: '100%', height: '100%', objectFit: 'cover', opacity: img.uploading ? 0.45 : 1 }}
                         />
 
@@ -145,7 +161,7 @@ export default function ColorImageUploader({ images, onFiles, onRemove, onMakeMa
 
             <input ref={input} type="file" accept={ACCEPTED_IMAGE_TYPES.join(',')} multiple hidden onChange={pick} />
             <Typography variant="caption" color="text.secondary">
-                {images.length}/{MAX_IMAGES_PER_COLOR} photos · JPG, PNG or WebP · the first photo is the main one
+                {images.length}/{MAX_IMAGES_PER_COLOR} photos · JPG, PNG or WebP · drag to reorder · the first photo is the main one
             </Typography>
         </Box>
     );
