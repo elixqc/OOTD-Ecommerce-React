@@ -296,7 +296,14 @@ exports.updateOrder = async (req, res) => {
     }
 
     order.orderStatus = status;
-    if (status === 'Delivered') order.deliveredAt = Date.now();
+    if (status === 'Delivered') {
+        order.deliveredAt = Date.now();
+        // Cash on Delivery gets paid when the courier hands over the order
+        if (!order.isPaid) {
+            order.isPaid = true;
+            order.paidAt = Date.now();
+        }
+    }
     await order.save();
 
     // A cancelled order puts its items back in stock

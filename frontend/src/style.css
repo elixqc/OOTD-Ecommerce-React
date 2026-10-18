@@ -967,6 +967,154 @@ body {
     text-transform: none;
     font-weight: 600;
 }
+/* Order placed */
+.order-done {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 10px;
+    padding: 48px 16px 72px;
+    max-width: 520px;
+    margin: 0 auto;
+}
+
+.order-done-icon {
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    display: grid;
+    place-items: center;
+    background: #1f1f1f;
+    color: #fff;
+    margin-bottom: 8px;
+}
+
+.order-done-icon .MuiSvgIcon-root {
+    font-size: 34px;
+}
+
+.order-done-title.MuiTypography-root {
+    font-weight: 700;
+}
+
+.order-done-card {
+    width: 100%;
+    margin: 12px 0 4px;
+    background: #fff;
+    border: 1px solid #e5e0d8;
+    border-radius: 12px;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    text-align: left;
+}
+
+.order-done-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-bottom: 14px;
+    border-bottom: 1px solid #e5e0d8;
+    color: #666;
+    font-size: 0.9rem;
+}
+
+.order-done-head strong {
+    color: #1f1f1f;
+    font-size: 1rem;
+    letter-spacing: 0.04em;
+}
+
+.order-done-items {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.order-done-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 0.9rem;
+}
+
+.order-done-item img {
+    width: 52px;
+    height: 52px;
+    border-radius: 8px;
+    object-fit: cover;
+    background: var(--brand-bg);
+    border: 1px solid #e5e0d8;
+    flex-shrink: 0;
+}
+
+.order-done-item-info {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+}
+
+.order-done-item-name {
+    font-weight: 600;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.order-done-item-meta {
+    color: #666;
+    font-size: 0.8rem;
+}
+
+.order-done-row {
+    display: flex;
+    justify-content: space-between;
+    gap: 24px;
+    font-size: 0.9rem;
+    color: #666;
+}
+
+.order-done-row span:last-child {
+    color: #1f1f1f;
+    text-align: right;
+}
+
+.order-done-total {
+    color: var(--brand-dark);
+    font-weight: 700;
+    font-size: 1.1rem;
+    border-top: 1px solid #e5e0d8;
+    padding-top: 14px;
+}
+
+.order-done-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 12px;
+}
+
+.order-done-btn.MuiButton-root {
+    padding: 10px 28px;
+    border-radius: 10px;
+    text-transform: none;
+    font-weight: 600;
+    background-color: #181818;
+    box-shadow: none;
+}
+
+.order-done-btn.MuiButton-root:hover {
+    background-color: #333;
+    box-shadow: none;
+}
+
+.order-done-link.MuiButton-root {
+    text-transform: none;
+    font-weight: 600;
+}
 
 @media (max-width: 900px) {
     .cart-layout {
