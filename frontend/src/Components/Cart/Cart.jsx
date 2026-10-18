@@ -1,15 +1,18 @@
 import { useEffect, useRef, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
-import { Box, Button, Dialog, DialogActions, DialogContent, DialogTitle, IconButton, Typography } from '@mui/material';
+import { Badge, Box, Button, Dialog, DialogActions, DialogContent, DialogTitle, IconButton, Typography } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import RemoveIcon from '@mui/icons-material/Remove';
 import DeleteOutlineIcon from '@mui/icons-material/DeleteOutlined';
 import ShoppingBagOutlinedIcon from '@mui/icons-material/ShoppingBagOutlined';
+import ShoppingBasketOutlinedIcon from '@mui/icons-material/ShoppingBasketOutlined';
 import ArrowBackRoundedIcon from '@mui/icons-material/ArrowBackRounded';
 import { checkCartStock, removeFromCart, updateCartQuantity } from '../../actions/cartActions';
 import { notifyInfo, peso } from '../../Utils/helpers';
 import WarningAmberRoundedIcon from '@mui/icons-material/WarningAmberRounded';
+import LockOutlinedIcon from '@mui/icons-material/LockOutlined';
+
 
 function StockDialog({ issues, onClose }) {
     return (
@@ -94,7 +97,9 @@ export default function Cart() {
         return (
             <div className="cart-empty page-enter">
                 <div className="cart-empty-icon">
-                    <ShoppingBagOutlinedIcon />
+                    <Badge badgeContent={0} showZero>
+                        <ShoppingBasketOutlinedIcon />
+                    </Badge>
                 </div>
                 <StockDialog issues={stockIssues} onClose={closeStockDialog} />
                 <Typography variant="h5" component="h1" className="cart-empty-title">
@@ -195,8 +200,8 @@ export default function Cart() {
                         <span>Total</span>
                         <span>{peso(total)}</span>
                     </div>
-                    <Button variant="contained" size="large" onClick={handleCheckout} className="cart-checkout-btn">
-                        Proceed to checkout
+                    <Button variant="contained" size="large" onClick={handleCheckout} className="cart-checkout-btn" startIcon={<LockOutlinedIcon />}>
+                        Checkout
                     </Button>
                 </aside>
             </div>

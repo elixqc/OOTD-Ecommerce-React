@@ -93,8 +93,7 @@ export default function Catalog() {
         dispatch(getProducts(filters, 1));
     }, [dispatch, filters]);
 
-    // Infinite scroll. It re-subscribes after every load, so it keeps loading
-    // if the bottom is still visible (for example on a tall screen).
+    // Infinite scroll.
     useEffect(() => {
         const node = sentinel.current;
         if (!node) return;

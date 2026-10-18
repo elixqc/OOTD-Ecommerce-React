@@ -24,6 +24,7 @@ export default function Home() {
     useEffect(() => {
         if (location.state?.denied) toast.error("You don't have access to that page", { id: 'access-denied' });
     }, [location.state]);
+    
     return (
         <>
             <section className="home-hero">
