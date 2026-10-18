@@ -149,6 +149,7 @@ const getInitialValues = (product, colors) => ({
 export default function ProductForm({ product, onSubmit, submitLabel, loading }) {
     // Photos live outside Formik because they upload in the background and update at different times
     const [colors, setColors] = useState(() => getInitialColors(product));
+    const [initialValues] = useState(() => getInitialValues(product, colors));
     const [colorErrors, setColorErrors] = useState({});
     // Always holds the latest colors, for code that runs later (uploads, submit)
     const colorsRef = useRef(colors);
@@ -174,7 +175,7 @@ export default function ProductForm({ product, onSubmit, submitLabel, loading })
     const uploading = colors.some((c) => c.images.some((i) => i.uploading));
 
     const formik = useFormik({
-        initialValues: getInitialValues(product, colors),
+        initialValues,
         validationSchema,
         validateOnChange: false,
         validateOnBlur: false,
