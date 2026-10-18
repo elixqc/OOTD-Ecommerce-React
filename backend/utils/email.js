@@ -145,7 +145,7 @@ exports.sendOrderStatusEmail = async (order, user) => {
             ]
         });
 
-        console.log('Order email accepted by Mailtrap:', info.messageId);
+        console.log('Order email accepted:', info.messageId);
     } catch (error) {
         console.error('Order email failed:', error.message);
     }
