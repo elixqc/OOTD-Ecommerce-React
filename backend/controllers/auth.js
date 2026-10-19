@@ -195,16 +195,35 @@ exports.getUserDetails = async (req, res) => {
 
 // PUT /api/v1/admin/user/:id   body: { isActive: true | false }
 // Only the active status can be changed here, not the role, email, or name.
+// PUT /api/v1/admin/user/:id   body: { isActive: true | false } or { role: 'customer' | 'admin' }
+// Email and name can't be changed here.
 exports.updateUser = async (req, res) => {
     if (!mongoose.isValidObjectId(req.params.id)) return userNotFound(res);
 
-    const { isActive } = req.body;
-    if (typeof isActive !== 'boolean') {
-        return res.status(400).json({ success: false, message: 'isActive must be true or false' });
+    const { isActive, role } = req.body;
+    if (role !== undefined && !['customer', 'admin'].includes(role)) {
+        return res.status(400).json({ success: false, message: 'Role must be customer or admin' });
+    }
+    if (role === undefined && typeof isActive !== 'boolean') {
+        return res.status(400).json({ success: false, message: 'Send isActive (true or false) or role (customer or admin)' });
     }
 
     const user = await User.findById(req.params.id);
     if (!user) return userNotFound(res);
+
+    // Role change. It lives in MongoDB only, and the API reads it on every request
+    if (role !== undefined) {
+        if (String(user._id) === String(req.user._id)) {
+            return res.status(400).json({ success: false, message: "You can't change your own role" });
+        }
+        if (user.role === role) return res.status(200).json({ success: true, user });
+        if (role === 'admin' && !user.isActive) {
+            return res.status(400).json({ success: false, message: 'Activate this account before making it an admin' });
+        }
+        user.role = role;
+        await user.save();
+        return res.status(200).json({ success: true, user });
+    }
 
     if (user.role === 'admin') {
         return res.status(400).json({ success: false, message: "Admin accounts can't be deactivated here" });

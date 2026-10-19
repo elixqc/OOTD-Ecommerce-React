@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { Alert, Avatar, Box, Button, Chip, IconButton, Skeleton, Tooltip, Typography } from '@mui/material';
+import AdminPanelSettingsOutlinedIcon from '@mui/icons-material/AdminPanelSettingsOutlined';
 import ArrowBackRoundedIcon from '@mui/icons-material/ArrowBackRounded';
 import BlockOutlinedIcon from '@mui/icons-material/BlockOutlined';
 import CheckCircleOutlinedIcon from '@mui/icons-material/CheckCircleOutlined';
@@ -10,7 +11,7 @@ import LocationOnOutlinedIcon from '@mui/icons-material/LocationOnOutlined';
 import PersonOutlineRoundedIcon from '@mui/icons-material/PersonOutlineRounded';
 import PhoneOutlinedIcon from '@mui/icons-material/PhoneOutlined';
 import ReceiptLongOutlinedIcon from '@mui/icons-material/ReceiptLongOutlined';
-import { clearErrors, getUserDetails, updateUser } from '../../actions/userActions';
+import { clearErrors, getUserDetails, updateUser, updateUserRole } from '../../actions/userActions';
 import { UPDATE_USER_RESET } from '../../constants/userConstants';
 import { formatDate, notifyError, notifySuccess, peso, shortOrderId } from '../../Utils/helpers';
 import ConfirmDialog from '../Layout/ConfirmDialog';
@@ -61,6 +62,7 @@ export default function UpdateUser() {
     const closeConfirm = () => setConfirm((current) => ({ ...current, open: false }));
     const { user, orderCount, totalSpent, recentOrders, loading, error } = useSelector((state) => state.userDetails);
     const { loading: updating, isUpdated, updatedUser, error: updateError } = useSelector((state) => state.adminUser);
+    const { user: me } = useSelector((state) => state.auth);
 
     useEffect(() => {
         dispatch(getUserDetails(id));
@@ -79,11 +81,15 @@ export default function UpdateUser() {
 
     useEffect(() => {
         if (isUpdated) {
-            notifySuccess(updatedUser?.isActive ? 'Account activated' : 'Account deactivated');
+            if (updatedUser?.role !== user?.role) {
+                notifySuccess(updatedUser?.role === 'admin' ? 'Role changed to admin' : 'Role changed to customer');
+            } else {
+                notifySuccess(updatedUser?.isActive ? 'Account activated' : 'Account deactivated');
+            }
             dispatch({ type: UPDATE_USER_RESET });
             dispatch(getUserDetails(id));
         }
-    }, [isUpdated, updatedUser, id, dispatch]);
+    }, [isUpdated, updatedUser, user, id, dispatch]);
 
     // The store can still hold a different user for one render
     const ready = user && user._id === id;
@@ -133,6 +139,21 @@ export default function UpdateUser() {
                 : `${user.name} will be able to log in again.`,
             confirmText: deactivating ? 'Yes, deactivate' : 'Yes, activate',
             onConfirm: () => dispatch(updateUser(user._id, !deactivating)),
+        });
+    };
+
+    const isSelf = me?._id === user._id;
+
+    const handleRole = () => {
+        const promoting = !isAdmin;
+        setConfirm({
+            open: true,
+            title: promoting ? 'Make this user an admin?' : 'Remove admin access?',
+            text: promoting
+                ? `${user.name} will be able to manage products, orders, users, and reviews.`
+                : `${user.name} will become a customer and lose access to the admin pages.`,
+            confirmText: promoting ? 'Yes, make admin' : 'Yes, remove admin',
+            onConfirm: () => dispatch(updateUserRole(user._id, promoting ? 'admin' : 'customer')),
         });
     };
 
@@ -253,6 +274,40 @@ export default function UpdateUser() {
 
                 {/* Right: account action and summary (shown first on small screens) */}
                 <Box sx={{ display: 'grid', gap: 3, minWidth: 0, order: { xs: -1, lg: 0 } }}>
+                    <Box sx={cardSx}>
+                        <Typography variant="h6" component="h2" sx={{ fontWeight: 700 }}>
+                            Role
+                        </Typography>
+                        <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5, mb: 2 }}>
+                            {isAdmin ? 'This user is an admin and can manage the store.' : 'This user is a customer.'}
+                        </Typography>
+                        {isSelf ? (
+                            <Typography variant="caption" component="p" sx={{ color: NEUTRAL }}>
+                                You can&apos;t change your own role.
+                            </Typography>
+                        ) : (
+                            <>
+                                <Button
+                                    fullWidth
+                                    disableElevation
+                                    variant="outlined"
+                                    color={isAdmin ? 'error' : 'primary'}
+                                    startIcon={isAdmin ? <PersonOutlineRoundedIcon /> : <AdminPanelSettingsOutlinedIcon />}
+                                    disabled={updating || (!isAdmin && !user.isActive)}
+                                    onClick={handleRole}
+                                    sx={{ borderRadius: 99, height: 42 }}
+                                >
+                                    {updating ? 'Saving...' : isAdmin ? 'Remove admin access' : 'Make admin'}
+                                </Button>
+                                {!isAdmin && !user.isActive && (
+                                    <Typography variant="caption" component="p" sx={{ color: NEUTRAL, mt: 2 }}>
+                                        Activate this account first before making it an admin.
+                                    </Typography>
+                                )}
+                            </>
+                        )}
+                    </Box>
+
                     <Box sx={cardSx}>
                         <Typography variant="h6" component="h2" sx={{ fontWeight: 700 }}>
                             Account access

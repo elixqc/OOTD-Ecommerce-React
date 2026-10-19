@@ -128,3 +128,14 @@ export const updateUser = (id, isActive) => async (dispatch) => {
         dispatch({ type: UPDATE_USER_FAIL, payload: getErrorMessage(error) });
     }
 };
+
+// role: 'admin' or 'customer'
+export const updateUserRole = (id, role) => async (dispatch) => {
+    try {
+        dispatch({ type: UPDATE_USER_REQUEST });
+        const { data } = await api.put(`/admin/user/${id}`, { role });
+        dispatch({ type: UPDATE_USER_SUCCESS, payload: data.user });
+    } catch (error) {
+        dispatch({ type: UPDATE_USER_FAIL, payload: getErrorMessage(error) });
+    }
+};
