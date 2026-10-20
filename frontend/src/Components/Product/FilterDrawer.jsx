@@ -55,12 +55,23 @@ function Section({ id, title, open, onToggle, children }) {
     );
 }
 
-// Slide-in panel with the product filters. Nothing is applied until "Show items" is pressed.
+// Slide-in filter panel. Nothing applies until "Show items" is pressed.
 export default function FilterDrawer({ open, onClose, applied, onApply, emptyFilters, maxPrice }) {
     return (
-        <Drawer anchor="left" open={open} onClose={onClose} slotProps={{ paper: { className: 'filter-drawer' } }}>
-            {/* Only mounted while open, so the draft always starts from what is applied */}
-            <FilterPanel onClose={onClose} applied={applied} onApply={onApply} emptyFilters={emptyFilters} maxPrice={maxPrice} />
+        <Drawer
+            anchor="left"
+            open={open}
+            onClose={onClose}
+            slotProps={{ paper: { className: 'filter-drawer' } }}
+        >
+            {/* Only mounted while open, so the draft starts from what is applied */}
+            <FilterPanel
+                onClose={onClose}
+                applied={applied}
+                onApply={onApply}
+                emptyFilters={emptyFilters}
+                maxPrice={maxPrice}
+            />
         </Drawer>
     );
 }
@@ -74,7 +85,7 @@ function FilterPanel({ onClose, applied, onApply, emptyFilters, maxPrice }) {
     const toggleSection = (id) =>
         setOpenSections((prev) => (prev.includes(id) ? prev.filter((s) => s !== id) : [...prev, id]));
 
-    // An empty price field means "no limit", which the fields and slider show as 0 and the highest price
+    // Empty price means "no limit": 0 in the field, highest price on the slider
     const minValue = draft.minPrice === '' ? 0 : Number(draft.minPrice);
     const maxValue = draft.maxPrice === '' ? maxPrice : Number(draft.maxPrice);
     const priceError = minValue > maxValue;
@@ -87,8 +98,7 @@ function FilterPanel({ onClose, applied, onApply, emptyFilters, maxPrice }) {
         }));
     };
 
-    // Live "how many items would I get" number for the bottom button.
-    // The count is stored with the filters it was fetched for, so an old count is never shown for new filters.
+    // Live item count for the bottom button, stored with the filters it was fetched for
     const filterKey = JSON.stringify(buildProductParams(draft));
     const count = !priceError && result.key === filterKey ? result.total : null;
 
@@ -112,7 +122,7 @@ function FilterPanel({ onClose, applied, onApply, emptyFilters, maxPrice }) {
     const handleClearAll = () => setDraft({ ...emptyFilters, keyword: applied.keyword, sort: applied.sort });
 
     const handleApply = () => {
-        // A price that is the same as the slider's ends is not a filter, so it is dropped
+        // Slider ends are not filters, so drop them
         onApply({
             ...draft,
             minPrice: minValue <= 0 ? '' : String(minValue),
@@ -121,7 +131,12 @@ function FilterPanel({ onClose, applied, onApply, emptyFilters, maxPrice }) {
         onClose();
     };
 
-    const buttonLabel = count === null ? 'Show items' : count === 0 ? 'No items found' : `Show ${count} item${count === 1 ? '' : 's'}`;
+    const buttonLabel =
+        count === null
+            ? 'Show items'
+            : count === 0
+            ? 'No items found'
+            : `Show ${count} item${count === 1 ? '' : 's'}`;
 
     const priceField = (label, value, onChange) => (
         <TextField
@@ -148,7 +163,7 @@ function FilterPanel({ onClose, applied, onApply, emptyFilters, maxPrice }) {
                 </Typography>
                 <Stack direction="row" alignItems="center" spacing={1}>
                     <Button size="small" color="secondary" onClick={handleClearAll}>
-                        Clear all
+                        Clear filters
                     </Button>
                     <IconButton aria-label="Close filters" onClick={onClose} edge="end">
                         <CloseIcon />
@@ -157,7 +172,12 @@ function FilterPanel({ onClose, applied, onApply, emptyFilters, maxPrice }) {
             </div>
 
             <div className="filter-drawer-body">
-                <Section id="category" title="Category" open={openSections.includes('category')} onToggle={toggleSection}>
+                <Section
+                    id="category"
+                    title="Category"
+                    open={openSections.includes('category')}
+                    onToggle={toggleSection}
+                >
                     <Stack direction="row" useFlexGap spacing={1} sx={{ flexWrap: 'wrap' }}>
                         {['All', ...CATEGORIES].map((category) => (
                             <Chip
@@ -172,7 +192,12 @@ function FilterPanel({ onClose, applied, onApply, emptyFilters, maxPrice }) {
                     </Stack>
                 </Section>
 
-                <Section id="gender" title="Gender" open={openSections.includes('gender')} onToggle={toggleSection}>
+                <Section
+                    id="gender"
+                    title="Gender"
+                    open={openSections.includes('gender')}
+                    onToggle={toggleSection}
+                >
                     <Stack direction="row" useFlexGap spacing={1} sx={{ flexWrap: 'wrap' }}>
                         {['All', ...GENDERS].map((gender) => (
                             <Chip
@@ -187,7 +212,12 @@ function FilterPanel({ onClose, applied, onApply, emptyFilters, maxPrice }) {
                     </Stack>
                 </Section>
 
-                <Section id="price" title="Price" open={openSections.includes('price')} onToggle={toggleSection}>
+                <Section
+                    id="price"
+                    title="Price"
+                    open={openSections.includes('price')}
+                    onToggle={toggleSection}
+                >
                     <Slider
                         value={[Math.min(minValue, maxPrice), Math.min(maxValue, maxPrice)]}
                         onChange={handleSlider}
@@ -212,9 +242,18 @@ function FilterPanel({ onClose, applied, onApply, emptyFilters, maxPrice }) {
                     )}
                 </Section>
 
-                <Section id="rating" title="Rating" open={openSections.includes('rating')} onToggle={toggleSection}>
+                <Section
+                    id="rating"
+                    title="Rating"
+                    open={openSections.includes('rating')}
+                    onToggle={toggleSection}
+                >
                     <RadioGroup value={draft.rating} onChange={(e) => set('rating', e.target.value)}>
-                        <FormControlLabel value="All" control={<Radio size="small" color="default" />} label="Any rating" />
+                        <FormControlLabel
+                            value="All"
+                            control={<Radio size="small" color="default" />}
+                            label="Any rating"
+                        />
                         {[4, 3, 2, 1].map((stars) => (
                             <FormControlLabel
                                 key={stars}
@@ -239,7 +278,12 @@ function FilterPanel({ onClose, applied, onApply, emptyFilters, maxPrice }) {
                     </RadioGroup>
                 </Section>
 
-                <Section id="reviews" title="Reviews" open={openSections.includes('reviews')} onToggle={toggleSection}>
+                <Section
+                    id="reviews"
+                    title="Reviews"
+                    open={openSections.includes('reviews')}
+                    onToggle={toggleSection}
+                >
                     <RadioGroup value={draft.minReviews} onChange={(e) => set('minReviews', e.target.value)}>
                         {REVIEW_OPTIONS.map((option) => (
                             <FormControlLabel
@@ -254,7 +298,13 @@ function FilterPanel({ onClose, applied, onApply, emptyFilters, maxPrice }) {
             </div>
 
             <div className="filter-drawer-footer">
-                <Button fullWidth size="large" variant="contained" disabled={priceError || count === 0} onClick={handleApply}>
+                <Button
+                    fullWidth
+                    size="large"
+                    variant="contained"
+                    disabled={priceError || count === 0}
+                    onClick={handleApply}
+                >
                     {buttonLabel}
                 </Button>
             </div>
