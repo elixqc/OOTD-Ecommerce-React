@@ -18,7 +18,6 @@ import AssignmentReturnOutlinedIcon from '@mui/icons-material/AssignmentReturnOu
 import { POLICY_UPDATED, RETURN_WINDOW_DAYS, STORE } from '../../constants/storeInfo';
 import {
     AccordionList,
-    bodyText,
     CardGrid,
     InfoCard,
     Steps,
@@ -26,6 +25,7 @@ import {
     SupportPage,
     SupportSection,
 } from './SupportLayout';
+import { bodyText } from './supportStyles';
 
 const DAYS = RETURN_WINDOW_DAYS;
 

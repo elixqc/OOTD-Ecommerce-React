@@ -46,7 +46,7 @@ const priceLabel = ({ minPrice, maxPrice }) => {
 
 export default function Catalog() {
     const dispatch = useDispatch();
-    const { products, loading, error, hasMore, page, total } = useSelector((state) => state.catalog);
+    const { products, loading, error, hasMore, page } = useSelector((state) => state.catalog);
 
     const [searchParams, setSearchParams] = useSearchParams();
     const location = useLocation();
@@ -59,13 +59,17 @@ export default function Catalog() {
     }));
     const filters = useMemo(() => ({ ...options, keyword }), [options, keyword]);
 
-    // Footer links like /?category=Tops: apply that category every time one is clicked
-    useEffect(() => {
-        if (!urlCategory) return;
+    // Footer links like /?category=Tops: apply that category every time one is clicked.
+    // Adjusting state during render keeps the URL as the source of truth without an effect.
+    const categorySource = `${urlCategory ?? ''}|${location.key}`;
+    const [lastCategorySource, setLastCategorySource] = useState(categorySource);
+
+    if (urlCategory && categorySource !== lastCategorySource) {
+        setLastCategorySource(categorySource);
         setFilters((prev) => (
             prev.category === urlCategory ? prev : { ...prev, category: urlCategory }
         ));
-    }, [urlCategory, location.key]);
+    }
 
     const clearKeyword = () =>
         setSearchParams(

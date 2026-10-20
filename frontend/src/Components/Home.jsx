@@ -4,7 +4,6 @@ import { useSelector } from 'react-redux';
 import { Button, Typography } from '@mui/material';
 import Catalog from './Product/Catalog';
 import heroImage from '../assets/ootd-hero.jpg';
-import { notifyError } from '../Utils/helpers';
 import { toast } from 'sonner'
 
 export default function Home() {

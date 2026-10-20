@@ -59,15 +59,6 @@ export default function Login({ active = true }) {
         if (error) notifyError(error.longMessage || error.message);
     };
 
-    const handleFacebook = async () => {
-        const { error } = await signIn.sso({
-            strategy: 'oauth_facebook',
-            redirectUrl: '/',
-            redirectCallbackUrl: '/sso-callback',
-        });
-        if (error) notifyError(error.longMessage || error.message);
-    };
-
     return (
         <>
             <AuthHeading title="Welcome back" subtitle="Login to your OOTD account" />
@@ -111,7 +102,7 @@ export default function Login({ active = true }) {
                     {loading ? 'Please wait...' : 'Login'}
                 </Button>
                 <Divider>or</Divider>
-                <SocialButtons onGoogle={handleGoogle} onFacebook={handleFacebook} disabled={loading} />
+                <SocialButtons onGoogle={handleGoogle} disabled={loading} />
                 <AuthSwitch prompt="Don't have an account?" cta="Sign up" to="/register" />
             </Box>
         </>

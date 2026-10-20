@@ -112,15 +112,6 @@ export default function Register({ active = true }) {
         if (error) notifyError(errorText(error));
     };
 
-    const handleFacebook = async () => {
-        const { error } = await signUp.sso({
-            strategy: 'oauth_facebook',
-            redirectUrl: '/',
-            redirectCallbackUrl: '/sso-callback',
-        });
-        if (error) notifyError(errorText(error));
-    };
-
     const stack = { display: 'flex', flexDirection: 'column', gap: 2, ...staggerFields(active) };
 
     if (awaitingCode) {
@@ -226,7 +217,7 @@ export default function Register({ active = true }) {
                     {loading ? 'Please wait...' : 'Create account'}
                 </Button>
                 <Divider>or</Divider>
-                <SocialButtons onGoogle={handleGoogle} onFacebook={handleFacebook} disabled={loading} />
+                <SocialButtons onGoogle={handleGoogle} disabled={loading} />
                 <AuthSwitch prompt="Already a member?" cta="Login" to="/login" />
             </Box>
         </>

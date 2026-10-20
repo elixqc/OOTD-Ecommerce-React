@@ -5,6 +5,7 @@ import AddIcon from '@mui/icons-material/Add';
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
 import RemoveIcon from '@mui/icons-material/Remove';
 import { STORE } from '../../constants/storeInfo';
+import { bodyText } from './supportStyles';
 
 
 const TABS = {
@@ -19,8 +20,6 @@ const TABS = {
         { to: '/privacy', label: 'Privacy Policy' },
     ],
 };
-
-export const bodyText = { fontSize: 15, lineHeight: 1.75, color: '#444' };
 
 // The frame every support / legal page sits in.
 // Reuses the shop's .page-enter animation, so the header rises in first and the sections follow.

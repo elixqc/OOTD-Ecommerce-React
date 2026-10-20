@@ -5,7 +5,6 @@ import { Badge, Box, Button, Dialog, DialogActions, DialogContent, DialogTitle, 
 import AddIcon from '@mui/icons-material/Add';
 import RemoveIcon from '@mui/icons-material/Remove';
 import DeleteOutlineIcon from '@mui/icons-material/DeleteOutlined';
-import ShoppingBagOutlinedIcon from '@mui/icons-material/ShoppingBagOutlined';
 import ShoppingBasketOutlinedIcon from '@mui/icons-material/ShoppingBasketOutlined';
 import ArrowBackRoundedIcon from '@mui/icons-material/ArrowBackRounded';
 import { checkCartStock, removeFromCart, updateCartQuantity } from '../../actions/cartActions';
