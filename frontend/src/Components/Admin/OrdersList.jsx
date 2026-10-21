@@ -1,3 +1,5 @@
+// TTL · Transactions — admin orders table.
+// Lists all orders and links into ProcessOrder to change status.
 import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
@@ -33,14 +35,21 @@ import { formatDate, notifyError, peso, shortOrderId } from '../../Utils/helpers
 // Same palette as the dashboard and products page
 const NEUTRAL = '#8a8f98';
 const BORDER = '#eceef2';
-const STATUS_COLORS = { Processing: 'warning', Shipped: 'info', Delivered: 'success', Cancelled: 'error' };
+const STATUS_COLORS = {
+    Processing: 'warning',
+    Shipped: 'info',
+    Delivered: 'success',
+    Cancelled: 'error',
+};
 
 const fieldSx = { '& .MuiOutlinedInput-root': { borderRadius: '12px' } };
 
 // YYYY-MM-DD in local time, to compare with <input type="date"> values
 const toInputDate = (value) => {
     const d = new Date(value);
-    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${d.getFullYear()}-${month}-${day}`;
 };
 
 // "Blue Hoodie +2 more", same wording as the dashboard's last transactions
@@ -62,7 +71,10 @@ function StatCard({ label, value, icon, loading }) {
                 {loading ? (
                     <Skeleton width={60} height={34} />
                 ) : (
-                    <Typography component="p" sx={{ fontSize: 26, fontWeight: 700, lineHeight: 1.3 }}>
+                    <Typography
+                        component="p"
+                        sx={{ fontSize: 26, fontWeight: 700, lineHeight: 1.3 }}
+                    >
                         {value}
                     </Typography>
                 )}
@@ -73,7 +85,15 @@ function StatCard({ label, value, icon, loading }) {
 
 function EmptyState({ filtering, onClear }) {
     return (
-        <Box sx={{ height: '100%', minHeight: 300, display: 'grid', placeItems: 'center', textAlign: 'center' }}>
+        <Box
+            sx={{
+                height: '100%',
+                minHeight: 300,
+                display: 'grid',
+                placeItems: 'center',
+                textAlign: 'center',
+            }}
+        >
             <Box>
                 <ReceiptLongOutlinedIcon sx={{ fontSize: 40, color: 'text.disabled' }} />
                 <Typography color="text.secondary" sx={{ mt: 0.5 }}>
@@ -119,7 +139,7 @@ export default function OrdersList() {
             processing: orders.filter((o) => o.orderStatus === 'Processing').length,
             delivered: orders.filter((o) => o.orderStatus === 'Delivered').length,
         }),
-        [orders]
+        [orders],
     );
 
     const filteredRows = useMemo(() => {
@@ -136,15 +156,21 @@ export default function OrdersList() {
             const matchesStatus = statusFilter === 'All' || o.orderStatus === statusFilter;
             const day = toInputDate(o.createdAt);
             const matchesDate = (!dateFrom || day >= dateFrom) && (!dateTo || day <= dateTo);
-            const matchesTotal = (min === null || o.totalPrice >= min) && (max === null || o.totalPrice <= max);
+            const matchesTotal =
+                (min === null || o.totalPrice >= min) && (max === null || o.totalPrice <= max);
             return matchesText && matchesStatus && matchesDate && matchesTotal;
         });
     }, [orders, keyword, statusFilter, dateFrom, dateTo, minTotal, maxTotal]);
 
     // Filters hidden behind the "Filters" button, counted for its badge
-    const moreActive = [dateFrom !== '', dateTo !== '', minTotal !== '', maxTotal !== ''].filter(Boolean).length;
+    const moreActive = [dateFrom !== '', dateTo !== '', minTotal !== '', maxTotal !== ''].filter(
+        Boolean,
+    ).length;
     const filtering = keyword !== '' || statusFilter !== 'All' || moreActive > 0;
-    const dateError = dateFrom && dateTo && dateFrom > dateTo ? 'Start date must be on or before the end date' : '';
+    const dateError =
+        dateFrom && dateTo && dateFrom > dateTo
+            ? 'Start date must be on or before the end date'
+            : '';
 
     const clearFilters = () => {
         setKeyword('');
@@ -161,7 +187,11 @@ export default function OrdersList() {
             headerName: 'Order ID',
             width: 120,
             renderCell: (params) => (
-                <Link to={`/admin/order/${params.row._id}`} className="dash-order-link" style={{ fontWeight: 600 }}>
+                <Link
+                    to={`/admin/order/${params.row._id}`}
+                    className="dash-order-link"
+                    style={{ fontWeight: 600 }}
+                >
                     {shortOrderId(params.value)}
                 </Link>
             ),
@@ -222,7 +252,12 @@ export default function OrdersList() {
             headerName: 'Status',
             width: 130,
             renderCell: (params) => (
-                <Chip size="small" variant="outlined" label={params.value} color={STATUS_COLORS[params.value] ?? 'default'} />
+                <Chip
+                    size="small"
+                    variant="outlined"
+                    label={params.value}
+                    color={STATUS_COLORS[params.value] ?? 'default'}
+                />
             ),
         },
         {
@@ -235,9 +270,21 @@ export default function OrdersList() {
             filterable: false,
             disableColumnMenu: true,
             renderCell: (params) => (
-                <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', width: '100%' }}>
+                <Box
+                    sx={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'flex-end',
+                        width: '100%',
+                    }}
+                >
                     <Tooltip title="Process order">
-                        <IconButton size="small" component={Link} to={`/admin/order/${params.row._id}`} aria-label="Process order">
+                        <IconButton
+                            size="small"
+                            component={Link}
+                            to={`/admin/order/${params.row._id}`}
+                            aria-label="Process order"
+                        >
                             <LocalShippingOutlinedIcon fontSize="small" />
                         </IconButton>
                     </Tooltip>
@@ -262,15 +309,44 @@ export default function OrdersList() {
 
             {/* KPI cards */}
             <Box className="dash-stats" sx={{ mb: 3 }}>
-                <StatCard label="Total orders" value={counts.total} icon={<ReceiptLongOutlinedIcon />} loading={initialLoad} />
-                <StatCard label="Processing" value={counts.processing} icon={<HourglassEmptyOutlinedIcon />} loading={initialLoad} />
-                <StatCard label="Delivered" value={counts.delivered} icon={<AssignmentTurnedInOutlinedIcon />} loading={initialLoad} />
-                <StatCard label="Total sales" value={peso(totalAmount || 0)} icon={<PaymentsOutlinedIcon />} loading={initialLoad} />
+                <StatCard
+                    label="Total orders"
+                    value={counts.total}
+                    icon={<ReceiptLongOutlinedIcon />}
+                    loading={initialLoad}
+                />
+                <StatCard
+                    label="Processing"
+                    value={counts.processing}
+                    icon={<HourglassEmptyOutlinedIcon />}
+                    loading={initialLoad}
+                />
+                <StatCard
+                    label="Delivered"
+                    value={counts.delivered}
+                    icon={<AssignmentTurnedInOutlinedIcon />}
+                    loading={initialLoad}
+                />
+                <StatCard
+                    label="Total sales"
+                    value={peso(totalAmount || 0)}
+                    icon={<PaymentsOutlinedIcon />}
+                    loading={initialLoad}
+                />
             </Box>
 
             {/* Filters + table */}
-            <Box sx={{ border: `1px solid ${BORDER}`, borderRadius: '16px', bgcolor: '#fff', overflow: 'hidden' }}>
-                <Box sx={{ p: 2, display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 1.5 }}>
+            <Box
+                sx={{
+                    border: `1px solid ${BORDER}`,
+                    borderRadius: '16px',
+                    bgcolor: '#fff',
+                    overflow: 'hidden',
+                }}
+            >
+                <Box
+                    sx={{ p: 2, display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 1.5 }}
+                >
                     <TextField
                         size="small"
                         placeholder="Search order #, name or email"
@@ -281,12 +357,20 @@ export default function OrdersList() {
                             input: {
                                 startAdornment: (
                                     <InputAdornment position="start">
-                                        <SearchRoundedIcon fontSize="small" sx={{ color: NEUTRAL }} />
+                                        <SearchRoundedIcon
+                                            fontSize="small"
+                                            sx={{ color: NEUTRAL }}
+                                        />
                                     </InputAdornment>
                                 ),
                                 endAdornment: keyword && (
                                     <InputAdornment position="end">
-                                        <IconButton size="small" aria-label="Clear search" onClick={() => setKeyword('')} edge="end">
+                                        <IconButton
+                                            size="small"
+                                            aria-label="Clear search"
+                                            onClick={() => setKeyword('')}
+                                            edge="end"
+                                        >
                                             <CloseRoundedIcon fontSize="small" />
                                         </IconButton>
                                     </InputAdornment>
@@ -314,19 +398,31 @@ export default function OrdersList() {
                             color="inherit"
                             startIcon={<TuneRoundedIcon />}
                             onClick={() => setMoreOpen((open) => !open)}
-                            sx={{ borderRadius: '12px', height: 40, color: moreOpen ? undefined : NEUTRAL, fontWeight: 500 }}
+                            sx={{
+                                borderRadius: '12px',
+                                height: 40,
+                                color: moreOpen ? undefined : NEUTRAL,
+                                fontWeight: 500,
+                            }}
                         >
                             Filters
                         </Button>
                     </Badge>
                     {filtering && (
-                        <Button color="inherit" onClick={clearFilters} sx={{ color: NEUTRAL, fontWeight: 500 }}>
+                        <Button
+                            color="inherit"
+                            onClick={clearFilters}
+                            sx={{ color: NEUTRAL, fontWeight: 500 }}
+                        >
                             Clear
                         </Button>
                     )}
                     <Box sx={{ flex: 1 }} />
                     <Typography variant="body2" color="text.secondary">
-                        {filtering ? `${filteredRows.length} of ${orders.length}` : `${orders.length}`} order
+                        {filtering
+                            ? `${filteredRows.length} of ${orders.length}`
+                            : `${orders.length}`}{' '}
+                        order
                         {orders.length === 1 ? '' : 's'}
                     </Typography>
                 </Box>
@@ -350,7 +446,10 @@ export default function OrdersList() {
                             value={dateFrom}
                             error={Boolean(dateError)}
                             onChange={(e) => setDateFrom(e.target.value)}
-                            slotProps={{ inputLabel: { shrink: true }, htmlInput: { max: dateTo || undefined } }}
+                            slotProps={{
+                                inputLabel: { shrink: true },
+                                htmlInput: { max: dateTo || undefined },
+                            }}
                         />
                         <TextField
                             label="To"
@@ -361,10 +460,27 @@ export default function OrdersList() {
                             error={Boolean(dateError)}
                             helperText={dateError}
                             onChange={(e) => setDateTo(e.target.value)}
-                            slotProps={{ inputLabel: { shrink: true }, htmlInput: { min: dateFrom || undefined } }}
+                            slotProps={{
+                                inputLabel: { shrink: true },
+                                htmlInput: { min: dateFrom || undefined },
+                            }}
                         />
-                        <TextField label="Min total" type="number" size="small" sx={fieldSx} value={minTotal} onChange={(e) => setMinTotal(e.target.value)} />
-                        <TextField label="Max total" type="number" size="small" sx={fieldSx} value={maxTotal} onChange={(e) => setMaxTotal(e.target.value)} />
+                        <TextField
+                            label="Min total"
+                            type="number"
+                            size="small"
+                            sx={fieldSx}
+                            value={minTotal}
+                            onChange={(e) => setMinTotal(e.target.value)}
+                        />
+                        <TextField
+                            label="Max total"
+                            type="number"
+                            size="small"
+                            sx={fieldSx}
+                            value={maxTotal}
+                            onChange={(e) => setMaxTotal(e.target.value)}
+                        />
                     </Box>
                 </Collapse>
 
@@ -379,7 +495,11 @@ export default function OrdersList() {
                     rowHeight={64}
                     pageSizeOptions={[5, 10, 25]}
                     initialState={{ pagination: { paginationModel: { pageSize: 10 } } }}
-                    slots={{ noRowsOverlay: () => <EmptyState filtering={filtering} onClear={clearFilters} /> }}
+                    slots={{
+                        noRowsOverlay: () => (
+                            <EmptyState filtering={filtering} onClear={clearFilters} />
+                        ),
+                    }}
                     sx={{
                         border: 0,
                         borderTop: `1px solid ${BORDER}`,
@@ -388,11 +508,21 @@ export default function OrdersList() {
                         '--DataGrid-t-header-background-base': '#fff',
                         '& .MuiDataGrid-columnHeader': { bgcolor: '#fff' },
                         '& .MuiDataGrid-columnHeaders': { borderBottom: `1px solid ${BORDER}` },
-                        '& .MuiDataGrid-columnHeaderTitle': { color: NEUTRAL, fontSize: '0.8rem', fontWeight: 500 },
+                        '& .MuiDataGrid-columnHeaderTitle': {
+                            color: NEUTRAL,
+                            fontSize: '0.8rem',
+                            fontWeight: 500,
+                        },
                         '& .MuiDataGrid-columnSeparator': { display: 'none' },
-                        '& .MuiDataGrid-cell': { display: 'flex', alignItems: 'center', borderColor: '#f0f1f4' },
-                        '& .MuiDataGrid-cell:focus, & .MuiDataGrid-cell:focus-within, & .MuiDataGrid-columnHeader:focus, & .MuiDataGrid-columnHeader:focus-within':
-                            { outline: 'none' },
+                        '& .MuiDataGrid-cell': {
+                            display: 'flex',
+                            alignItems: 'center',
+                            borderColor: '#f0f1f4',
+                        },
+                        ['& .MuiDataGrid-cell:focus, ' +
+                        '& .MuiDataGrid-cell:focus-within, ' +
+                        '& .MuiDataGrid-columnHeader:focus, ' +
+                        '& .MuiDataGrid-columnHeader:focus-within']: { outline: 'none' },
                         '& .MuiDataGrid-row:hover': { bgcolor: '#fafbfc' },
                         '& .MuiDataGrid-footerContainer': { borderColor: BORDER },
                     }}

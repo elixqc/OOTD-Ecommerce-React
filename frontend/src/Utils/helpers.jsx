@@ -1,7 +1,6 @@
-
+// CORE · Shared helpers — date/money formatting and toast wrappers.
+// formatDate/peso are used across orders, dashboard and cards; notify* wrap sonner toasts.
 import { toast } from 'sonner';
-
-
 
 export const notifySuccess = (title) => toast.success(title);
 export const notifyError = (title) => toast.error(title);
@@ -30,4 +29,7 @@ const FIREBASE_MESSAGES = {
 
 // Prefers the backend's message, then a friendly Firebase message
 export const getErrorMessage = (err) =>
-    err.response?.data?.message || FIREBASE_MESSAGES[err.code] || err.message || 'Something went wrong';
+    err.response?.data?.message ||
+    FIREBASE_MESSAGES[err.code] ||
+    err.message ||
+    'Something went wrong';

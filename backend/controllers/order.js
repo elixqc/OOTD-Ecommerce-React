@@ -1,3 +1,5 @@
+// TTL · Transactions + Q2 · Sales chart — order create/status, my-orders, receipt, dashboard stats.
+// newOrder rebuilds prices from the DB and reserves stock; dashboardStats aggregates by day for the chart.
 const mongoose = require('mongoose');
 const Order = require('../models/order');
 const Product = require('../models/product');
@@ -36,7 +38,9 @@ const withCurrentImages = async (orders) => {
             const product = productMap.get(String(item.product));
             if (!product) return item; // product was deleted entirely: keep the old photo
 
-            const stillThere = getColorImages(product, item.color).some((img) => img.url === item.image);
+            const stillThere = getColorImages(product, item.color).some(
+                (img) => img.url === item.image,
+            );
             if (stillThere) return item;
 
             return { ...item, image: getColorImageUrl(product, item.color) || item.image };
@@ -50,7 +54,7 @@ const withCurrentImages = async (orders) => {
 const reserveStock = async ({ product, size, color, quantity }) => {
     const result = await Product.updateOne(
         { _id: product, variants: { $elemMatch: { size, color, stock: { $gte: quantity } } } },
-        { $inc: { 'variants.$.stock': -quantity } }
+        { $inc: { 'variants.$.stock': -quantity } },
     );
     return result.modifiedCount === 1;
 };
@@ -62,9 +66,9 @@ const restoreStock = async (items) => {
             Product.updateOne(
                 { _id: item.product },
                 { $inc: { 'variants.$[v].stock': item.quantity } },
-                { arrayFilters: [{ 'v.size': item.size, 'v.color': item.color }] }
-            ).catch((err) => console.error('Restock failed:', item.product, err.message))
-        )
+                { arrayFilters: [{ 'v.size': item.size, 'v.color': item.color }] },
+            ).catch((err) => console.error('Restock failed:', item.product, err.message)),
+        ),
     );
 };
 
@@ -96,7 +100,8 @@ exports.checkCartStock = async (req, res) => {
         const key = `${item.product}|${item.size}|${item.color}`;
         const line = lines.get(key);
         if (line) line.quantity += quantity;
-        else lines.set(key, { product: item.product, size: item.size, color: item.color, quantity });
+        else
+            lines.set(key, { product: item.product, size: item.size, color: item.color, quantity });
     }
     const requested = [...lines.values()];
 
@@ -147,13 +152,15 @@ exports.newOrder = async (req, res) => {
         const key = `${item.product}|${item.size}|${item.color}`;
         const line = lines.get(key);
         if (line) line.quantity += quantity;
-        else lines.set(key, { product: item.product, size: item.size, color: item.color, quantity });
+        else
+            lines.set(key, { product: item.product, size: item.size, color: item.color, quantity });
     }
     const requested = [...lines.values()];
 
     // Cash on Delivery unless the customer chose a listed method
     const paymentMethod = req.body.paymentMethod ?? 'Cash on Delivery';
-    if (!PAYMENT_METHODS.includes(paymentMethod)) return fail(res, 400, 'Choose a valid payment method');
+    if (!PAYMENT_METHODS.includes(paymentMethod))
+        return fail(res, 400, 'Choose a valid payment method');
     const paidNow = paymentMethod !== 'Cash on Delivery';
 
     if (requested.some((l) => l.quantity > MAX_QUANTITY_PER_ITEM)) {
@@ -209,7 +216,8 @@ exports.newOrder = async (req, res) => {
             return fail(
                 res,
                 409,
-                `Sorry, ${item.name} (${item.size} / ${item.color}) just ran out of stock. Please update your cart.`
+                `Sorry, ${item.name} (${item.size} / ${item.color}) just ran out of stock. ` +
+                    'Please update your cart.',
             );
         }
         reserved.push(item);
@@ -289,10 +297,18 @@ exports.updateOrder = async (req, res) => {
     if (!Object.keys(NEXT_STATUSES).includes(status)) return fail(res, 400, 'Invalid order status');
 
     if (NEXT_STATUSES[order.orderStatus].length === 0) {
-        return fail(res, 400, `This order is already ${order.orderStatus.toLowerCase()} and can't be changed`);
+        return fail(
+            res,
+            400,
+            `This order is already ${order.orderStatus.toLowerCase()} and can't be changed`,
+        );
     }
     if (!NEXT_STATUSES[order.orderStatus].includes(status)) {
-        return fail(res, 400, `An order that is ${order.orderStatus} can't be changed to ${status}`);
+        return fail(
+            res,
+            400,
+            `An order that is ${order.orderStatus} can't be changed to ${status}`,
+        );
     }
 
     order.orderStatus = status;
@@ -316,7 +332,6 @@ exports.updateOrder = async (req, res) => {
     return res.status(200).json({ success: true, order });
 };
 
-
 // GET /api/v1/order/:id/receipt   (the order's owner, or an admin)
 exports.downloadReceipt = async (req, res) => {
     if (!mongoose.isValidObjectId(req.params.id)) return fail(res, 404, 'Order not found');
@@ -328,13 +343,13 @@ exports.downloadReceipt = async (req, res) => {
     if (!isOwner && req.user.role !== 'admin') return fail(res, 404, 'Order not found');
 
     const pdf = await buildReceiptPdf(order, order.user);
+    const filename = `OOTD-receipt-${shortOrderId(order._id).slice(1)}.pdf`;
     res.set({
         'Content-Type': 'application/pdf',
-        'Content-Disposition': `attachment; filename="OOTD-receipt-${shortOrderId(order._id).slice(1)}.pdf"`,
+        'Content-Disposition': `attachment; filename="${filename}"`,
     });
     return res.send(pdf);
 };
-
 
 // GET /api/v1/admin/dashboard?from=YYYY-MM-DD&to=YYYY-MM-DD
 // Everything the admin dashboard needs in one request, filtered by an inclusive date range.
@@ -367,7 +382,11 @@ const buildBuckets = (from, to, granularity) => {
         while (cursor <= end) {
             buckets.push({
                 key: cursor.toISOString().slice(0, 7),
-                label: cursor.toLocaleDateString('en-US', { month: 'short', year: 'numeric', timeZone: 'UTC' }),
+                label: cursor.toLocaleDateString('en-US', {
+                    month: 'short',
+                    year: 'numeric',
+                    timeZone: 'UTC',
+                }),
             });
             cursor = new Date(Date.UTC(cursor.getUTCFullYear(), cursor.getUTCMonth() + 1, 1));
         }
@@ -375,7 +394,11 @@ const buildBuckets = (from, to, granularity) => {
         while (cursor <= end) {
             buckets.push({
                 key: cursor.toISOString().slice(0, 10),
-                label: cursor.toLocaleDateString('en-US', { month: 'short', day: 'numeric', timeZone: 'UTC' }),
+                label: cursor.toLocaleDateString('en-US', {
+                    month: 'short',
+                    day: 'numeric',
+                    timeZone: 'UTC',
+                }),
             });
             cursor = new Date(cursor.getTime() + DAY_MS);
         }
@@ -395,10 +418,14 @@ exports.dashboardStats = async (req, res) => {
     const to = req.query.to || today;
 
     if (!isValidDateString(from) || !isValidDateString(to)) {
-        return res.status(400).json({ success: false, message: 'Dates must be valid and use the YYYY-MM-DD format' });
+        return res
+            .status(400)
+            .json({ success: false, message: 'Dates must be valid and use the YYYY-MM-DD format' });
     }
     if (from > to) {
-        return res.status(400).json({ success: false, message: 'The start date cannot be after the end date' });
+        return res
+            .status(400)
+            .json({ success: false, message: 'The start date cannot be after the end date' });
     }
 
     const start = new Date(`${from}T00:00:00${TZ_OFFSET}`);
@@ -406,7 +433,8 @@ exports.dashboardStats = async (req, res) => {
     const inRange = { createdAt: { $gte: start, $lt: endExclusive } };
     const notCancelled = { ...inRange, orderStatus: { $ne: 'Cancelled' } };
 
-    // A single day is shown hour by hour, up to ~3 months day by day, anything longer month by month
+    // A single day is shown hour by hour, up to ~3 months day by day,
+    // anything longer month by month
     const rangeDays = Math.round((endExclusive - start) / DAY_MS);
     const granularity = rangeDays === 1 ? 'hour' : rangeDays <= 92 ? 'day' : 'month';
     const dateFormat = { hour: '%H', day: '%Y-%m-%d', month: '%Y-%m' }[granularity];
@@ -424,7 +452,9 @@ exports.dashboardStats = async (req, res) => {
                     orders: { $sum: 1 },
                     completed: { $sum: { $cond: [{ $eq: ['$orderStatus', 'Delivered'] }, 1, 0] } },
                     cancelled: { $sum: { $cond: [{ $eq: ['$orderStatus', 'Cancelled'] }, 1, 0] } },
-                    sales: { $sum: { $cond: [{ $ne: ['$orderStatus', 'Cancelled'] }, '$totalPrice', 0] } },
+                    sales: {
+                        $sum: { $cond: [{ $ne: ['$orderStatus', 'Cancelled'] }, '$totalPrice', 0] },
+                    },
                 },
             },
         ]);
@@ -445,7 +475,13 @@ exports.dashboardStats = async (req, res) => {
             { $match: notCancelled },
             {
                 $group: {
-                    _id: { $dateToString: { format: dateFormat, date: '$createdAt', timezone: TIMEZONE } },
+                    _id: {
+                        $dateToString: {
+                            format: dateFormat,
+                            date: '$createdAt',
+                            timezone: TIMEZONE,
+                        },
+                    },
                     total: { $sum: '$totalPrice' },
                     orders: { $sum: 1 },
                 },
@@ -472,7 +508,13 @@ exports.dashboardStats = async (req, res) => {
             { $sort: { total: -1 } },
             { $limit: 10 },
             { $lookup: { from: 'users', localField: '_id', foreignField: '_id', as: 'user' } },
-            { $project: { total: 1, orders: 1, name: { $ifNull: [{ $arrayElemAt: ['$user.name', 0] }, 'Deleted user'] } } },
+            {
+                $project: {
+                    total: 1,
+                    orders: 1,
+                    name: { $ifNull: [{ $arrayElemAt: ['$user.name', 0] }, 'Deleted user'] },
+                },
+            },
         ]),
         Order.find(inRange).sort({ createdAt: -1 }).limit(5).populate('user', 'name').lean(),
         Product.countDocuments(),
@@ -490,7 +532,12 @@ exports.dashboardStats = async (req, res) => {
 
     const series = buildBuckets(from, to, granularity).map(({ key, label }) => {
         const found = salesOverTime.find((b) => b._id === key);
-        return { date: key, label, total: found ? found.total : 0, orders: found ? found.orders : 0 };
+        return {
+            date: key,
+            label,
+            total: found ? found.total : 0,
+            orders: found ? found.orders : 0,
+        };
     });
 
     const totalSales = series.reduce((sum, b) => sum + b.total, 0);
@@ -533,6 +580,10 @@ exports.dashboardStats = async (req, res) => {
             totalPrice: o.totalPrice,
             status: o.orderStatus,
         })),
-        customerSales: customerSales.map((c) => ({ name: c.name, orders: c.orders, total: c.total })),
+        customerSales: customerSales.map((c) => ({
+            name: c.name,
+            orders: c.orders,
+            total: c.total,
+        })),
     });
 };

@@ -1,3 +1,5 @@
+// MP1 · Product CRUD + MP2 · Filters + Q3 · Infinite scroll — product list, admin CRUD, uploads.
+// getProducts applies price/category/rating/review filters + page/limit; admin exports back the datatable.
 const cloudinary = require('../config/cloudinary');
 const Product = require('../models/product');
 const Review = require('../models/review');
@@ -6,7 +8,16 @@ const { CATEGORIES, GENDERS, MAX_IMAGES_PER_COLOR, IMAGE_FOLDER } = require('../
 
 const MAX_IMAGE_LENGTH = 4000000; // base64 characters, roughly 3 MB of image
 const ALLOWED_TYPES = /^data:image\/(jpeg|png|webp);base64,/;
-const PRODUCT_FIELDS = ['name', 'description', 'price', 'category', 'brand', 'gender', 'material', 'variants'];
+const PRODUCT_FIELDS = [
+    'name',
+    'description',
+    'price',
+    'category',
+    'brand',
+    'gender',
+    'material',
+    'variants',
+];
 
 // Only these fields can be set from the request, so a client can't send ratings, user, etc.
 const pickProductFields = (body) => {
@@ -20,8 +31,10 @@ const pickProductFields = (body) => {
 const deleteImages = async (publicIds) => {
     await Promise.all(
         publicIds.map((id) =>
-            cloudinary.uploader.destroy(id).catch((err) => console.error('Cloudinary delete failed:', id, err.message))
-        )
+            cloudinary.uploader
+                .destroy(id)
+                .catch((err) => console.error('Cloudinary delete failed:', id, err.message)),
+        ),
     );
 };
 
@@ -36,7 +49,8 @@ const isProductImage = (img) =>
 // Builds one gallery per color from what the admin sent.
 // Returns { colorImages } or { error }.
 const buildColorImages = (variants, sent) => {
-    if (!Array.isArray(variants) || variants.length === 0) return { error: 'Please add at least one size/color variant' };
+    if (!Array.isArray(variants) || variants.length === 0)
+        return { error: 'Please add at least one size/color variant' };
     if (!Array.isArray(sent)) return { error: 'Color images must be sent as a list' };
 
     const colorImages = [];
@@ -48,7 +62,12 @@ const buildColorImages = (variants, sent) => {
         if (!name || seen.has(key)) continue;
         seen.add(key);
 
-        const entry = sent.find((c) => String(c?.color || '').trim().toLowerCase() === key);
+        const entry = sent.find(
+            (c) =>
+                String(c?.color || '')
+                    .trim()
+                    .toLowerCase() === key,
+        );
         const images = Array.isArray(entry?.images) ? entry.images : [];
 
         if (images.length > MAX_IMAGES_PER_COLOR) {
@@ -56,12 +75,16 @@ const buildColorImages = (variants, sent) => {
         }
         if (!images.every(isProductImage)) return { error: `Invalid image for ${name}` };
 
-        colorImages.push({ color: name, images: images.map(({ public_id, url }) => ({ public_id, url })) });
+        colorImages.push({
+            color: name,
+            images: images.map(({ public_id, url }) => ({ public_id, url })),
+        });
     }
     return { colorImages };
 };
 
-const collectIds = (colorImages = []) => colorImages.flatMap((c) => c.images.map((i) => i?.public_id));
+const collectIds = (colorImages = []) =>
+    colorImages.flatMap((c) => c.images.map((i) => i?.public_id));
 
 // POST /api/v1/admin/product/image   body: { image: "data:image/...;base64,..." }
 // Uploads one image right away so the form can show progress. The product only
@@ -70,10 +93,14 @@ exports.uploadProductImage = async (req, res) => {
     const { image } = req.body;
 
     if (typeof image !== 'string' || !ALLOWED_TYPES.test(image)) {
-        return res.status(400).json({ success: false, message: 'Only JPG, PNG or WebP images are allowed' });
+        return res
+            .status(400)
+            .json({ success: false, message: 'Only JPG, PNG or WebP images are allowed' });
     }
     if (image.length > MAX_IMAGE_LENGTH) {
-        return res.status(400).json({ success: false, message: 'Image is too large (max about 3 MB)' });
+        return res
+            .status(400)
+            .json({ success: false, message: 'Image is too large (max about 3 MB)' });
     }
 
     const result = await cloudinary.uploader.upload(image, {
@@ -82,7 +109,9 @@ exports.uploadProductImage = async (req, res) => {
         height: 1200,
         crop: 'limit',
     });
-    return res.status(201).json({ success: true, image: { public_id: result.public_id, url: result.secure_url } });
+    return res
+        .status(201)
+        .json({ success: true, image: { public_id: result.public_id, url: result.secure_url } });
 };
 
 // DELETE /api/v1/admin/product/image   body: { public_id }
@@ -125,9 +154,15 @@ exports.newProduct = async (req, res) => {
     });
 
     // Images that were uploaded but belong to a color that was dropped
-    const submitted = Array.isArray(req.body.colorImages) ? collectIds(req.body.colorImages.filter((c) => Array.isArray(c?.images))) : [];
+    const submitted = Array.isArray(req.body.colorImages)
+        ? collectIds(req.body.colorImages.filter((c) => Array.isArray(c?.images)))
+        : [];
     const used = new Set(collectIds(product.colorImages));
-    await deleteImages(submitted.filter((id) => !used.has(id) && typeof id === 'string' && id.startsWith(`${IMAGE_FOLDER}/`)));
+    await deleteImages(
+        submitted.filter(
+            (id) => !used.has(id) && typeof id === 'string' && id.startsWith(`${IMAGE_FOLDER}/`),
+        ),
+    );
 
     return res.status(201).json({ success: true, product });
 };
@@ -161,7 +196,9 @@ exports.updateProduct = async (req, res) => {
     }
 
     const before = [...collectIds(product.colorImages), ...product.images.map((i) => i.public_id)];
-    const submitted = Array.isArray(req.body.colorImages) ? collectIds(req.body.colorImages.filter((c) => Array.isArray(c?.images))) : [];
+    const submitted = Array.isArray(req.body.colorImages)
+        ? collectIds(req.body.colorImages.filter((c) => Array.isArray(c?.images)))
+        : [];
 
     product.set({ ...pickProductFields(req.body), colorImages });
 
@@ -171,10 +208,14 @@ exports.updateProduct = async (req, res) => {
 
     await product.save();
 
-    // Delete what is no longer used: photos the admin removed, dropped colors, and old shared photos
-    const used = new Set([...collectIds(product.colorImages), ...product.images.map((i) => i.public_id)]);
+    // Delete what is no longer used: photos the admin removed, dropped colors,
+    // and old shared photos
+    const used = new Set([
+        ...collectIds(product.colorImages),
+        ...product.images.map((i) => i.public_id),
+    ]);
     const leftovers = [...new Set([...before, ...submitted])].filter(
-        (id) => !used.has(id) && typeof id === 'string' && id.startsWith(`${IMAGE_FOLDER}/`)
+        (id) => !used.has(id) && typeof id === 'string' && id.startsWith(`${IMAGE_FOLDER}/`),
     );
     await deleteImages(leftovers);
 
@@ -188,7 +229,10 @@ exports.deleteProduct = async (req, res) => {
         return res.status(404).json({ success: false, message: 'Product not found' });
     }
 
-    await deleteImages([...product.images.map((i) => i.public_id), ...collectIds(product.colorImages)]);
+    await deleteImages([
+        ...product.images.map((i) => i.public_id),
+        ...collectIds(product.colorImages),
+    ]);
     await cleanupProducts([product._id]);
 
     return res.status(200).json({ success: true, message: 'Product deleted' });
@@ -210,7 +254,10 @@ exports.deleteProducts = async (req, res) => {
     const productIds = products.map((p) => p._id);
     await Product.deleteMany({ _id: { $in: productIds } });
 
-    const publicIds = products.flatMap((p) => [...p.images.map((i) => i.public_id), ...collectIds(p.colorImages)]);
+    const publicIds = products.flatMap((p) => [
+        ...p.images.map((i) => i.public_id),
+        ...collectIds(p.colorImages),
+    ]);
     await deleteImages(publicIds);
     await cleanupProducts(productIds);
 
@@ -221,12 +268,23 @@ exports.deleteProducts = async (req, res) => {
 const escapeRegex = (text) => text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 // Search words that mean a gender. "men" must not be matched as text, or it would also hit "Women".
 const GENDER_WORDS = {
-    men: 'Men', man: 'Men', mens: 'Men', male: 'Men', guys: 'Men', boys: 'Men',
-    women: 'Women', woman: 'Women', womens: 'Women', female: 'Women', ladies: 'Women', girls: 'Women',
+    men: 'Men',
+    man: 'Men',
+    mens: 'Men',
+    male: 'Men',
+    guys: 'Men',
+    boys: 'Men',
+    women: 'Women',
+    woman: 'Women',
+    womens: 'Women',
+    female: 'Women',
+    ladies: 'Women',
+    girls: 'Women',
     unisex: 'Unisex',
 };
 
-const toNumber = (value) => (value === undefined || value === '' || Array.isArray(value) ? NaN : Number(value));
+const toNumber = (value) =>
+    value === undefined || value === '' || Array.isArray(value) ? NaN : Number(value);
 
 // Allowed sort choices. _id is the tie-breaker so pages never repeat or skip items.
 const SORT_OPTIONS = {
@@ -249,7 +307,8 @@ exports.getProducts = async (req, res) => {
         const words = keyword.trim().split(/\s+/).slice(0, 6);
         filter.$and = words.map((word) => {
             const gender = GENDER_WORDS[word.toLowerCase().replace(/['’]/g, '')];
-            if (gender) return { gender: gender === 'Unisex' ? 'Unisex' : { $in: [gender, 'Unisex'] } };
+            if (gender)
+                return { gender: gender === 'Unisex' ? 'Unisex' : { $in: [gender, 'Unisex'] } };
             const pattern = new RegExp(escapeRegex(word), 'i');
             return { $or: [{ name: pattern }, { category: pattern }, { brand: pattern }] };
         });
@@ -280,9 +339,12 @@ exports.getProducts = async (req, res) => {
     if (Number.isFinite(minReviews) && minReviews > 0) {
         filter.numOfReviews = { $gte: minReviews };
     }
-    
+
     // Only real keys are accepted, so values like "constructor" fall back to newest
-    const sortBy = typeof sort === 'string' && Object.hasOwn(SORT_OPTIONS, sort) ? SORT_OPTIONS[sort] : SORT_OPTIONS.newest;
+    const sortBy =
+        typeof sort === 'string' && Object.hasOwn(SORT_OPTIONS, sort)
+            ? SORT_OPTIONS[sort]
+            : SORT_OPTIONS.newest;
 
     // Count before skip/limit, so total is the real number of matches
     const total = await Product.countDocuments(filter);
@@ -304,13 +366,12 @@ exports.getProducts = async (req, res) => {
 
 // GET /api/v1/products/max-price   (public)
 // Highest price in the shop, rounded up. The filter drawer uses it as the end of the price slider.
-exports.getMaxPrice = async (req, res) => { 
+exports.getMaxPrice = async (req, res) => {
     const [result] = await Product.aggregate([
         { $match: { isActive: { $ne: false } } },
         { $group: { _id: null, max: { $max: '$price' } } },
     ]);
     return res.status(200).json({ success: true, maxPrice: result ? Math.ceil(result.max) : 0 });
-    
 };
 
 // GET /api/v1/product/:id/related   (public)
@@ -325,7 +386,7 @@ exports.getRelatedProducts = async (req, res) => {
         category: product.category,
         _id: { $ne: product._id },
         isActive: { $ne: false },
-    })
+    });
 
     return res.status(200).json({ success: true, products });
 };
@@ -345,7 +406,11 @@ exports.setProductActive = async (req, res) => {
     if (typeof isActive !== 'boolean') {
         return res.status(400).json({ success: false, message: 'isActive must be true or false' });
     }
-    const product = await Product.findByIdAndUpdate(req.params.id, { isActive }, { new: true });
+    const product = await Product.findByIdAndUpdate(
+        req.params.id,
+        { isActive },
+        { returnDocument: 'after' },
+    );
     if (!product) {
         return res.status(404).json({ success: false, message: 'Product not found' });
     }

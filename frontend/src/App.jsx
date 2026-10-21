@@ -1,3 +1,5 @@
+// CORE + Q4 · Clerk — top-level routes, layouts and auth sync.
+// Mounts storefront/checkout/admin route trees, guards them with ProtectedRoute and dispatches syncUser.
 import { useEffect } from 'react';
 import { Route, Routes, useLocation } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
@@ -35,7 +37,14 @@ import MyReviews from './Components/Review/MyReviews';
 import UpdateUser from './Components/Admin/UpdateUser';
 import SSOCallback from './Components/User/SSOCallback';
 import NotFound from './Components/Layout/NotFound';
-import { ContactPage, FaqPage, PrivacyPage, ReturnPage, ShippingPage, TermsPage } from './Components/Support/SupportPages';
+import {
+    ContactPage,
+    FaqPage,
+    PrivacyPage,
+    ReturnPage,
+    ShippingPage,
+    TermsPage,
+} from './Components/Support/SupportPages';
 
 // Every time the page changes, start at the top
 function ScrollToTop() {
@@ -70,35 +79,163 @@ function App() {
             <ScrollToTop />
             <Routes>
                 <Route element={<CustomerLayout />}>
-                    <Route path="/" element={<><MetaData title="Shop" /><Home /></>} />
+                    <Route
+                        path="/"
+                        element={
+                            <>
+                                <MetaData title="Shop" />
+                                <Home />
+                            </>
+                        }
+                    />
                     <Route path="/product/:id" element={<ProductDetails />} />
-                    <Route path="/cart" element={<><MetaData title="Cart" /><Cart /></>} />
+                    <Route
+                        path="/cart"
+                        element={
+                            <>
+                                <MetaData title="Cart" />
+                                <Cart />
+                            </>
+                        }
+                    />
                     {/* Login and register share one page so the card can slide between them */}
                     <Route element={<AuthPage />}>
                         <Route path="/login/*" element={null} />
                         <Route path="/register/*" element={null} />
                     </Route>
                     <Route path="/sso-callback" element={<SSOCallback />} />
-                    <Route path="/me" element={<><MetaData title="My profile" /><Profile /></>} />
+                    <Route
+                        path="/me"
+                        element={
+                            <>
+                                <MetaData title="My profile" />
+                                <Profile />
+                            </>
+                        }
+                    />
 
                     {/* Logged-in customers only */}
                     <Route element={<ProtectedRoute />}>
-                        <Route path="/me/update" element={<><MetaData title="Update profile" /><UpdateProfile /></>} />
-                        <Route path="/password/update/*" element={<><MetaData title="Change password" /><UpdatePassword /></>} />
-                        <Route path="/order/success" element={<><MetaData title="Order placed" /><OrderSuccess /></>} />
-                        <Route path="/orders/me" element={<><MetaData title="My orders" /><ListOrders /></>} />
-                        <Route path="/wishlist" element={<><MetaData title="My wishlist" /><Wishlist /></>} />
-                        <Route path="/reviews/me" element={<><MetaData title="My reviews" /><MyReviews /></>} />
-                        <Route path="/order/:id" element={<><MetaData title="Order details" /><OrderDetails /></>} />
+                        <Route
+                            path="/me/update"
+                            element={
+                                <>
+                                    <MetaData title="Update profile" />
+                                    <UpdateProfile />
+                                </>
+                            }
+                        />
+                        <Route
+                            path="/password/update/*"
+                            element={
+                                <>
+                                    <MetaData title="Change password" />
+                                    <UpdatePassword />
+                                </>
+                            }
+                        />
+                        <Route
+                            path="/order/success"
+                            element={
+                                <>
+                                    <MetaData title="Order placed" />
+                                    <OrderSuccess />
+                                </>
+                            }
+                        />
+                        <Route
+                            path="/orders/me"
+                            element={
+                                <>
+                                    <MetaData title="My orders" />
+                                    <ListOrders />
+                                </>
+                            }
+                        />
+                        <Route
+                            path="/wishlist"
+                            element={
+                                <>
+                                    <MetaData title="My wishlist" />
+                                    <Wishlist />
+                                </>
+                            }
+                        />
+                        <Route
+                            path="/reviews/me"
+                            element={
+                                <>
+                                    <MetaData title="My reviews" />
+                                    <MyReviews />
+                                </>
+                            }
+                        />
+                        <Route
+                            path="/order/:id"
+                            element={
+                                <>
+                                    <MetaData title="Order details" />
+                                    <OrderDetails />
+                                </>
+                            }
+                        />
                     </Route>
 
                     {/* Support and legal pages (footer links) */}
-                    <Route path="/support/contact" element={<><MetaData title="Contact us" /><ContactPage /></>} />
-                    <Route path="/support/shipping" element={<><MetaData title="Shipping" /><ShippingPage /></>} />
-                    <Route path="/support/return" element={<><MetaData title="Return" /><ReturnPage /></>} />
-                    <Route path="/support/faq" element={<><MetaData title="FAQ" /><FaqPage /></>} />
-                    <Route path="/terms" element={<><MetaData title="Terms of Service" /><TermsPage /></>} />
-                    <Route path="/privacy" element={<><MetaData title="Privacy Policy" /><PrivacyPage /></>} />
+                    <Route
+                        path="/support/contact"
+                        element={
+                            <>
+                                <MetaData title="Contact us" />
+                                <ContactPage />
+                            </>
+                        }
+                    />
+                    <Route
+                        path="/support/shipping"
+                        element={
+                            <>
+                                <MetaData title="Shipping" />
+                                <ShippingPage />
+                            </>
+                        }
+                    />
+                    <Route
+                        path="/support/return"
+                        element={
+                            <>
+                                <MetaData title="Return" />
+                                <ReturnPage />
+                            </>
+                        }
+                    />
+                    <Route
+                        path="/support/faq"
+                        element={
+                            <>
+                                <MetaData title="FAQ" />
+                                <FaqPage />
+                            </>
+                        }
+                    />
+                    <Route
+                        path="/terms"
+                        element={
+                            <>
+                                <MetaData title="Terms of Service" />
+                                <TermsPage />
+                            </>
+                        }
+                    />
+                    <Route
+                        path="/privacy"
+                        element={
+                            <>
+                                <MetaData title="Privacy Policy" />
+                                <PrivacyPage />
+                            </>
+                        }
+                    />
 
                     <Route path="*" element={<NotFound />} />
                 </Route>
@@ -106,23 +243,119 @@ function App() {
                 {/* Checkout: slim header, form on the left, order summary on the right */}
                 <Route element={<ProtectedRoute />}>
                     <Route element={<CheckoutLayout />}>
-                        <Route path="/shipping" element={<><MetaData title="Shipping" /><Shipping /></>} />
-                        <Route path="/confirm" element={<><MetaData title="Review order" /><ConfirmOrder /></>} />
-                        <Route path="/payment" element={<><MetaData title="Payment" /><Payment /></>} />
+                        <Route
+                            path="/shipping"
+                            element={
+                                <>
+                                    <MetaData title="Shipping" />
+                                    <Shipping />
+                                </>
+                            }
+                        />
+                        <Route
+                            path="/confirm"
+                            element={
+                                <>
+                                    <MetaData title="Review order" />
+                                    <ConfirmOrder />
+                                </>
+                            }
+                        />
+                        <Route
+                            path="/payment"
+                            element={
+                                <>
+                                    <MetaData title="Payment" />
+                                    <Payment />
+                                </>
+                            }
+                        />
                     </Route>
                 </Route>
 
                 <Route element={<ProtectedRoute adminOnly />}>
                     <Route element={<AdminLayout />}>
-                        <Route path="/admin" element={<><MetaData title="Admin - Dashboard" /><Dashboard /></>} />
-                        <Route path="/admin/products" element={<><MetaData title="Admin - Products" /><ProductsList /></>} />
-                        <Route path="/admin/product/new" element={<><MetaData title="Admin - New product" /><NewProduct /></>} />
-                        <Route path="/admin/product/:id" element={<><MetaData title="Admin - Update product" /><UpdateProduct /></>} />
-                        <Route path="/admin/orders" element={<><MetaData title="Admin - Orders" /><OrdersList /></>} />
-                        <Route path="/admin/order/:id" element={<><MetaData title="Admin - Process order" /><ProcessOrder /></>} />
-                        <Route path="/admin/users" element={<><MetaData title="Admin - Users" /><UsersList /></>} />
-                        <Route path="/admin/user/:id" element={<><MetaData title="Admin - User details" /><UpdateUser /></>} />
-                        <Route path="/admin/reviews" element={<><MetaData title="Admin - Reviews" /><ReviewsList /></>} />
+                        <Route
+                            path="/admin"
+                            element={
+                                <>
+                                    <MetaData title="Admin - Dashboard" />
+                                    <Dashboard />
+                                </>
+                            }
+                        />
+                        <Route
+                            path="/admin/products"
+                            element={
+                                <>
+                                    <MetaData title="Admin - Products" />
+                                    <ProductsList />
+                                </>
+                            }
+                        />
+                        <Route
+                            path="/admin/product/new"
+                            element={
+                                <>
+                                    <MetaData title="Admin - New product" />
+                                    <NewProduct />
+                                </>
+                            }
+                        />
+                        <Route
+                            path="/admin/product/:id"
+                            element={
+                                <>
+                                    <MetaData title="Admin - Update product" />
+                                    <UpdateProduct />
+                                </>
+                            }
+                        />
+                        <Route
+                            path="/admin/orders"
+                            element={
+                                <>
+                                    <MetaData title="Admin - Orders" />
+                                    <OrdersList />
+                                </>
+                            }
+                        />
+                        <Route
+                            path="/admin/order/:id"
+                            element={
+                                <>
+                                    <MetaData title="Admin - Process order" />
+                                    <ProcessOrder />
+                                </>
+                            }
+                        />
+                        <Route
+                            path="/admin/users"
+                            element={
+                                <>
+                                    <MetaData title="Admin - Users" />
+                                    <UsersList />
+                                </>
+                            }
+                        />
+                        <Route
+                            path="/admin/user/:id"
+                            element={
+                                <>
+                                    <MetaData title="Admin - User details" />
+                                    <UpdateUser />
+                                </>
+                            }
+                        />
+                        <Route
+                            path="/admin/reviews"
+                            element={
+                                <>
+                                    <MetaData title="Admin - Reviews" />
+                                    <ReviewsList />
+                                </>
+                            }
+                        />
                     </Route>
                 </Route>
             </Routes>

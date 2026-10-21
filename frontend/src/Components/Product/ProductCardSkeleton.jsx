@@ -1,3 +1,5 @@
+// Q3 · Infinite scroll — loading placeholder card.
+// Rendered while catalog pages load so the grid keeps its shape.
 import { Skeleton } from '@mui/material';
 
 // Placeholder shaped like ProductCard: same photo ratio, border and text rows
@@ -13,7 +15,12 @@ export default function ProductCardSkeleton() {
             </div>
 
             <div className="product-card-info">
-                <Skeleton variant="text" animation="wave" width="70%" sx={{ fontSize: '0.95rem' }} />
+                <Skeleton
+                    variant="text"
+                    animation="wave"
+                    width="70%"
+                    sx={{ fontSize: '0.95rem' }}
+                />
                 <Skeleton variant="text" animation="wave" width="35%" sx={{ fontSize: '0.9rem' }} />
                 <Skeleton variant="text" animation="wave" width={80} />
             </div>

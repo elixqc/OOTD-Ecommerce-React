@@ -1,3 +1,5 @@
+// MP3 · Review ratings + U1-A · Bad words — review schema with a unique (product, user) index.
+// Stores rating, comment, originalComment and flagged; the unique index blocks duplicate reviews.
 const mongoose = require('mongoose');
 
 const reviewSchema = new mongoose.Schema(
@@ -33,7 +35,7 @@ const reviewSchema = new mongoose.Schema(
         size: { type: String, trim: true, default: '' },
         color: { type: String, trim: true, default: '' },
     },
-    { timestamps: true }
+    { timestamps: true },
 );
 
 // One review per customer per product

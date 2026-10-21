@@ -1,3 +1,5 @@
+// EXTRA · Wishlist — wishlist thunks.
+// getWishlist/addToWishlist/removeFromWishlist call the wishlist API and update the heart state.
 import api from '../api';
 import { getErrorMessage } from '../Utils/helpers';
 import {

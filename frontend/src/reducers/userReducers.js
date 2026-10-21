@@ -1,3 +1,5 @@
+// Q4 · Clerk login — auth/user state.
+// authReducer holds the signed-in user; the rest cover profile, password and admin user screens.
 import {
     LOGIN_REQUEST,
     LOGIN_SUCCESS,
@@ -128,7 +130,10 @@ export const allUsersReducer = (state = { users: [] }, action) => {
 };
 
 // Admin: one account
-export const userDetailsReducer = (state = { user: null, orderCount: 0, totalSpent: 0, recentOrders: [] }, action) => {
+export const userDetailsReducer = (
+    state = { user: null, orderCount: 0, totalSpent: 0, recentOrders: [] },
+    action,
+) => {
     switch (action.type) {
         case USER_DETAILS_REQUEST:
             return { ...state, loading: true, error: null };
@@ -141,7 +146,14 @@ export const userDetailsReducer = (state = { user: null, orderCount: 0, totalSpe
                 recentOrders: action.payload.recentOrders,
             };
         case USER_DETAILS_FAIL:
-            return { loading: false, user: null, orderCount: 0, totalSpent: 0, recentOrders: [], error: action.payload };
+            return {
+                loading: false,
+                user: null,
+                orderCount: 0,
+                totalSpent: 0,
+                recentOrders: [],
+                error: action.payload,
+            };
         case CLEAR_ERRORS:
             return { ...state, error: null };
         default:

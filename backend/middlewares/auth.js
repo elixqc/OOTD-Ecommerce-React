@@ -1,3 +1,5 @@
+// Q4 · Clerk login + MP1/TTL role guard — verifies the Clerk session and the MongoDB user.
+// Exports verifyToken / isAuthenticatedUser / authorizeRoles("admin"); protected routes pass through here.
 const { getAuth } = require('@clerk/express');
 const User = require('../models/user');
 
@@ -5,7 +7,10 @@ const User = require('../models/user');
 exports.verifyToken = (req, res, next) => {
     const { userId } = getAuth(req);
     if (!userId) {
-        return res.status(401).json({ success: false, message: 'Login first to access this resource' });
+        return res.status(401).json({
+            success: false,
+            message: 'Login first to access this resource',
+        });
     }
     req.clerkUserId = userId;
     next();
@@ -15,15 +20,24 @@ exports.verifyToken = (req, res, next) => {
 exports.isAuthenticatedUser = async (req, res, next) => {
     const { userId } = getAuth(req);
     if (!userId) {
-        return res.status(401).json({ success: false, message: 'Login first to access this resource' });
+        return res.status(401).json({
+            success: false,
+            message: 'Login first to access this resource',
+        });
     }
 
     const user = await User.findOne({ clerkId: userId });
     if (!user) {
-        return res.status(404).json({ success: false, message: 'Account not registered. Please complete registration.' });
+        return res.status(404).json({
+            success: false,
+            message: 'Account not registered. Please complete registration.',
+        });
     }
     if (!user.isActive) {
-        return res.status(403).json({ success: false, message: 'This account has been deactivated' });
+        return res.status(403).json({
+            success: false,
+            message: 'This account has been deactivated',
+        });
     }
 
     req.user = user;

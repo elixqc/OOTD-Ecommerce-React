@@ -1,3 +1,5 @@
+// MP1 · Product CRUD — product datatable.
+// MUI DataGrid with status toggle and bulk delete; dispatches product thunks and opens the edit page.
 import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
@@ -30,7 +32,12 @@ import TuneRoundedIcon from '@mui/icons-material/TuneRounded';
 import VisibilityOffOutlinedIcon from '@mui/icons-material/VisibilityOffOutlined';
 import VisibilityOutlinedIcon from '@mui/icons-material/VisibilityOutlined';
 import WarningAmberRoundedIcon from '@mui/icons-material/WarningAmberRounded';
-import { deleteProduct, deleteProducts, getAdminProducts, setProductActive } from '../../actions/productActions';
+import {
+    deleteProduct,
+    deleteProducts,
+    getAdminProducts,
+    setProductActive,
+} from '../../actions/productActions';
 import { clearErrors } from '../../actions/userActions';
 import { DELETE_PRODUCT_RESET, CATEGORIES } from '../../constants/productConstants';
 import { notifyError, notifySuccess, peso } from '../../Utils/helpers';
@@ -55,7 +62,10 @@ function StatCard({ label, value, icon, loading }) {
                 {loading ? (
                     <Skeleton width={60} height={34} />
                 ) : (
-                    <Typography component="p" sx={{ fontSize: 26, fontWeight: 700, lineHeight: 1.3 }}>
+                    <Typography
+                        component="p"
+                        sx={{ fontSize: 26, fontWeight: 700, lineHeight: 1.3 }}
+                    >
                         {value}
                     </Typography>
                 )}
@@ -66,7 +76,15 @@ function StatCard({ label, value, icon, loading }) {
 
 function EmptyState({ filtering, onClear }) {
     return (
-        <Box sx={{ height: '100%', minHeight: 300, display: 'grid', placeItems: 'center', textAlign: 'center' }}>
+        <Box
+            sx={{
+                height: '100%',
+                minHeight: 300,
+                display: 'grid',
+                placeItems: 'center',
+                textAlign: 'center',
+            }}
+        >
             <Box>
                 <Inventory2OutlinedIcon sx={{ fontSize: 40, color: 'text.disabled' }} />
                 <Typography color="text.secondary" sx={{ mt: 0.5 }}>
@@ -91,7 +109,12 @@ export default function ProductsList() {
     const [confirm, setConfirm] = useState({ open: false });
     const closeConfirm = () => setConfirm((current) => ({ ...current, open: false }));
     const { products, loading, error } = useSelector((state) => state.adminProducts);
-    const { loading: deleting, isDeleted, deletedCount, error: deleteError } = useSelector((state) => state.product);
+    const {
+        loading: deleting,
+        isDeleted,
+        deletedCount,
+        error: deleteError,
+    } = useSelector((state) => state.product);
 
     const [keyword, setKeyword] = useState('');
     const [categoryFilter, setCategoryFilter] = useState('All');
@@ -153,22 +176,48 @@ export default function ProductsList() {
                 p.category.toLowerCase().includes(text);
             const matchesCategory = categoryFilter === 'All' || p.category === categoryFilter;
             const isHidden = p.isActive === false;
-            const matchesStatus = statusFilter === 'All' || (statusFilter === 'hidden' ? isHidden : !isHidden);
+            const matchesStatus =
+                statusFilter === 'All' || (statusFilter === 'hidden' ? isHidden : !isHidden);
             const matchesStock =
                 stockFilter === 'All' ||
-                (stockFilter === 'out' ? p.totalStock === 0 : p.totalStock > 0 && p.totalStock <= LOW_STOCK);
-            const matchesPrice = (min === null || p.price >= min) && (max === null || p.price <= max);
+                (stockFilter === 'out'
+                    ? p.totalStock === 0
+                    : p.totalStock > 0 && p.totalStock <= LOW_STOCK);
+            const matchesPrice =
+                (min === null || p.price >= min) && (max === null || p.price <= max);
             const matchesRating = p.ratings >= minRating;
             const matchesReviews = (p.numOfReviews || 0) >= minReviews;
             return (
-                matchesText && matchesCategory && matchesStatus && matchesStock && matchesPrice && matchesRating && matchesReviews
+                matchesText &&
+                matchesCategory &&
+                matchesStatus &&
+                matchesStock &&
+                matchesPrice &&
+                matchesRating &&
+                matchesReviews
             );
         });
-    }, [products, keyword, categoryFilter, statusFilter, stockFilter, minPrice, maxPrice, ratingFilter, reviewsFilter]);
+    }, [
+        products,
+        keyword,
+        categoryFilter,
+        statusFilter,
+        stockFilter,
+        minPrice,
+        maxPrice,
+        ratingFilter,
+        reviewsFilter,
+    ]);
 
     // Filters hidden behind the "Filters" button, counted for its badge
-    const moreActive = [statusFilter !== 'All', stockFilter !== 'All', minPrice !== '', maxPrice !== '', ratingFilter !== 'All', reviewsFilter !== 'All']
-        .filter(Boolean).length;
+    const moreActive = [
+        statusFilter !== 'All',
+        stockFilter !== 'All',
+        minPrice !== '',
+        maxPrice !== '',
+        ratingFilter !== 'All',
+        reviewsFilter !== 'All',
+    ].filter(Boolean).length;
     const filtering = keyword !== '' || categoryFilter !== 'All' || moreActive > 0;
 
     const clearFilters = () => {
@@ -207,7 +256,9 @@ export default function ProductsList() {
         setConfirm({
             open: true,
             title: 'Are you sure?',
-            text: `Delete ${selectedIds.length} selected product${selectedIds.length === 1 ? '' : 's'}? Their images and reviews will be removed too.`,
+            text: `Delete ${selectedIds.length} selected product${
+                selectedIds.length === 1 ? '' : 's'
+            }? Their images and reviews will be removed too.`,
             confirmText: 'Yes, delete',
             onConfirm: () => dispatch(deleteProducts(selectedIds)),
         });
@@ -217,7 +268,10 @@ export default function ProductsList() {
         const activate = product.isActive === false;
         const message = await dispatch(setProductActive(product._id, activate));
         if (message) notifyError(message);
-        else notifySuccess(activate ? 'Product is visible in the shop again' : 'Product hidden from the shop');
+        else
+            notifySuccess(
+                activate ? 'Product is visible in the shop again' : 'Product hidden from the shop',
+            );
     };
 
     const columns = [
@@ -227,19 +281,34 @@ export default function ProductsList() {
             flex: 1.6,
             minWidth: 260,
             renderCell: (params) => (
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, minWidth: 0, width: '100%' }}>
+                <Box
+                    sx={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 1.5,
+                        minWidth: 0,
+                        width: '100%',
+                    }}
+                >
                     <Avatar
                         variant="rounded"
                         src={params.row.coverImage}
                         alt={params.row.name}
-                        sx={{ width: 44, height: 56, borderRadius: '10px', bgcolor: '#f3f3f3', flexShrink: 0 }}
+                        sx={{
+                            width: 44,
+                            height: 56,
+                            borderRadius: '10px',
+                            bgcolor: '#f3f3f3',
+                            flexShrink: 0,
+                        }}
                     />
                     <Box sx={{ minWidth: 0 }}>
                         <Typography variant="body2" noWrap sx={{ fontWeight: 600 }}>
                             {params.row.name}
                         </Typography>
                         <Typography variant="caption" noWrap component="p" sx={{ color: NEUTRAL }}>
-                            {[params.row.brand, params.row.gender].filter(Boolean).join(' · ') || '—'}
+                            {[params.row.brand, params.row.gender].filter(Boolean).join(' · ') ||
+                                '—'}
                         </Typography>
                     </Box>
                 </Box>
@@ -272,9 +341,19 @@ export default function ProductsList() {
             align: 'left',
             width: 130,
             renderCell: (params) => {
-                if (params.value === 0) return <Chip size="small" color="error" variant="outlined" label="Out of stock" />;
+                if (params.value === 0)
+                    return (
+                        <Chip size="small" color="error" variant="outlined" label="Out of stock" />
+                    );
                 if (params.value <= LOW_STOCK)
-                    return <Chip size="small" color="warning" variant="outlined" label={`${params.value} left`} />;
+                    return (
+                        <Chip
+                            size="small"
+                            color="warning"
+                            variant="outlined"
+                            label={`${params.value} left`}
+                        />
+                    );
                 return <Typography variant="body2">{params.value}</Typography>;
             },
         },
@@ -325,9 +404,21 @@ export default function ProductsList() {
             renderCell: (params) => {
                 const hidden = params.row.isActive === false;
                 return (
-                    <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', width: '100%' }}>
+                    <Box
+                        sx={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'flex-end',
+                            width: '100%',
+                        }}
+                    >
                         <Tooltip title="Edit">
-                            <IconButton size="small" component={Link} to={`/admin/product/${params.row._id}`} aria-label="Edit product">
+                            <IconButton
+                                size="small"
+                                component={Link}
+                                to={`/admin/product/${params.row._id}`}
+                                aria-label="Edit product"
+                            >
                                 <EditOutlinedIcon fontSize="small" />
                             </IconButton>
                         </Tooltip>
@@ -337,11 +428,20 @@ export default function ProductsList() {
                                 aria-label={hidden ? 'Show in shop' : 'Hide from shop'}
                                 onClick={() => handleToggleActive(params.row)}
                             >
-                                {hidden ? <VisibilityOutlinedIcon fontSize="small" /> : <VisibilityOffOutlinedIcon fontSize="small" />}
+                                {hidden ? (
+                                    <VisibilityOutlinedIcon fontSize="small" />
+                                ) : (
+                                    <VisibilityOffOutlinedIcon fontSize="small" />
+                                )}
                             </IconButton>
                         </Tooltip>
                         <Tooltip title="Delete">
-                            <IconButton size="small" color="error" aria-label="Delete product" onClick={() => handleDelete(params.row)}>
+                            <IconButton
+                                size="small"
+                                color="error"
+                                aria-label="Delete product"
+                                onClick={() => handleDelete(params.row)}
+                            >
                                 <DeleteOutlinedIcon fontSize="small" />
                             </IconButton>
                         </Tooltip>
@@ -356,7 +456,16 @@ export default function ProductsList() {
     return (
         <>
             {/* Title + main action */}
-            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 2, flexWrap: 'wrap', mb: 3 }}>
+            <Box
+                sx={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    gap: 2,
+                    flexWrap: 'wrap',
+                    mb: 3,
+                }}
+            >
                 <Box>
                     <Typography variant="h5" component="h1" sx={{ fontWeight: 700 }}>
                         Products
@@ -379,15 +488,44 @@ export default function ProductsList() {
 
             {/* KPI cards */}
             <Box className="dash-stats" sx={{ mb: 3 }}>
-                <StatCard label="Total products" value={counts.total} icon={<Inventory2OutlinedIcon />} loading={initialLoad} />
-                <StatCard label="Active in shop" value={counts.active} icon={<CheckCircleOutlinedIcon />} loading={initialLoad} />
-                <StatCard label="Hidden" value={counts.hidden} icon={<VisibilityOffOutlinedIcon />} loading={initialLoad} />
-                <StatCard label="Low / out of stock" value={counts.low} icon={<WarningAmberRoundedIcon />} loading={initialLoad} />
+                <StatCard
+                    label="Total products"
+                    value={counts.total}
+                    icon={<Inventory2OutlinedIcon />}
+                    loading={initialLoad}
+                />
+                <StatCard
+                    label="Active in shop"
+                    value={counts.active}
+                    icon={<CheckCircleOutlinedIcon />}
+                    loading={initialLoad}
+                />
+                <StatCard
+                    label="Hidden"
+                    value={counts.hidden}
+                    icon={<VisibilityOffOutlinedIcon />}
+                    loading={initialLoad}
+                />
+                <StatCard
+                    label="Low / out of stock"
+                    value={counts.low}
+                    icon={<WarningAmberRoundedIcon />}
+                    loading={initialLoad}
+                />
             </Box>
 
             {/* Filters + table */}
-            <Box sx={{ border: `1px solid ${BORDER}`, borderRadius: '16px', bgcolor: '#fff', overflow: 'hidden' }}>
-                <Box sx={{ p: 2, display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 1.5 }}>
+            <Box
+                sx={{
+                    border: `1px solid ${BORDER}`,
+                    borderRadius: '16px',
+                    bgcolor: '#fff',
+                    overflow: 'hidden',
+                }}
+            >
+                <Box
+                    sx={{ p: 2, display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 1.5 }}
+                >
                     <TextField
                         size="small"
                         placeholder="Search name, brand or category"
@@ -398,12 +536,20 @@ export default function ProductsList() {
                             input: {
                                 startAdornment: (
                                     <InputAdornment position="start">
-                                        <SearchRoundedIcon fontSize="small" sx={{ color: NEUTRAL }} />
+                                        <SearchRoundedIcon
+                                            fontSize="small"
+                                            sx={{ color: NEUTRAL }}
+                                        />
                                     </InputAdornment>
                                 ),
                                 endAdornment: keyword && (
                                     <InputAdornment position="end">
-                                        <IconButton size="small" aria-label="Clear search" onClick={() => setKeyword('')} edge="end">
+                                        <IconButton
+                                            size="small"
+                                            aria-label="Clear search"
+                                            onClick={() => setKeyword('')}
+                                            edge="end"
+                                        >
                                             <CloseRoundedIcon fontSize="small" />
                                         </IconButton>
                                     </InputAdornment>
@@ -431,19 +577,31 @@ export default function ProductsList() {
                             color="inherit"
                             startIcon={<TuneRoundedIcon />}
                             onClick={() => setMoreOpen((open) => !open)}
-                            sx={{ borderRadius: '12px', height: 40, color: moreOpen ? undefined : NEUTRAL, fontWeight: 500 }}
+                            sx={{
+                                borderRadius: '12px',
+                                height: 40,
+                                color: moreOpen ? undefined : NEUTRAL,
+                                fontWeight: 500,
+                            }}
                         >
                             Filters
                         </Button>
                     </Badge>
                     {filtering && (
-                        <Button color="inherit" onClick={clearFilters} sx={{ color: NEUTRAL, fontWeight: 500 }}>
+                        <Button
+                            color="inherit"
+                            onClick={clearFilters}
+                            sx={{ color: NEUTRAL, fontWeight: 500 }}
+                        >
                             Clear
                         </Button>
                     )}
                     <Box sx={{ flex: 1 }} />
                     <Typography variant="body2" color="text.secondary">
-                        {filtering ? `${filteredRows.length} of ${products.length}` : `${products.length}`} product
+                        {filtering
+                            ? `${filteredRows.length} of ${products.length}`
+                            : `${products.length}`}{' '}
+                        product
                         {products.length === 1 ? '' : 's'}
                     </Typography>
                 </Box>
@@ -456,22 +614,61 @@ export default function ProductsList() {
                             pb: 2,
                             display: 'grid',
                             gap: 1.5,
-                            gridTemplateColumns: { xs: 'repeat(2, 1fr)', md: 'repeat(3, 1fr)', lg: 'repeat(6, 1fr)' },
+                            gridTemplateColumns: {
+                                xs: 'repeat(2, 1fr)',
+                                md: 'repeat(3, 1fr)',
+                                lg: 'repeat(6, 1fr)',
+                            },
                         }}
                     >
-                        <TextField select label="Status" size="small" sx={fieldSx} value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}>
+                        <TextField
+                            select
+                            label="Status"
+                            size="small"
+                            sx={fieldSx}
+                            value={statusFilter}
+                            onChange={(e) => setStatusFilter(e.target.value)}
+                        >
                             <MenuItem value="All">All</MenuItem>
                             <MenuItem value="active">Active</MenuItem>
                             <MenuItem value="hidden">Hidden</MenuItem>
                         </TextField>
-                        <TextField select label="Stock" size="small" sx={fieldSx} value={stockFilter} onChange={(e) => setStockFilter(e.target.value)}>
+                        <TextField
+                            select
+                            label="Stock"
+                            size="small"
+                            sx={fieldSx}
+                            value={stockFilter}
+                            onChange={(e) => setStockFilter(e.target.value)}
+                        >
                             <MenuItem value="All">All</MenuItem>
                             <MenuItem value="low">Low ({LOW_STOCK} or fewer)</MenuItem>
                             <MenuItem value="out">Out of stock</MenuItem>
                         </TextField>
-                        <TextField label="Min price" type="number" size="small" sx={fieldSx} value={minPrice} onChange={(e) => setMinPrice(e.target.value)} />
-                        <TextField label="Max price" type="number" size="small" sx={fieldSx} value={maxPrice} onChange={(e) => setMaxPrice(e.target.value)} />
-                        <TextField select label="Rating" size="small" sx={fieldSx} value={ratingFilter} onChange={(e) => setRatingFilter(e.target.value)}>
+                        <TextField
+                            label="Min price"
+                            type="number"
+                            size="small"
+                            sx={fieldSx}
+                            value={minPrice}
+                            onChange={(e) => setMinPrice(e.target.value)}
+                        />
+                        <TextField
+                            label="Max price"
+                            type="number"
+                            size="small"
+                            sx={fieldSx}
+                            value={maxPrice}
+                            onChange={(e) => setMaxPrice(e.target.value)}
+                        />
+                        <TextField
+                            select
+                            label="Rating"
+                            size="small"
+                            sx={fieldSx}
+                            value={ratingFilter}
+                            onChange={(e) => setRatingFilter(e.target.value)}
+                        >
                             <MenuItem value="All">Any rating</MenuItem>
                             {[4, 3, 2, 1].map((stars) => (
                                 <MenuItem key={stars} value={String(stars)}>
@@ -479,7 +676,14 @@ export default function ProductsList() {
                                 </MenuItem>
                             ))}
                         </TextField>
-                        <TextField select label="Reviews" size="small" sx={fieldSx} value={reviewsFilter} onChange={(e) => setReviewsFilter(e.target.value)}>
+                        <TextField
+                            select
+                            label="Reviews"
+                            size="small"
+                            sx={fieldSx}
+                            value={reviewsFilter}
+                            onChange={(e) => setReviewsFilter(e.target.value)}
+                        >
                             <MenuItem value="All">Any number</MenuItem>
                             <MenuItem value="1">Has reviews</MenuItem>
                             <MenuItem value="5">5+ reviews</MenuItem>
@@ -533,7 +737,11 @@ export default function ProductsList() {
                     onRowSelectionModelChange={setSelectionModel}
                     pageSizeOptions={[5, 10, 25]}
                     initialState={{ pagination: { paginationModel: { pageSize: 10 } } }}
-                    slots={{ noRowsOverlay: () => <EmptyState filtering={filtering} onClear={clearFilters} /> }}
+                    slots={{
+                        noRowsOverlay: () => (
+                            <EmptyState filtering={filtering} onClear={clearFilters} />
+                        ),
+                    }}
                     sx={{
                         border: 0,
                         borderTop: `1px solid ${BORDER}`,
@@ -542,11 +750,21 @@ export default function ProductsList() {
                         '--DataGrid-t-header-background-base': '#fff',
                         '& .MuiDataGrid-columnHeader': { bgcolor: '#fff' },
                         '& .MuiDataGrid-columnHeaders': { borderBottom: `1px solid ${BORDER}` },
-                        '& .MuiDataGrid-columnHeaderTitle': { color: NEUTRAL, fontSize: '0.8rem', fontWeight: 500 },
+                        '& .MuiDataGrid-columnHeaderTitle': {
+                            color: NEUTRAL,
+                            fontSize: '0.8rem',
+                            fontWeight: 500,
+                        },
                         '& .MuiDataGrid-columnSeparator': { display: 'none' },
-                        '& .MuiDataGrid-cell': { display: 'flex', alignItems: 'center', borderColor: '#f0f1f4' },
-                        '& .MuiDataGrid-cell:focus, & .MuiDataGrid-cell:focus-within, & .MuiDataGrid-columnHeader:focus, & .MuiDataGrid-columnHeader:focus-within':
-                            { outline: 'none' },
+                        '& .MuiDataGrid-cell': {
+                            display: 'flex',
+                            alignItems: 'center',
+                            borderColor: '#f0f1f4',
+                        },
+                        ['& .MuiDataGrid-cell:focus, ' +
+                        '& .MuiDataGrid-cell:focus-within, ' +
+                        '& .MuiDataGrid-columnHeader:focus, ' +
+                        '& .MuiDataGrid-columnHeader:focus-within']: { outline: 'none' },
                         '& .MuiDataGrid-row:hover': { bgcolor: '#fafbfc' },
                         '& .MuiDataGrid-footerContainer': { borderColor: BORDER },
                     }}

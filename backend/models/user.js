@@ -1,3 +1,5 @@
+// Q4 · Clerk login — user schema (clerkId, name, email, role, isActive, avatar).
+// Written by syncUser in controllers/auth.js; role drives admin access across the app.
 const mongoose = require('mongoose');
 
 const userSchema = new mongoose.Schema(
@@ -29,11 +31,31 @@ const userSchema = new mongoose.Schema(
             default: '',
         },
         shippingAddress: {
-            address: { type: String, trim: true, maxLength: [200, 'Address is too long'], default: '' },
-            region: { type: String, trim: true, maxLength: [80, 'Region is too long'], default: '' },
+            address: {
+                type: String,
+                trim: true,
+                maxLength: [200, 'Address is too long'],
+                default: '',
+            },
+            region: {
+                type: String,
+                trim: true,
+                maxLength: [80, 'Region is too long'],
+                default: '',
+            },
             city: { type: String, trim: true, maxLength: [60, 'City is too long'], default: '' },
-            postalCode: { type: String, trim: true, maxLength: [10, 'Postal code is too long'], default: '' },
-            country: { type: String, trim: true, maxLength: [60, 'Country is too long'], default: '' },
+            postalCode: {
+                type: String,
+                trim: true,
+                maxLength: [10, 'Postal code is too long'],
+                default: '',
+            },
+            country: {
+                type: String,
+                trim: true,
+                maxLength: [60, 'Country is too long'],
+                default: '',
+            },
         },
         avatar: {
             public_id: { type: String, default: '' },
@@ -55,7 +77,7 @@ const userSchema = new mongoose.Schema(
             },
         ],
     },
-    { timestamps: true }
+    { timestamps: true },
 );
 
 module.exports = mongoose.model('User', userSchema);

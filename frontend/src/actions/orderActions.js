@@ -1,3 +1,5 @@
+// TTL · Transactions — order thunks.
+// createOrder/getMyOrders/getOrderDetails/getAdminOrders/updateOrder/downloadReceipt call the order API.
 import api from '../api';
 import { getErrorMessage } from '../Utils/helpers';
 import {
@@ -57,7 +59,10 @@ export const getAdminOrders = () => async (dispatch) => {
     try {
         dispatch({ type: ADMIN_ORDERS_REQUEST });
         const { data } = await api.get('/admin/orders');
-        dispatch({ type: ADMIN_ORDERS_SUCCESS, payload: { orders: data.orders, totalAmount: data.totalAmount } });
+        dispatch({
+            type: ADMIN_ORDERS_SUCCESS,
+            payload: { orders: data.orders, totalAmount: data.totalAmount },
+        });
     } catch (error) {
         dispatch({ type: ADMIN_ORDERS_FAIL, payload: getErrorMessage(error) });
     }
@@ -72,7 +77,6 @@ export const updateOrder = (id, status) => async (dispatch) => {
         dispatch({ type: UPDATE_ORDER_FAIL, payload: getErrorMessage(error) });
     }
 };
-
 
 // Downloads the order's PDF receipt. Returns an error message, or null when it worked.
 export const downloadReceipt = (id) => async () => {

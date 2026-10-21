@@ -1,3 +1,5 @@
+// U1-B · Validation — password-reset request.
+// Formik + Yup validated email form that starts the Clerk reset flow.
 import { useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
@@ -47,12 +49,15 @@ export default function ForgotPassword() {
                     <div className="form-stack">
                         <Typography>{message}</Typography>
                         <Typography variant="body2" color="text.secondary">
-                            Check your inbox and spam folder. The link opens a page where you can choose a new password.
+                            Check your inbox and spam folder. The link opens a page where you can
+                            choose a new password.
                         </Typography>
                         <Button variant="contained" component={Link} to="/login">
                             Back to login
                         </Button>
-                        <Button onClick={() => dispatch({ type: FORGOT_PASSWORD_RESET })}>Use a different email</Button>
+                        <Button onClick={() => dispatch({ type: FORGOT_PASSWORD_RESET })}>
+                            Use a different email
+                        </Button>
                     </div>
                 ) : (
                     <>

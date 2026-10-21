@@ -1,3 +1,5 @@
+// MP2 · Filters + Q3 · Infinite scroll — product listing + filter state.
+// Reads ?q/?category, holds price/rating/review filters and dispatches fetch/loadMore to /products.
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useLocation, useSearchParams } from 'react-router-dom';
@@ -66,9 +68,9 @@ export default function Catalog() {
 
     if (urlCategory && categorySource !== lastCategorySource) {
         setLastCategorySource(categorySource);
-        setFilters((prev) => (
-            prev.category === urlCategory ? prev : { ...prev, category: urlCategory }
-        ));
+        setFilters((prev) =>
+            prev.category === urlCategory ? prev : { ...prev, category: urlCategory },
+        );
     }
 
     const clearKeyword = () =>
@@ -78,7 +80,7 @@ export default function Catalog() {
                 next.delete('q');
                 return next;
             },
-            { replace: true }
+            { replace: true },
         );
 
     const [drawerOpen, setDrawerOpen] = useState(false);
@@ -106,7 +108,7 @@ export default function Catalog() {
             ([entry]) => {
                 if (entry.isIntersecting) dispatch(loadMoreProducts(filters));
             },
-            { rootMargin: '300px' }
+            { rootMargin: '300px' },
         );
         observer.observe(node);
         return () => observer.disconnect();
@@ -142,7 +144,8 @@ export default function Catalog() {
         if (filters.minReviews !== 'All')
             chips.push({
                 key: 'reviews',
-                label: filters.minReviews === '1' ? 'Has reviews' : `${filters.minReviews}+ reviews`,
+                label:
+                    filters.minReviews === '1' ? 'Has reviews' : `${filters.minReviews}+ reviews`,
                 reset: { minReviews: 'All' },
             });
         return chips;
@@ -229,7 +232,8 @@ export default function Catalog() {
                             bgcolor: 'var(--brand-dark)',
                             color: '#fff',
                         },
-                        '&:hover .hover-underline, & .MuiSelect-select[aria-expanded="true"] .hover-underline': {
+                        ['&:hover .hover-underline, ' +
+                        '& .MuiSelect-select[aria-expanded="true"] .hover-underline']: {
                             backgroundSize: '100% 1px',
                             backgroundPosition: '0 100%',
                         },
@@ -249,7 +253,8 @@ export default function Catalog() {
                                     bgcolor: 'transparent',
                                     color: 'var(--brand-dark)',
                                 },
-                                '&.Mui-selected, &.Mui-selected:hover, &.Mui-selected.Mui-focusVisible': {
+                                ['&.Mui-selected, &.Mui-selected:hover, ' +
+                                '&.Mui-selected.Mui-focusVisible']: {
                                     bgcolor: 'transparent',
                                     color: 'var(--brand-dark)',
                                 },
@@ -263,9 +268,15 @@ export default function Catalog() {
 
             {hasAnyFilter && (
                 <div className="catalog-chips">
-                    {filters.keyword && <Chip label={`“${filters.keyword}”`} onDelete={clearKeyword} />}
+                    {filters.keyword && (
+                        <Chip label={`“${filters.keyword}”`} onDelete={clearKeyword} />
+                    )}
                     {activeChips.map((chip) => (
-                        <Chip key={chip.key} label={chip.label} onDelete={() => removeChip(chip.reset)} />
+                        <Chip
+                            key={chip.key}
+                            label={chip.label}
+                            onDelete={() => removeChip(chip.reset)}
+                        />
                     ))}
                     <Button size="small" color="secondary" onClick={clearAll}>
                         Clear all
@@ -277,7 +288,9 @@ export default function Catalog() {
                 open={drawerOpen}
                 onClose={() => setDrawerOpen(false)}
                 applied={filters}
-                onApply={(next) => setFilters({ ...next, keyword: filters.keyword, sort: filters.sort })}
+                onApply={(next) =>
+                    setFilters({ ...next, keyword: filters.keyword, sort: filters.sort })
+                }
                 emptyFilters={emptyFilters}
                 maxPrice={maxPrice}
             />
@@ -285,7 +298,9 @@ export default function Catalog() {
             {error && (
                 <div className="catalog-message">
                     <Typography color="error">{error}</Typography>
-                    <Button onClick={() => dispatch(getProducts(filters, page + 1))}>Try again</Button>
+                    <Button onClick={() => dispatch(getProducts(filters, page + 1))}>
+                        Try again
+                    </Button>
                 </div>
             )}
 
@@ -294,7 +309,9 @@ export default function Catalog() {
                     <ProductCard key={product._id} product={product} />
                 ))}
                 {loading &&
-                    Array.from({ length: PAGE_SIZE }, (_, i) => <ProductCardSkeleton key={`skeleton-${i}`} />)}
+                    Array.from({ length: PAGE_SIZE }, (_, i) => (
+                        <ProductCardSkeleton key={`skeleton-${i}`} />
+                    ))}
             </div>
 
             {!loading && !error && page > 0 && products.length === 0 && (

@@ -1,3 +1,5 @@
+// Q4 · Clerk login + U1-B · Validation — sign-in form.
+// Formik + Yup validated; signs in via Clerk and offers the Google social button.
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useSignIn } from '@clerk/react';
 import { useFormik } from 'formik';

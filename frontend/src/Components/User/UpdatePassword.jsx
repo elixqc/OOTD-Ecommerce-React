@@ -1,3 +1,5 @@
+// Q4 · Clerk login + U1-B · Validation — change-password form.
+// Formik + Yup validated; updates the password through Clerk.
 import { Link, useNavigate } from 'react-router-dom';
 import { useUser, useReverification } from '@clerk/react';
 import { useFormik } from 'formik';
@@ -42,7 +44,8 @@ export default function UpdatePassword() {
                 if (err?.code === 'reverification_cancelled') return;
                 const e = err?.errors?.[0];
                 const msg = e?.longMessage || e?.message || 'Could not update password';
-                if (e?.meta?.paramName === 'current_password') setFieldError('currentPassword', msg);
+                if (e?.meta?.paramName === 'current_password')
+                    setFieldError('currentPassword', msg);
                 else if (e?.meta?.paramName === 'new_password') setFieldError('newPassword', msg);
                 else notifyError(msg);
             }
@@ -55,7 +58,13 @@ export default function UpdatePassword() {
     return (
         <form onSubmit={formik.handleSubmit} noValidate className="profile-page page-enter">
             <div className="edit-header">
-                <Button component={Link} to="/me" startIcon={<ArrowBackRoundedIcon />} className="edit-back-btn" disabled={formik.isSubmitting}>
+                <Button
+                    component={Link}
+                    to="/me"
+                    startIcon={<ArrowBackRoundedIcon />}
+                    className="edit-back-btn"
+                    disabled={formik.isSubmitting}
+                >
                     Back to profile
                 </Button>
                 <Typography variant="h5" component="h1" className="profile-name">
@@ -69,7 +78,8 @@ export default function UpdatePassword() {
                         Password
                     </Typography>
                     <Typography variant="body2" color="text.secondary">
-                        This account signs in with a social provider, so there's no password to change.
+                        This account signs in with a social provider, so there's no password to
+                        change.
                     </Typography>
                 </Card>
             ) : (
@@ -121,7 +131,12 @@ export default function UpdatePassword() {
                         <Button component={Link} to="/me" disabled={formik.isSubmitting}>
                             Cancel
                         </Button>
-                        <Button type="submit" variant="contained" disabled={busy} className="profile-edit-btn">
+                        <Button
+                            type="submit"
+                            variant="contained"
+                            disabled={busy}
+                            className="profile-edit-btn"
+                        >
                             {formik.isSubmitting ? 'Saving...' : 'Update password'}
                         </Button>
                     </div>

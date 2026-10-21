@@ -1,3 +1,5 @@
+// MP1 · Product CRUD + MP2 · Filters + Q3 · Infinite scroll — product state.
+// adminProducts/newProduct/product plus catalogReducer (page, hasMore) track list, filters and paging.
 import {
     ADMIN_PRODUCTS_REQUEST,
     ADMIN_PRODUCTS_SUCCESS,
@@ -100,7 +102,7 @@ export const productReducer = (state = {}, action) => {
 // Public catalog with infinite scroll: pages are appended to the list
 export const catalogReducer = (
     state = { products: [], loading: false, page: 0, hasMore: true, total: 0, error: null },
-    action
+    action,
 ) => {
     switch (action.type) {
         case PRODUCTS_REQUEST:

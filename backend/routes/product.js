@@ -1,3 +1,5 @@
+// MP1 · Product CRUD + MP2 · Filters + Q3 · Infinite scroll — product endpoints.
+// Public list/filter routes plus adminOnly create/update/delete/upload; mounted under /api/v1.
 const express = require('express');
 const router = express.Router();
 

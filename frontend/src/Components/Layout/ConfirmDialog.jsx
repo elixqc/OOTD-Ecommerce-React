@@ -1,3 +1,5 @@
+// MP1/MP3 · Shared confirm — reusable MUI confirmation dialog.
+// Used before destructive actions (delete product/review/order) to avoid accidental clicks.
 import Button from '@mui/material/Button';
 import Dialog from '@mui/material/Dialog';
 import DialogActions from '@mui/material/DialogActions';
@@ -23,7 +25,9 @@ function ConfirmDialog({ open, title, text, confirmText = 'Confirm', onConfirm, 
             maxWidth="xs"
             fullWidth
             slotProps={{
-                backdrop: { sx: { bgcolor: 'rgba(31, 31, 31, 0.45)', backdropFilter: 'blur(3px)' } },
+                backdrop: {
+                    sx: { bgcolor: 'rgba(31, 31, 31, 0.45)', backdropFilter: 'blur(3px)' },
+                },
                 paper: {
                     sx: {
                         borderRadius: '20px',
@@ -36,7 +40,13 @@ function ConfirmDialog({ open, title, text, confirmText = 'Confirm', onConfirm, 
         >
             <DialogTitle
                 id="confirm-dialog-title"
-                sx={{ display: 'flex', alignItems: 'center', gap: 1.5, fontWeight: 700, fontSize: '1.2rem' }}
+                sx={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 1.5,
+                    fontWeight: 700,
+                    fontSize: '1.2rem',
+                }}
             >
                 <Box
                     sx={{

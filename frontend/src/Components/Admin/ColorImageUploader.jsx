@@ -1,5 +1,15 @@
+// MP1 · Product CRUD — per-color photo uploader.
+// Multiple files per color, drag-to-reorder, first photo = cover; uploads via the admin image endpoint.
 import { useRef, useState } from 'react';
-import { Box, ButtonBase, Chip, CircularProgress, IconButton, Tooltip, Typography } from '@mui/material';
+import {
+    Box,
+    ButtonBase,
+    Chip,
+    CircularProgress,
+    IconButton,
+    Tooltip,
+    Typography,
+} from '@mui/material';
 import AddPhotoAlternateOutlinedIcon from '@mui/icons-material/AddPhotoAlternateOutlined';
 import DeleteOutlinedIcon from '@mui/icons-material/DeleteOutlined';
 import StarBorderRoundedIcon from '@mui/icons-material/StarBorderRounded';
@@ -17,11 +27,13 @@ const overlayButtonSx = {
 };
 
 // Photo tiles + a click / drag-and-drop area for ONE color.
-// The parent owns the images and does the uploading; this only shows them and reports what the admin did.
+// The parent owns the images and does the uploading; this only shows them and
+// reports what the admin did.
 export default function ColorImageUploader({ images, onFiles, onRemove, onMakeMain, onReorder }) {
     const input = useRef(null);
     const [dragging, setDragging] = useState(false);
-    const [draggedKey, setDraggedKey] = useState(null); // photo tile currently being dragged to reorder
+    // Photo tile currently being dragged to reorder
+    const [draggedKey, setDraggedKey] = useState(null);
     const full = images.length >= MAX_IMAGES_PER_COLOR;
 
     const pick = (event) => {
@@ -49,15 +61,22 @@ export default function ColorImageUploader({ images, onFiles, onRemove, onMakeMa
                             border: `1px solid ${BORDER}`,
                             borderRadius: '12px',
                             bgcolor: '#f3f3f3',
-                            
                         }}
-                        className={`photo-tile${draggedKey === img.key ? ' dragging' : ''}${img.uploading ? ' uploading' : ''}`}
+                        className={`photo-tile${
+                            draggedKey === img.key ? ' dragging' : ''
+                        }${img.uploading ? ' uploading' : ''}`}
                         draggable={!img.uploading}
                         onDragStart={(e) => {
                             setDraggedKey(img.key);
-                            e.dataTransfer.setData('text/plain', img.key); // Firefox needs this to start a drag
+                            // Firefox needs this to start a drag
+                            e.dataTransfer.setData('text/plain', img.key);
                         }}
-                        onDragEnter={() => draggedKey && draggedKey !== img.key && !img.uploading && onReorder(draggedKey, img.key)}
+                        onDragEnter={() =>
+                            draggedKey &&
+                            draggedKey !== img.key &&
+                            !img.uploading &&
+                            onReorder(draggedKey, img.key)
+                        }
                         onDragOver={(e) => draggedKey && e.preventDefault()}
                         onDrop={(e) => {
                             e.preventDefault();
@@ -70,11 +89,23 @@ export default function ColorImageUploader({ images, onFiles, onRemove, onMakeMa
                             src={img.url}
                             alt=""
                             draggable={false}
-                            sx={{ width: '100%', height: '100%', objectFit: 'cover', opacity: img.uploading ? 0.45 : 1 }}
+                            sx={{
+                                width: '100%',
+                                height: '100%',
+                                objectFit: 'cover',
+                                opacity: img.uploading ? 0.45 : 1,
+                            }}
                         />
 
                         {img.uploading ? (
-                            <Box sx={{ position: 'absolute', inset: 0, display: 'grid', placeItems: 'center' }}>
+                            <Box
+                                sx={{
+                                    position: 'absolute',
+                                    inset: 0,
+                                    display: 'grid',
+                                    placeItems: 'center',
+                                }}
+                            >
                                 <CircularProgress
                                     size={36}
                                     color="inherit"
@@ -145,7 +176,11 @@ export default function ColorImageUploader({ images, onFiles, onRemove, onMakeMa
                             bgcolor: dragging ? 'rgba(200, 85, 61, 0.06)' : 'transparent',
                             color: dragging ? 'secondary.main' : '#8a8f98',
                             transition: 'all 0.2s',
-                            '&:hover': { borderColor: 'secondary.main', color: 'secondary.main', bgcolor: 'rgba(200, 85, 61, 0.06)' },
+                            '&:hover': {
+                                borderColor: 'secondary.main',
+                                color: 'secondary.main',
+                                bgcolor: 'rgba(200, 85, 61, 0.06)',
+                            },
                         }}
                     >
                         <AddPhotoAlternateOutlinedIcon />
@@ -159,9 +194,17 @@ export default function ColorImageUploader({ images, onFiles, onRemove, onMakeMa
                 )}
             </Box>
 
-            <input ref={input} type="file" accept={ACCEPTED_IMAGE_TYPES.join(',')} multiple hidden onChange={pick} />
+            <input
+                ref={input}
+                type="file"
+                accept={ACCEPTED_IMAGE_TYPES.join(',')}
+                multiple
+                hidden
+                onChange={pick}
+            />
             <Typography variant="caption" color="text.secondary">
-                {images.length}/{MAX_IMAGES_PER_COLOR} photos · JPG, PNG or WebP · drag to reorder · the first photo is the main one
+                {images.length}/{MAX_IMAGES_PER_COLOR} photos · JPG, PNG or WebP · drag to reorder ·
+                the first photo is the main one
             </Typography>
         </Box>
     );

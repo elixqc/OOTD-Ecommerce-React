@@ -1,3 +1,5 @@
+// EXTRA · Wishlist — wishlist action type constants.
+// Consumed by reducers/wishlistReducers.js for the saved-products state.
 export const WISHLIST_REQUEST = 'WISHLIST_REQUEST';
 export const WISHLIST_SUCCESS = 'WISHLIST_SUCCESS';
 export const WISHLIST_FAIL = 'WISHLIST_FAIL';

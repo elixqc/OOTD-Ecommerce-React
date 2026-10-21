@@ -1,3 +1,5 @@
+// EXTRA · Support pages — contact, FAQ, shipping, return, terms and privacy content.
+// Rendered by the /support/* and /terms, /privacy routes; uses SupportLayout.
 import { useMemo, useState } from 'react';
 import { Link as RouterLink } from 'react-router-dom';
 import { Box, Button, Chip, InputAdornment, TextField, Typography } from '@mui/material';
@@ -55,7 +57,10 @@ export function ContactPage() {
         <SupportPage
             eyebrow="Support"
             title="Contact us"
-            intro={`Questions about an order, a size or a return? Send us a message and we'll get back to you ${STORE.replyTime}.`}
+            intro={
+                `Questions about an order, a size or a return? Send us a message and ` +
+                `we'll get back to you ${STORE.replyTime}.`
+            }
             showHelp={false}
         >
             <SupportSection title="Reach us">
@@ -63,7 +68,11 @@ export function ContactPage() {
                     <InfoCard icon={<MailOutlineIcon />} title="Email" href={mailto}>
                         {STORE.email}
                     </InfoCard>
-                    <InfoCard icon={<PhoneOutlinedIcon />} title="Phone" href={`tel:${STORE.phone.replace(/\s/g, '')}`}>
+                    <InfoCard
+                        icon={<PhoneOutlinedIcon />}
+                        title="Phone"
+                        href={`tel:${STORE.phone.replace(/\s/g, '')}`}
+                    >
                         {STORE.phone}
                     </InfoCard>
                     <InfoCard icon={<ScheduleIcon />} title="Hours">
@@ -86,10 +95,18 @@ export function ContactPage() {
 
             <SupportSection title="Quick answers">
                 <CardGrid>
-                    <InfoCard icon={<LocalShippingOutlinedIcon />} title="Shipping" to="/support/shipping">
+                    <InfoCard
+                        icon={<LocalShippingOutlinedIcon />}
+                        title="Shipping"
+                        to="/support/shipping"
+                    >
                         Delivery times, tracking and payment on delivery.
                     </InfoCard>
-                    <InfoCard icon={<AssignmentReturnOutlinedIcon />} title="Return" to="/support/return">
+                    <InfoCard
+                        icon={<AssignmentReturnOutlinedIcon />}
+                        title="Return"
+                        to="/support/return"
+                    >
                         How to return or exchange an item.
                     </InfoCard>
                     <InfoCard icon={<HelpOutlineIcon />} title="FAQ" to="/support/faq">
@@ -108,7 +125,10 @@ export function ShippingPage() {
         <SupportPage
             eyebrow="Support"
             title="Shipping & delivery"
-            intro="Free shipping on every order. Pay the courier when it arrives, or pay by card at checkout."
+            intro={
+                'Free shipping on every order. Pay the courier when it arrives, ' +
+                'or pay by card at checkout.'
+            }
         >
             <SupportSection>
                 <CardGrid>
@@ -129,20 +149,27 @@ export function ShippingPage() {
                     steps={[
                         {
                             title: 'Processing',
-                            body: "We've received your order. You'll get a confirmation email with your PDF receipt while we pack it.",
+                            body:
+                                "We've received your order. You'll get a confirmation email " +
+                                'with your PDF receipt while we pack it.',
                         },
                         {
                             title: 'Shipped',
-                            body: "Your order is with the courier and on its way. We email you as soon as it ships.",
+                            body:
+                                'Your order is with the courier and on its way. ' +
+                                'We email you as soon as it ships.',
                         },
                         {
                             title: 'Delivered',
-                            body: 'Your order has arrived. You can now review your items under My orders.',
+                            body:
+                                'Your order has arrived. You can now review your items under My ' +
+                                'orders.',
                         },
                     ]}
                 />
                 <Paragraph sx={{ mt: 3 }}>
-                    You can check the current status of any order under <InlineLink to="/orders/me">My orders</InlineLink>.
+                    You can check the current status of any order under{' '}
+                    <InlineLink to="/orders/me">My orders</InlineLink>.
                 </Paragraph>
             </SupportSection>
 
@@ -181,32 +208,36 @@ export function ShippingPage() {
                 <AccordionList>
                     <SupportAccordion title="How do I track my order?">
                         <Paragraph>
-                            Open <InlineLink to="/orders/me">My orders</InlineLink> to see the status of every order. We also
-                            send you an email each time the status changes.
+                            Open <InlineLink to="/orders/me">My orders</InlineLink> to see the
+                            status of every order. We also send you an email each time the status
+                            changes.
                         </Paragraph>
                     </SupportAccordion>
                     <SupportAccordion title="How does cash on delivery work?">
                         <Paragraph>
-                            Pay the courier in cash when your order arrives. Please have the exact amount ready, since couriers
-                            don't always carry change.
+                            Pay the courier in cash when your order arrives. Please have the exact
+                            amount ready, since couriers don't always carry change.
                         </Paragraph>
                     </SupportAccordion>
                     <SupportAccordion title="I entered the wrong address">
                         <Paragraph>
-                            Contact us right away. If your order hasn't shipped yet, we can update the address. Once it has
-                            shipped, the address can't be changed.
+                            Contact us right away. If your order hasn't shipped yet, we can update
+                            the address. Once it has shipped, the address can't be changed.
                         </Paragraph>
                     </SupportAccordion>
                     <SupportAccordion title="What if I'm not home when the courier arrives?">
                         <Paragraph>
-                            The courier will usually try again. If delivery keeps failing, the order may be sent back to us and
-                            cancelled. Reach out to us and we'll help arrange another delivery.
+                            The courier will usually try again. If delivery keeps failing, the order
+                            may be sent back to us and cancelled. Reach out to us and we'll help
+                            arrange another delivery.
                         </Paragraph>
                     </SupportAccordion>
                     <SupportAccordion title="My order arrived damaged">
                         <Paragraph>
-                            We're sorry about that. Send us a photo and your order number within {DAYS} days of delivery and we'll
-                            make it right. See <InlineLink to="/support/return">Return</InlineLink> for details.
+                            {"We're sorry about that. Send us a photo and your order number "}
+                            {'within '}
+                            {DAYS} days of delivery and we'll make it right. See{' '}
+                            <InlineLink to="/support/return">Return</InlineLink> for details.
                         </Paragraph>
                     </SupportAccordion>
                 </AccordionList>
@@ -236,7 +267,10 @@ export function ReturnPage() {
         <SupportPage
             eyebrow="Support"
             title="Returns & refunds"
-            intro={`Not the right fit? You have ${DAYS} days after delivery to ask for a return or an exchange.`}
+            intro={
+                `Not the right fit? You have ${DAYS} days after delivery to ask for a ` +
+                'return or an exchange.'
+            }
         >
             <SupportSection>
                 <CardGrid>
@@ -257,19 +291,28 @@ export function ReturnPage() {
                     steps={[
                         {
                             title: 'Contact us',
-                            body: `Within ${DAYS} days of delivery, email us your order number, the item you want to return and the reason. Add photos if it's damaged or wrong.`,
+                            body:
+                                `Within ${DAYS} days of delivery, email us your order number, ` +
+                                "the item you want to return and the reason. Add photos if it's " +
+                                'damaged or wrong.',
                         },
                         {
                             title: 'We confirm',
-                            body: "We'll review your request and send you return instructions, usually within 1 to 2 business days.",
+                            body:
+                                "We'll review your request and send you return instructions, " +
+                                'usually within 1 to 2 business days.',
                         },
                         {
                             title: 'Send it back',
-                            body: 'Pack the item with its tags and original packaging, and send it back the way we tell you.',
+                            body:
+                                'Pack the item with its tags and original packaging, and send ' +
+                                'it back the way we tell you.',
                         },
                         {
                             title: 'Refund or exchange',
-                            body: "Once we've received and checked the item, we process your refund or send your exchange.",
+                            body:
+                                "Once we've received and checked the item, we process your " +
+                                'refund or send your exchange.',
                         },
                     ]}
                 />
@@ -281,18 +324,56 @@ export function ReturnPage() {
             </SupportSection>
 
             <SupportSection title="What can be returned">
-                <Box sx={{ display: 'grid', gap: 2, gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' } }}>
+                <Box
+                    sx={{
+                        display: 'grid',
+                        gap: 2,
+                        gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' },
+                    }}
+                >
                     {[
-                        { title: 'Eligible', items: ELIGIBLE, icon: <CheckIcon sx={{ fontSize: 18, color: '#2e7d32' }} /> },
-                        { title: 'Not eligible', items: NOT_ELIGIBLE, icon: <CloseIcon sx={{ fontSize: 18, color: '#c62828' }} /> },
+                        {
+                            title: 'Eligible',
+                            items: ELIGIBLE,
+                            icon: <CheckIcon sx={{ fontSize: 18, color: '#2e7d32' }} />,
+                        },
+                        {
+                            title: 'Not eligible',
+                            items: NOT_ELIGIBLE,
+                            icon: <CloseIcon sx={{ fontSize: 18, color: '#c62828' }} />,
+                        },
                     ].map((group) => (
-                        <Box key={group.title} sx={{ p: 3, border: '1px solid #ece9e4', borderRadius: '8px' }}>
+                        <Box
+                            key={group.title}
+                            sx={{ p: 3, border: '1px solid #ece9e4', borderRadius: '8px' }}
+                        >
                             <Typography component="h3" sx={{ fontSize: 16, fontWeight: 700 }}>
                                 {group.title}
                             </Typography>
-                            <Box component="ul" sx={{ listStyle: 'none', m: 0, mt: 2, p: 0, display: 'flex', flexDirection: 'column', gap: 1.5 }}>
+                            <Box
+                                component="ul"
+                                sx={{
+                                    listStyle: 'none',
+                                    m: 0,
+                                    mt: 2,
+                                    p: 0,
+                                    display: 'flex',
+                                    flexDirection: 'column',
+                                    gap: 1.5,
+                                }}
+                            >
                                 {group.items.map((item) => (
-                                    <Box component="li" key={item} sx={{ display: 'flex', gap: 1.25, fontSize: 14, lineHeight: 1.6, color: '#444' }}>
+                                    <Box
+                                        component="li"
+                                        key={item}
+                                        sx={{
+                                            display: 'flex',
+                                            gap: 1.25,
+                                            fontSize: 14,
+                                            lineHeight: 1.6,
+                                            color: '#444',
+                                        }}
+                                    >
                                         <Box sx={{ pt: '2px', display: 'flex' }}>{group.icon}</Box>
                                         {item}
                                     </Box>
@@ -307,33 +388,37 @@ export function ReturnPage() {
                 <AccordionList>
                     <SupportAccordion title="How will I get my refund?">
                         <Paragraph>
-                            Card payments are refunded to the card you paid with, usually within 5 to 10 business days after we
-                            receive your return. For cash on delivery orders, we'll refund you by bank transfer or e-wallet. We'll
-                            ask for your details when we confirm your return.
+                            Card payments are refunded to the card you paid with, usually within 5
+                            to 10 business days after we receive your return. For cash on delivery
+                            orders, we'll refund you by bank transfer or e-wallet. We'll ask for
+                            your details when we confirm your return.
                         </Paragraph>
                     </SupportAccordion>
                     <SupportAccordion title="Can I exchange for a different size or color?">
                         <Paragraph>
-                            Yes, as long as the size or color you want is in stock. If it isn't, we'll refund you instead.
+                            Yes, as long as the size or color you want is in stock. If it isn't,
+                            we'll refund you instead.
                         </Paragraph>
                     </SupportAccordion>
                     <SupportAccordion title="My item is damaged, defective or the wrong one">
                         <Paragraph>
-                            Tell us within {DAYS} days of delivery with a photo and your order number. We cover the return
-                            shipping and send a replacement or refund you in full.
+                            Tell us within {DAYS} days of delivery with a photo and your order
+                            number. We cover the return shipping and send a replacement or refund
+                            you in full.
                         </Paragraph>
                     </SupportAccordion>
                     <SupportAccordion title="Who pays for return shipping?">
                         <Paragraph>
-                            We do when the item is damaged, defective or wrong. If you're returning an item because of fit or a
-                            change of mind, return shipping is on you.
+                            We do when the item is damaged, defective or wrong. If you're returning
+                            an item because of fit or a change of mind, return shipping is on you.
                         </Paragraph>
                     </SupportAccordion>
                     <SupportAccordion title="Can I cancel an order?">
                         <Paragraph>
-                            You can cancel while your order is still Processing. Contact us as soon as you can and we'll cancel
-                            it and put the items back in stock. Once an order has shipped, it can't be cancelled, but you can
-                            return it after delivery.
+                            You can cancel while your order is still Processing. Contact us as soon
+                            as you can and we'll cancel it and put the items back in stock. Once an
+                            order has shipped, it can't be cancelled, but you can return it after
+                            delivery.
                         </Paragraph>
                     </SupportAccordion>
                 </AccordionList>
@@ -348,7 +433,10 @@ const FAQS = [
     {
         group: 'Orders & payment',
         q: 'Do I need an account to order?',
-        a: "You can browse and add items to your cart without one, but you'll need to sign in or create an account to check out. An account also lets you track orders and leave reviews.",
+        a:
+            "You can browse and add items to your cart without one, but you'll need to " +
+            'sign in or create an account to check out. An account also lets you track ' +
+            'orders and leave reviews.',
     },
     {
         group: 'Orders & payment',
@@ -358,13 +446,17 @@ const FAQS = [
     {
         group: 'Orders & payment',
         q: 'Where can I find my receipt?',
-        a: 'We email you a confirmation with your PDF receipt when you place an order. Your orders are also listed under My orders.',
+        a:
+            'We email you a confirmation with your PDF receipt when you place an order. ' +
+            'Your orders are also listed under My orders.',
         more: { to: '/orders/me', label: 'My orders' },
     },
     {
         group: 'Orders & payment',
         q: 'Can I change or cancel my order?',
-        a: "Yes, while it's still Processing. Contact us as soon as possible. Once an order has shipped it can't be changed or cancelled.",
+        a:
+            "Yes, while it's still Processing. Contact us as soon as possible. Once an " +
+            "order has shipped it can't be changed or cancelled.",
         more: { to: '/support/contact', label: 'Contact us' },
     },
     {
@@ -375,41 +467,56 @@ const FAQS = [
     {
         group: 'Shipping & delivery',
         q: 'How long will my order take?',
-        a: 'Orders are processed in 1 to 2 business days. After that, delivery takes about 2 to 4 business days in Metro Manila and longer for other regions.',
+        a:
+            'Orders are processed in 1 to 2 business days. After that, delivery takes ' +
+            'about 2 to 4 business days in Metro Manila and longer for other regions.',
         more: { to: '/support/shipping', label: 'Shipping & delivery' },
     },
     {
         group: 'Shipping & delivery',
         q: 'How do I track my order?',
-        a: 'Open My orders to see the current status. We also email you when your order ships and when it is delivered.',
+        a:
+            'Open My orders to see the current status. We also email you when your ' +
+            'order ships and when it is delivered.',
         more: { to: '/orders/me', label: 'My orders' },
     },
     {
         group: 'Returns',
         q: "What's your return policy?",
-        a: `You can return unworn, unwashed items with tags within ${DAYS} days of delivery for a refund or an exchange.`,
+        a:
+            `You can return unworn, unwashed items with tags within ${DAYS} days of ` +
+            'delivery for a refund or an exchange.',
         more: { to: '/support/return', label: 'Returns & refunds' },
     },
     {
         group: 'Returns',
         q: 'My item arrived damaged or is the wrong one. What now?',
-        a: `Contact us within ${DAYS} days of delivery with your order number and a photo. We'll send a replacement or refund you in full.`,
+        a:
+            `Contact us within ${DAYS} days of delivery with your order number and a ` +
+            "photo. We'll send a replacement or refund you in full.",
         more: { to: '/support/contact', label: 'Contact us' },
     },
     {
         group: 'Returns',
         q: 'How do refunds work?',
-        a: 'Card payments go back to your card in about 5 to 10 business days after we receive the return. Cash on delivery orders are refunded by bank transfer or e-wallet.',
+        a:
+            'Card payments go back to your card in about 5 to 10 business days after ' +
+            'we receive the return. Cash on delivery orders are refunded by bank ' +
+            'transfer or e-wallet.',
     },
     {
         group: 'Products & account',
         q: "Why can't I pick a certain size or color?",
-        a: 'That combination is out of stock right now. Try another size or color, or check back later.',
+        a:
+            'That combination is out of stock right now. Try another size or color, ' +
+            'or check back later.',
     },
     {
         group: 'Products & account',
         q: 'How do I leave a review?',
-        a: "Once your order is delivered, go to My orders and review each item you received. You can edit or delete your review later from the product page.",
+        a:
+            'Once your order is delivered, go to My orders and review each item you ' +
+            'received. You can edit or delete your review later from the product page.',
         more: { to: '/orders/me', label: 'My orders' },
     },
     {
@@ -431,7 +538,9 @@ export function FaqPage() {
         return FAQS.filter(
             (item) =>
                 (group === 'All' || item.group === group) &&
-                (!text || item.q.toLowerCase().includes(text) || item.a.toLowerCase().includes(text))
+                (!text ||
+                    item.q.toLowerCase().includes(text) ||
+                    item.a.toLowerCase().includes(text)),
         );
     }, [group, query]);
 
@@ -489,7 +598,9 @@ export function FaqPage() {
                     </AccordionList>
                 ) : (
                     <Box sx={{ py: 4, textAlign: 'center' }}>
-                        <Typography sx={{ color: '#666' }}>No questions match your search.</Typography>
+                        <Typography sx={{ color: '#666' }}>
+                            No questions match your search.
+                        </Typography>
                         <Button
                             color="secondary"
                             sx={{ mt: 1 }}
@@ -512,14 +623,19 @@ export function FaqPage() {
 function LegalPage({ title, intro, sections }) {
     return (
         <SupportPage group="legal" eyebrow="Legal" title={title} intro={intro} showHelp={false}>
-            <Typography sx={{ fontSize: 13, color: '#777', mt: -3 }}>Last updated {POLICY_UPDATED}</Typography>
+            <Typography sx={{ fontSize: 13, color: '#777', mt: -3 }}>
+                Last updated {POLICY_UPDATED}
+            </Typography>
             {sections.map((section, index) => (
                 <SupportSection key={section.title} title={`${index + 1}. ${section.title}`}>
                     {section.paragraphs?.map((text) => (
                         <Paragraph key={text}>{text}</Paragraph>
                     ))}
                     {section.bullets && (
-                        <Box component="ul" sx={{ ...bodyText, mt: section.paragraphs ? 1.5 : 0, mb: 0, pl: 3 }}>
+                        <Box
+                            component="ul"
+                            sx={{ ...bodyText, mt: section.paragraphs ? 1.5 : 0, mb: 0, pl: 3 }}
+                        >
                             {section.bullets.map((text) => (
                                 <li key={text}>{text}</li>
                             ))}
@@ -545,37 +661,53 @@ export function TermsPage() {
     return (
         <LegalPage
             title="Terms of Service"
-            intro="The ground rules for using OOTD and buying from us. Please read them before you place an order."
+            intro={
+                'The ground rules for using OOTD and buying from us. Please read ' +
+                'them before you place an order.'
+            }
             sections={[
                 {
                     title: 'Using OOTD',
                     paragraphs: [
-                        "By browsing our site or placing an order, you agree to these terms. If you don't agree, please don't use the site.",
+                        'By browsing our site or placing an order, you agree to these terms. ' +
+                            "If you don't agree, please don't use the site.",
                     ],
                 },
                 {
                     title: 'Your account',
                     paragraphs: [
-                        "You need an account to check out. Keep your details accurate and your login private. You're responsible for everything that happens under your account. We may suspend accounts that are used to abuse the store.",
+                        'You need an account to check out. Keep your details accurate ' +
+                            "and your login private. You're responsible for everything that " +
+                            'happens under your account. We may suspend accounts that are ' +
+                            'used to abuse the store.',
                     ],
                 },
                 {
                     title: 'Products and prices',
                     paragraphs: [
-                        'We do our best to show colors, sizes and details accurately, but screens differ, so colors may look slightly different in person.',
-                        'All prices are in Philippine pesos (₱). If we spot a pricing or stock error, we may cancel the affected order and refund you in full.',
+                        'We do our best to show colors, sizes and details accurately, ' +
+                            'but screens differ, so colors may look slightly different in person.',
+                        'All prices are in Philippine pesos (₱). If we spot a pricing ' +
+                            'or stock error, we may cancel the affected order and refund ' +
+                            'you in full.',
                     ],
                 },
                 {
                     title: 'Orders and payment',
                     paragraphs: [
-                        "Your order is confirmed when we send you a confirmation email. You can pay by cash on delivery or by credit / debit card.",
-                        "For cash on delivery, please pay the courier the full amount when your order arrives. We may limit cash on delivery for accounts with repeated refused deliveries.",
+                        'Your order is confirmed when we send you a confirmation email. ' +
+                            'You can pay by cash on delivery or by credit / debit card.',
+                        'For cash on delivery, please pay the courier the full amount ' +
+                            'when your order arrives. We may limit cash on delivery for ' +
+                            'accounts with repeated refused deliveries.',
                     ],
                 },
                 {
                     title: 'Shipping, returns and refunds',
-                    paragraphs: ['How we deliver, and how returns and refunds work, is explained on these pages and forms part of these terms.'],
+                    paragraphs: [
+                        'How we deliver, and how returns and refunds work, is explained ' +
+                            'on these pages and forms part of these terms.',
+                    ],
                     links: [
                         { to: '/support/shipping', label: 'Shipping' },
                         { to: '/support/return', label: 'Return' },
@@ -584,7 +716,10 @@ export function TermsPage() {
                 {
                     title: 'Reviews',
                     paragraphs: [
-                        'Reviews should be honest and respectful. We may remove reviews that contain abusive language, spam or personal information. You keep ownership of what you write, and you let us display it on the store.',
+                        'Reviews should be honest and respectful. We may remove reviews ' +
+                            'that contain abusive language, spam or personal information. ' +
+                            'You keep ownership of what you write, and you let us display ' +
+                            'it on the store.',
                     ],
                 },
                 {
@@ -599,24 +734,32 @@ export function TermsPage() {
                 {
                     title: 'Our content',
                     paragraphs: [
-                        'The OOTD name, logo, photos, text and designs belong to us or our licensors. You may not use them without our written permission.',
+                        'The OOTD name, logo, photos, text and designs belong to us or ' +
+                            'our licensors. You may not use them without our written permission.',
                     ],
                 },
                 {
                     title: 'Limits of liability',
                     paragraphs: [
-                        'We provide the site as it is. To the extent the law allows, we are not liable for indirect or consequential losses. Nothing in these terms limits any rights you have under Philippine consumer laws.',
+                        'We provide the site as it is. To the extent the law allows, we ' +
+                            'are not liable for indirect or consequential losses. Nothing in ' +
+                            'these terms limits any rights you have under Philippine consumer ' +
+                            'laws.',
                     ],
                 },
                 {
                     title: 'Changes to these terms',
                     paragraphs: [
-                        "We may update these terms from time to time. The date at the top shows when they last changed. If you keep using the site after an update, you accept the new terms.",
+                        'We may update these terms from time to time. The date at the top ' +
+                            'shows when they last changed. If you keep using the site after an ' +
+                            'update, you accept the new terms.',
                     ],
                 },
                 {
                     title: 'Governing law',
-                    paragraphs: ['These terms are governed by the laws of the Republic of the Philippines.'],
+                    paragraphs: [
+                        'These terms are governed by the laws of the Republic of the Philippines.',
+                    ],
                 },
                 {
                     title: 'Contact',
@@ -632,16 +775,23 @@ export function PrivacyPage() {
     return (
         <LegalPage
             title="Privacy Policy"
-            intro="What we collect, why we collect it and the choices you have. We handle your personal data in line with the Philippines' Data Privacy Act of 2012."
+            intro={
+                'What we collect, why we collect it and the choices you have. We ' +
+                "handle your personal data in line with the Philippines' Data Privacy " +
+                'Act of 2012.'
+            }
             sections={[
                 {
                     title: 'What we collect',
                     bullets: [
-                        'Account details: your name, email address and profile photo if you add one',
-                        'Delivery details: the name, address and phone number you enter at checkout',
+                        'Account details: your name, email address and profile photo if ' +
+                            'you add one',
+                        'Delivery details: the name, address and phone number you enter ' +
+                            'at checkout',
                         'Order details: the items you buy, totals, payment method and order status',
                         'Reviews you write',
-                        'Basic technical data, such as your browser and device, and what you do on the site',
+                        'Basic technical data, such as your browser and device, and what ' +
+                            'you do on the site',
                     ],
                 },
                 {
@@ -661,20 +811,27 @@ export function PrivacyPage() {
                 {
                     title: 'Who we share it with',
                     paragraphs: [
-                        'We do not sell your personal data. We share only what is needed with the services that help us run the store, such as sign-in, image hosting, email delivery and couriers, and only so they can do their job.',
+                        'We do not sell your personal data. We share only what is needed ' +
+                            'with the services that help us run the store, such as sign-in, ' +
+                            'image hosting, email delivery and couriers, and only so they can ' +
+                            'do their job.',
                         'We may also share data when the law requires it.',
                     ],
                 },
                 {
                     title: 'Cookies and storage',
                     paragraphs: [
-                        'We use cookies and local storage on your device to keep you signed in and to remember your cart. The site needs these to work properly.',
+                        'We use cookies and local storage on your device to keep you ' +
+                            'signed in and to remember your cart. The site needs these to ' +
+                            'work properly.',
                     ],
                 },
                 {
                     title: 'How long we keep it',
                     paragraphs: [
-                        "We keep your data for as long as your account is open and as long as we need it for orders, returns and legal or accounting purposes.",
+                        'We keep your data for as long as your account is open and as ' +
+                            'long as we need it for orders, returns and legal or accounting ' +
+                            'purposes.',
                     ],
                 },
                 {
@@ -688,11 +845,17 @@ export function PrivacyPage() {
                 },
                 {
                     title: 'Changes to this policy',
-                    paragraphs: ['If we change this policy, we will update the date at the top of this page.'],
+                    paragraphs: [
+                        'If we change this policy, we will update the date at the top of ' +
+                            'this page.',
+                    ],
                 },
                 {
                     title: 'Contact',
-                    paragraphs: [`To use any of these rights or to ask a question, email us at ${STORE.email}.`],
+                    paragraphs: [
+                        `To use any of these rights or to ask a question, email us at ` +
+                            `${STORE.email}.`,
+                    ],
                     links: [{ to: '/support/contact', label: 'Contact us' }],
                 },
             ]}

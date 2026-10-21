@@ -1,3 +1,5 @@
+// MP1 · Product CRUD — create-product page.
+// Thin shell that renders ProductForm and dispatches newProduct on submit.
 import { useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';

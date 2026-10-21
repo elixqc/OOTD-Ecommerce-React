@@ -1,3 +1,5 @@
+// CORE + Q4 · Clerk + U2 · MUI — app bootstrap and providers.
+// Wraps <App/> in the Redux Provider, BrowserRouter, ClerkProvider and MUI theme; mounts to #root.
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import { BrowserRouter } from 'react-router-dom';
@@ -41,5 +43,5 @@ createRoot(document.getElementById('root')).render(
                 </ClerkProvider>
             </BrowserRouter>
         </Provider>
-    </StrictMode>
+    </StrictMode>,
 );

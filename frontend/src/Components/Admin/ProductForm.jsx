@@ -1,3 +1,5 @@
+// MP1 · Product CRUD + U1-B · Validation — shared create/edit product form.
+// Formik + Yup validated; collects basics, variants and photos, then posts/puts to the admin product API.
 import { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useFormik } from 'formik';
@@ -39,7 +41,10 @@ const fieldSx = { '& .MuiOutlinedInput-root': { borderRadius: '12px' } };
 // A white rounded panel with a title, the same look as the dashboard and products page
 function Section({ title, subtitle, children, sx }) {
     return (
-        <Paper elevation={0} sx={{ p: { xs: 2, md: 3 }, border: `1px solid ${BORDER}`, borderRadius: '16px', ...sx }}>
+        <Paper
+            elevation={0}
+            sx={{ p: { xs: 2, md: 3 }, border: `1px solid ${BORDER}`, borderRadius: '16px', ...sx }}
+        >
             <Typography variant="h6" component="h2" sx={{ fontWeight: 700, fontSize: 17 }}>
                 {title}
             </Typography>
@@ -81,9 +86,13 @@ const validationSchema = Yup.object({
         .min(0, 'Price cannot be negative')
         .max(1000000, 'Price is too high')
         .required('Price is required'),
-    category: Yup.string().oneOf(CATEGORIES, 'Please select a category').required('Please select a category'),
+    category: Yup.string()
+        .oneOf(CATEGORIES, 'Please select a category')
+        .required('Please select a category'),
     brand: Yup.string().trim().max(50, 'Brand is too long'),
-    gender: Yup.string().oneOf(GENDERS, 'Please select a gender').required('Please select a gender'),
+    gender: Yup.string()
+        .oneOf(GENDERS, 'Please select a gender')
+        .required('Please select a gender'),
     material: Yup.string().trim().max(100, 'Material is too long'),
     variants: Yup.array()
         .of(
@@ -95,13 +104,19 @@ const validationSchema = Yup.object({
                     .integer('Whole numbers only')
                     .min(0, 'Cannot be negative')
                     .required('Stock is required'),
-            })
+            }),
         )
         .min(1, 'Add at least one size/color variant')
-        .test('unique-variants', 'Each size and color combination can only appear once', (variants = []) => {
-            const keys = variants.map((v) => `${(v.size || '').trim().toLowerCase()}|${v.colorId}`);
-            return new Set(keys).size === keys.length;
-        }),
+        .test(
+            'unique-variants',
+            'Each size and color combination can only appear once',
+            (variants = []) => {
+                const keys = variants.map(
+                    (v) => `${(v.size || '').trim().toLowerCase()}|${v.colorId}`,
+                );
+                return new Set(keys).size === keys.length;
+            },
+        ),
 });
 
 let idCounter = 0;
@@ -118,7 +133,11 @@ const getInitialColors = (product) => {
             colors.push({
                 id: newId(),
                 name: name.trim(),
-                images: images.map((img) => ({ key: img.public_id, public_id: img.public_id, url: img.url })),
+                images: images.map((img) => ({
+                    key: img.public_id,
+                    public_id: img.public_id,
+                    url: img.url,
+                })),
             });
         }
     };
@@ -147,7 +166,8 @@ const getInitialValues = (product, colors) => ({
 // Used by both NewProduct and UpdateProduct.
 // Pass `product` to edit; omit it to create.
 export default function ProductForm({ product, onSubmit, submitLabel, loading }) {
-    // Photos live outside Formik because they upload in the background and update at different times
+    // Photos live outside Formik because they upload in the background and
+    // update at different times
     const [colors, setColors] = useState(() => getInitialColors(product));
     const [initialValues] = useState(() => getInitialValues(product, colors));
     const [colorErrors, setColorErrors] = useState({});
@@ -157,8 +177,9 @@ export default function ProductForm({ product, onSubmit, submitLabel, loading })
         colorsRef.current = colors;
     }, [colors]);
 
-    // Uploaded but not saved yet. If the admin leaves without saving, these are deleted from Cloudinary.
-    // (The server refuses to delete a photo that belongs to a product, so this is safe after saving.)
+    // Uploaded but not saved yet. If the admin leaves without saving, these are
+    // deleted from Cloudinary. (The server refuses to delete a photo that belongs
+    // to a product, so this is safe after saving.)
     const pending = useRef(new Set());
     const mounted = useRef(true);
     useEffect(() => {
@@ -212,18 +233,24 @@ export default function ProductForm({ product, onSubmit, submitLabel, loading })
         Array.isArray(errors.variants) ? errors.variants[index]?.[field] : undefined;
 
     // ---- colors ----
-    const updateColor = (id, change) => setColors((prev) => prev.map((c) => (c.id === id ? { ...c, ...change(c) } : c)));
+    const updateColor = (id, change) =>
+        setColors((prev) => prev.map((c) => (c.id === id ? { ...c, ...change(c) } : c)));
 
     const addColor = () => setColors((prev) => [...prev, { id: newId(), name: '', images: [] }]);
 
     const removeColor = (color) => {
-        color.images.forEach((img) => img.public_id && pending.current.has(img.public_id) && discardUploadedImage(img.public_id));
+        color.images.forEach(
+            (img) =>
+                img.public_id &&
+                pending.current.has(img.public_id) &&
+                discardUploadedImage(img.public_id),
+        );
         color.images.forEach((img) => pending.current.delete(img.public_id));
         setColors((prev) => prev.filter((c) => c.id !== color.id));
         // Sizes that used this color must pick another one
         formik.setFieldValue(
             'variants',
-            values.variants.map((v) => (v.colorId === color.id ? { ...v, colorId: '' } : v))
+            values.variants.map((v) => (v.colorId === color.id ? { ...v, colorId: '' } : v)),
         );
     };
 
@@ -243,7 +270,9 @@ export default function ProductForm({ product, onSubmit, submitLabel, loading })
             }
         }
         if (valid.length > room) {
-            notifyError(`Only ${MAX_IMAGES_PER_COLOR} photos per color. Extra photos were skipped.`);
+            notifyError(
+                `Only ${MAX_IMAGES_PER_COLOR} photos per color. Extra photos were skipped.`,
+            );
         }
 
         // Show every photo right away with a progress ring, then upload them one by one
@@ -258,21 +287,35 @@ export default function ProductForm({ product, onSubmit, submitLabel, loading })
 
         for (const { file, tile } of batch) {
             const setTile = (change) =>
-                updateColor(colorId, (c) => ({ images: c.images.map((i) => (i.key === tile.key ? { ...i, ...change } : i)) }));
-            const dropTile = () => updateColor(colorId, (c) => ({ images: c.images.filter((i) => i.key !== tile.key) }));
+                updateColor(colorId, (c) => ({
+                    images: c.images.map((i) => (i.key === tile.key ? { ...i, ...change } : i)),
+                }));
+            const dropTile = () =>
+                updateColor(colorId, (c) => ({
+                    images: c.images.filter((i) => i.key !== tile.key),
+                }));
 
             try {
                 const dataUrl = await prepareImage(file);
-                const saved = await uploadProductImage(dataUrl, (progress) => setTile({ progress }));
+                const saved = await uploadProductImage(dataUrl, (progress) =>
+                    setTile({ progress }),
+                );
 
                 if (!mounted.current) {
                     discardUploadedImage(saved.public_id);
                     continue;
                 }
                 pending.current.add(saved.public_id);
-                setTile({ key: saved.public_id, public_id: saved.public_id, url: saved.url, uploading: false });
+                setTile({
+                    key: saved.public_id,
+                    public_id: saved.public_id,
+                    url: saved.url,
+                    uploading: false,
+                });
             } catch (err) {
-                notifyError(err.response?.data?.message || err.message || `Could not upload ${file.name}`);
+                notifyError(
+                    err.response?.data?.message || err.message || `Could not upload ${file.name}`,
+                );
                 if (mounted.current) dropTile();
             } finally {
                 URL.revokeObjectURL(tile.url);
@@ -281,7 +324,8 @@ export default function ProductForm({ product, onSubmit, submitLabel, loading })
     };
 
     const removePhoto = (colorId, img) => {
-        // A photo uploaded in this session can be deleted right away; saved ones are deleted when the product is saved
+        // A photo uploaded in this session can be deleted right away; saved ones
+        // are deleted when the product is saved
         if (pending.current.has(img.public_id)) {
             pending.current.delete(img.public_id);
             discardUploadedImage(img.public_id);
@@ -290,7 +334,9 @@ export default function ProductForm({ product, onSubmit, submitLabel, loading })
     };
 
     const makeMain = (colorId, img) =>
-        updateColor(colorId, (c) => ({ images: [img, ...c.images.filter((i) => i.key !== img.key)] }));
+        updateColor(colorId, (c) => ({
+            images: [img, ...c.images.filter((i) => i.key !== img.key)],
+        }));
 
     const reorderPhotos = (colorId, fromKey, toKey) =>
         updateColor(colorId, (c) => {
@@ -305,12 +351,15 @@ export default function ProductForm({ product, onSubmit, submitLabel, loading })
 
     // ---- sizes ----
     const addVariant = () =>
-        formik.setFieldValue('variants', [...values.variants, { size: '', colorId: colors[0]?.id || '', stock: 0 }]);
+        formik.setFieldValue('variants', [
+            ...values.variants,
+            { size: '', colorId: colors[0]?.id || '', stock: 0 },
+        ]);
 
     const removeVariant = (index) =>
         formik.setFieldValue(
             'variants',
-            values.variants.filter((_, i) => i !== index)
+            values.variants.filter((_, i) => i !== index),
         );
 
     // ---- submit ----
@@ -322,8 +371,10 @@ export default function ProductForm({ product, onSubmit, submitLabel, loading })
             const key = c.name.trim().toLowerCase();
             if (!key) found[c.id] = 'Enter a color name';
             else if (names.has(key)) found[c.id] = 'This color is already added';
-            else if (c.images.length === 0 && !hasLegacyPhotos) found[c.id] = 'Add at least one photo for this color';
-            else if (!values.variants.some((v) => v.colorId === c.id)) found[c.id] = 'Add a size for this color below';
+            else if (c.images.length === 0 && !hasLegacyPhotos)
+                found[c.id] = 'Add at least one photo for this color';
+            else if (!values.variants.some((v) => v.colorId === c.id))
+                found[c.id] = 'Add a size for this color below';
             names.add(key);
         });
         return found;
@@ -365,7 +416,10 @@ export default function ProductForm({ product, onSubmit, submitLabel, loading })
             >
                 {/* ---------- Left: what the product is ---------- */}
                 <Box sx={{ display: 'grid', gap: 3, minWidth: 0 }}>
-                    <Section title="Product details" subtitle="The name and description shoppers see in the shop.">
+                    <Section
+                        title="Product details"
+                        subtitle="The name and description shoppers see in the shop."
+                    >
                         <Box sx={{ display: 'grid', gap: 2 }}>
                             <TextField
                                 label="Product name"
@@ -392,11 +446,15 @@ export default function ProductForm({ product, onSubmit, submitLabel, loading })
 
                     <Section
                         title="Colors and photos"
-                        subtitle="Each color gets its own photos. Shoppers see them when they pick that color."
+                        subtitle={
+                            'Each color gets its own photos. ' +
+                            'Shoppers see them when they pick that color.'
+                        }
                     >
                         {hasLegacyPhotos && (
                             <Alert severity="info" sx={{ mb: 2, borderRadius: '12px' }}>
-                                This product still uses its old shared photos. Colors without their own photos keep showing those.
+                                This product still uses its old shared photos. Colors without their
+                                own photos keep showing those.
                             </Alert>
                         )}
 
@@ -412,26 +470,53 @@ export default function ProductForm({ product, onSubmit, submitLabel, loading })
                                         bgcolor: '#fafbfc',
                                     }}
                                 >
-                                    <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 1.5 }}>
+                                    <Box
+                                        sx={{
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            justifyContent: 'space-between',
+                                            gap: 1.5,
+                                        }}
+                                    >
                                         <TextField
                                             label="Color name"
                                             size="small"
                                             placeholder="e.g. Navy blue"
-                                            sx={{ ...fieldSx, flex: '1 1 auto', maxWidth: 320, bgcolor: '#fff', borderRadius: '12px' }}
+                                            sx={{
+                                                ...fieldSx,
+                                                flex: '1 1 auto',
+                                                maxWidth: 320,
+                                                bgcolor: '#fff',
+                                                borderRadius: '12px',
+                                            }}
                                             value={color.name}
                                             onChange={(e) => {
                                                 const name = e.target.value;
                                                 updateColor(color.id, () => ({ name }));
-                                                setColorErrors((prev) => ({ ...prev, [color.id]: undefined }));
+                                                setColorErrors((prev) => ({
+                                                    ...prev,
+                                                    [color.id]: undefined,
+                                                }));
                                             }}
-                                            error={Boolean(colorErrors[color.id]) && !color.name.trim()}
+                                            error={
+                                                Boolean(colorErrors[color.id]) && !color.name.trim()
+                                            }
                                         />
-                                        <Tooltip title={colors.length === 1 ? 'A product needs at least one color' : 'Remove color'}>
+                                        <Tooltip
+                                            title={
+                                                colors.length === 1
+                                                    ? 'A product needs at least one color'
+                                                    : 'Remove color'
+                                            }
+                                        >
                                             <span>
                                                 <IconButton
                                                     aria-label={`Remove ${colorLabel(color)}`}
                                                     onClick={() => removeColor(color)}
-                                                    disabled={colors.length === 1 || color.images.some((i) => i.uploading)}
+                                                    disabled={
+                                                        colors.length === 1 ||
+                                                        color.images.some((i) => i.uploading)
+                                                    }
                                                 >
                                                     <DeleteOutlinedIcon />
                                                 </IconButton>
@@ -443,10 +528,17 @@ export default function ProductForm({ product, onSubmit, submitLabel, loading })
                                         onFiles={(files) => handleFiles(color.id, files)}
                                         onRemove={(img) => removePhoto(color.id, img)}
                                         onMakeMain={(img) => makeMain(color.id, img)}
-                                        onReorder={(fromKey, toKey) => reorderPhotos(color.id, fromKey, toKey)}
+                                        onReorder={(fromKey, toKey) =>
+                                            reorderPhotos(color.id, fromKey, toKey)
+                                        }
                                     />
                                     {colorErrors[color.id] && (
-                                        <Typography variant="caption" color="error" component="p" sx={{ mt: 0.5 }}>
+                                        <Typography
+                                            variant="caption"
+                                            color="error"
+                                            component="p"
+                                            sx={{ mt: 0.5 }}
+                                        >
                                             {colorErrors[color.id]}
                                         </Typography>
                                     )}
@@ -454,12 +546,19 @@ export default function ProductForm({ product, onSubmit, submitLabel, loading })
                             ))}
                         </Box>
 
-                        <Button startIcon={<AddRoundedIcon />} onClick={addColor} sx={{ mt: 2, borderRadius: 99 }}>
+                        <Button
+                            startIcon={<AddRoundedIcon />}
+                            onClick={addColor}
+                            sx={{ mt: 2, borderRadius: 99 }}
+                        >
                             Add color
                         </Button>
                     </Section>
 
-                    <Section title="Sizes and stock" subtitle="One row for each size and color combination you sell.">
+                    <Section
+                        title="Sizes and stock"
+                        subtitle="One row for each size and color combination you sell."
+                    >
                         <Box sx={{ display: 'grid', gap: 1.5 }}>
                             {values.variants.map((variant, index) => (
                                 <Box
@@ -468,7 +567,12 @@ export default function ProductForm({ product, onSubmit, submitLabel, loading })
                                         display: 'grid',
                                         gap: 1.5,
                                         alignItems: 'start',
-                                        gridTemplateColumns: { xs: 'repeat(2, minmax(0, 1fr)) auto', sm: 'minmax(0, 1fr) minmax(0, 1.3fr) minmax(0, 1fr) auto' },
+                                        gridTemplateColumns: {
+                                            xs: 'repeat(2, minmax(0, 1fr)) auto',
+                                            sm:
+                                                'minmax(0, 1fr) minmax(0, 1.3fr) ' +
+                                                'minmax(0, 1fr) auto',
+                                        },
                                     }}
                                 >
                                     <TextField
@@ -487,7 +591,11 @@ export default function ProductForm({ product, onSubmit, submitLabel, loading })
                                         name={`variants.${index}.colorId`}
                                         size="small"
                                         sx={fieldSx}
-                                        value={colors.some((c) => c.id === variant.colorId) ? variant.colorId : ''}
+                                        value={
+                                            colors.some((c) => c.id === variant.colorId)
+                                                ? variant.colorId
+                                                : ''
+                                        }
                                         onChange={formik.handleChange}
                                         error={Boolean(variantError(index, 'colorId'))}
                                         helperText={variantError(index, 'colorId')}
@@ -509,7 +617,13 @@ export default function ProductForm({ product, onSubmit, submitLabel, loading })
                                         error={Boolean(variantError(index, 'stock'))}
                                         helperText={variantError(index, 'stock')}
                                     />
-                                    <Tooltip title={values.variants.length === 1 ? 'Keep at least one size' : 'Remove'}>
+                                    <Tooltip
+                                        title={
+                                            values.variants.length === 1
+                                                ? 'Keep at least one size'
+                                                : 'Remove'
+                                        }
+                                    >
                                         <span>
                                             <IconButton
                                                 aria-label="Remove variant"
@@ -524,18 +638,35 @@ export default function ProductForm({ product, onSubmit, submitLabel, loading })
                             ))}
                         </Box>
                         {typeof errors.variants === 'string' && (
-                            <Typography variant="caption" color="error" component="p" sx={{ mt: 1 }}>
+                            <Typography
+                                variant="caption"
+                                color="error"
+                                component="p"
+                                sx={{ mt: 1 }}
+                            >
                                 {errors.variants}
                             </Typography>
                         )}
-                        <Button startIcon={<AddRoundedIcon />} onClick={addVariant} sx={{ mt: 2, borderRadius: 99 }}>
+                        <Button
+                            startIcon={<AddRoundedIcon />}
+                            onClick={addVariant}
+                            sx={{ mt: 2, borderRadius: 99 }}
+                        >
                             Add size
                         </Button>
                     </Section>
                 </Box>
 
                 {/* ---------- Right: price, organization, summary ---------- */}
-                <Box sx={{ display: 'grid', gap: 3, minWidth: 0, position: { lg: 'sticky' }, top: { lg: 24 } }}>
+                <Box
+                    sx={{
+                        display: 'grid',
+                        gap: 3,
+                        minWidth: 0,
+                        position: { lg: 'sticky' },
+                        top: { lg: 24 },
+                    }}
+                >
                     <Section title="Pricing and organization">
                         <Box sx={{ display: 'grid', gap: 2 }}>
                             <TextField
@@ -547,7 +678,13 @@ export default function ProductForm({ product, onSubmit, submitLabel, loading })
                                 onChange={formik.handleChange}
                                 error={Boolean(errors.price)}
                                 helperText={errors.price}
-                                slotProps={{ input: { startAdornment: <InputAdornment position="start">₱</InputAdornment> } }}
+                                slotProps={{
+                                    input: {
+                                        startAdornment: (
+                                            <InputAdornment position="start">₱</InputAdornment>
+                                        ),
+                                    },
+                                }}
                             />
                             <TextField
                                 select
@@ -567,7 +704,10 @@ export default function ProductForm({ product, onSubmit, submitLabel, loading })
                             </TextField>
 
                             <Box>
-                                <Typography variant="caption" sx={{ color: NEUTRAL, display: 'block', mb: 0.75 }}>
+                                <Typography
+                                    variant="caption"
+                                    sx={{ color: NEUTRAL, display: 'block', mb: 0.75 }}
+                                >
                                     Gender
                                 </Typography>
                                 <ToggleButtonGroup
@@ -575,7 +715,9 @@ export default function ProductForm({ product, onSubmit, submitLabel, loading })
                                     fullWidth
                                     size="small"
                                     value={values.gender}
-                                    onChange={(_, value) => value && formik.setFieldValue('gender', value)}
+                                    onChange={(_, value) =>
+                                        value && formik.setFieldValue('gender', value)
+                                    }
                                     aria-label="Gender"
                                     sx={{
                                         gap: 1,
@@ -584,7 +726,9 @@ export default function ProductForm({ product, onSubmit, submitLabel, loading })
                                             margin: 0,
                                             border: '1px solid #e0e0e0',
                                             borderRadius: '12px',
-                                            '&:not(:first-of-type), &:not(:last-of-type)': { borderRadius: '12px' },
+                                            '&:not(:first-of-type), &:not(:last-of-type)': {
+                                                borderRadius: '12px',
+                                            },
                                             '&.Mui-selected': { borderColor: 'var(--brand-dark)' },
                                         },
                                     }}
@@ -596,7 +740,12 @@ export default function ProductForm({ product, onSubmit, submitLabel, loading })
                                     ))}
                                 </ToggleButtonGroup>
                                 {errors.gender && (
-                                    <Typography variant="caption" color="error" component="p" sx={{ mt: 0.5 }}>
+                                    <Typography
+                                        variant="caption"
+                                        color="error"
+                                        component="p"
+                                        sx={{ mt: 0.5 }}
+                                    >
                                         {errors.gender}
                                     </Typography>
                                 )}
@@ -637,9 +786,19 @@ export default function ProductForm({ product, onSubmit, submitLabel, loading })
                             disabled={loading || uploading}
                             sx={{ borderRadius: 99, height: 44 }}
                         >
-                            {uploading ? 'Uploading photos...' : loading ? 'Saving...' : submitLabel}
+                            {uploading
+                                ? 'Uploading photos...'
+                                : loading
+                                  ? 'Saving...'
+                                  : submitLabel}
                         </Button>
-                        <Button component={Link} to="/admin/products" color="inherit" fullWidth sx={{ mt: 1, borderRadius: 99, color: NEUTRAL }}>
+                        <Button
+                            component={Link}
+                            to="/admin/products"
+                            color="inherit"
+                            fullWidth
+                            sx={{ mt: 1, borderRadius: 99, color: NEUTRAL }}
+                        >
                             Cancel
                         </Button>
                     </Section>

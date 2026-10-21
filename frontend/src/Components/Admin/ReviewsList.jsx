@@ -1,3 +1,5 @@
+// MP3 · Review ratings — admin review table.
+// Lists every review (masked + flagged) and deletes one via a confirm dialog.
 import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
@@ -47,7 +49,9 @@ const fieldSx = { '& .MuiOutlinedInput-root': { borderRadius: '12px' } };
 // YYYY-MM-DD in local time, to compare with <input type="date"> values
 const toInputDate = (value) => {
     const d = new Date(value);
-    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${d.getFullYear()}-${month}-${day}`;
 };
 
 const variantText = (review) => [review.color, review.size].filter(Boolean).join(' · ');
@@ -65,7 +69,10 @@ function StatCard({ label, value, icon, loading }) {
                 {loading ? (
                     <Skeleton width={60} height={34} />
                 ) : (
-                    <Typography component="p" sx={{ fontSize: 26, fontWeight: 700, lineHeight: 1.3 }}>
+                    <Typography
+                        component="p"
+                        sx={{ fontSize: 26, fontWeight: 700, lineHeight: 1.3 }}
+                    >
                         {value}
                     </Typography>
                 )}
@@ -76,7 +83,15 @@ function StatCard({ label, value, icon, loading }) {
 
 function EmptyState({ filtering, onClear }) {
     return (
-        <Box sx={{ height: '100%', minHeight: 300, display: 'grid', placeItems: 'center', textAlign: 'center' }}>
+        <Box
+            sx={{
+                height: '100%',
+                minHeight: 300,
+                display: 'grid',
+                placeItems: 'center',
+                textAlign: 'center',
+            }}
+        >
             <Box>
                 <RateReviewOutlinedIcon sx={{ fontSize: 40, color: 'text.disabled' }} />
                 <Typography color="text.secondary" sx={{ mt: 0.5 }}>
@@ -123,7 +138,9 @@ export default function ReviewsList() {
         const total = reviews.length;
         return {
             total,
-            average: total ? (reviews.reduce((sum, r) => sum + r.rating, 0) / total).toFixed(1) : '—',
+            average: total
+                ? (reviews.reduce((sum, r) => sum + r.rating, 0) / total).toFixed(1)
+                : '—',
             low: reviews.filter((r) => r.rating <= 2).length,
             filtered: reviews.filter((r) => r.flagged).length,
         };
@@ -154,9 +171,14 @@ export default function ReviewsList() {
     }, [reviews, keyword, ratingFilter, commentFilter, dateFrom, dateTo]);
 
     // Filters hidden behind the "Filters" button, counted for its badge
-    const moreActive = [commentFilter !== 'All', dateFrom !== '', dateTo !== ''].filter(Boolean).length;
+    const moreActive = [commentFilter !== 'All', dateFrom !== '', dateTo !== ''].filter(
+        Boolean,
+    ).length;
     const filtering = keyword !== '' || ratingFilter !== 'All' || moreActive > 0;
-    const dateError = dateFrom && dateTo && dateFrom > dateTo ? 'Start date must be on or before the end date' : '';
+    const dateError =
+        dateFrom && dateTo && dateFrom > dateTo
+            ? 'Start date must be on or before the end date'
+            : '';
 
     const clearFilters = () => {
         setKeyword('');
@@ -257,11 +279,25 @@ export default function ReviewsList() {
             flex: 1.4,
             minWidth: 260,
             renderCell: (params) => (
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, minWidth: 0, width: '100%' }}>
-                    <Typography variant="body2" noWrap sx={{ color: params.value ? undefined : NEUTRAL, minWidth: 0 }}>
+                <Box
+                    sx={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 1,
+                        minWidth: 0,
+                        width: '100%',
+                    }}
+                >
+                    <Typography
+                        variant="body2"
+                        noWrap
+                        sx={{ color: params.value ? undefined : NEUTRAL, minWidth: 0 }}
+                    >
                         {params.value || 'No comment'}
                     </Typography>
-                    {params.row.flagged && <Chip label="Filtered" size="small" color="warning" variant="outlined" />}
+                    {params.row.flagged && (
+                        <Chip label="Filtered" size="small" color="warning" variant="outlined" />
+                    )}
                 </Box>
             ),
         },
@@ -283,14 +319,30 @@ export default function ReviewsList() {
             filterable: false,
             disableColumnMenu: true,
             renderCell: (params) => (
-                <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', width: '100%' }}>
+                <Box
+                    sx={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'flex-end',
+                        width: '100%',
+                    }}
+                >
                     <Tooltip title="View review">
-                        <IconButton size="small" onClick={() => openReview(params.row)} aria-label="View review">
+                        <IconButton
+                            size="small"
+                            onClick={() => openReview(params.row)}
+                            aria-label="View review"
+                        >
                             <VisibilityOutlinedIcon fontSize="small" />
                         </IconButton>
                     </Tooltip>
                     <Tooltip title="Remove review">
-                        <IconButton size="small" color="error" onClick={() => handleDelete(params.row)} aria-label="Remove review">
+                        <IconButton
+                            size="small"
+                            color="error"
+                            onClick={() => handleDelete(params.row)}
+                            aria-label="Remove review"
+                        >
                             <DeleteOutlineRoundedIcon fontSize="small" />
                         </IconButton>
                     </Tooltip>
@@ -315,15 +367,44 @@ export default function ReviewsList() {
 
             {/* KPI cards */}
             <Box className="dash-stats" sx={{ mb: 3 }}>
-                <StatCard label="Total reviews" value={stats.total} icon={<RateReviewOutlinedIcon />} loading={initialLoad} />
-                <StatCard label="Average rating" value={stats.average} icon={<StarOutlineRoundedIcon />} loading={initialLoad} />
-                <StatCard label="Low ratings (1–2★)" value={stats.low} icon={<SentimentDissatisfiedOutlinedIcon />} loading={initialLoad} />
-                <StatCard label="Filtered comments" value={stats.filtered} icon={<FlagOutlinedIcon />} loading={initialLoad} />
+                <StatCard
+                    label="Total reviews"
+                    value={stats.total}
+                    icon={<RateReviewOutlinedIcon />}
+                    loading={initialLoad}
+                />
+                <StatCard
+                    label="Average rating"
+                    value={stats.average}
+                    icon={<StarOutlineRoundedIcon />}
+                    loading={initialLoad}
+                />
+                <StatCard
+                    label="Low ratings (1–2★)"
+                    value={stats.low}
+                    icon={<SentimentDissatisfiedOutlinedIcon />}
+                    loading={initialLoad}
+                />
+                <StatCard
+                    label="Filtered comments"
+                    value={stats.filtered}
+                    icon={<FlagOutlinedIcon />}
+                    loading={initialLoad}
+                />
             </Box>
 
             {/* Filters + table */}
-            <Box sx={{ border: `1px solid ${BORDER}`, borderRadius: '16px', bgcolor: '#fff', overflow: 'hidden' }}>
-                <Box sx={{ p: 2, display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 1.5 }}>
+            <Box
+                sx={{
+                    border: `1px solid ${BORDER}`,
+                    borderRadius: '16px',
+                    bgcolor: '#fff',
+                    overflow: 'hidden',
+                }}
+            >
+                <Box
+                    sx={{ p: 2, display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 1.5 }}
+                >
                     <TextField
                         size="small"
                         placeholder="Search product, customer or review"
@@ -334,12 +415,20 @@ export default function ReviewsList() {
                             input: {
                                 startAdornment: (
                                     <InputAdornment position="start">
-                                        <SearchRoundedIcon fontSize="small" sx={{ color: NEUTRAL }} />
+                                        <SearchRoundedIcon
+                                            fontSize="small"
+                                            sx={{ color: NEUTRAL }}
+                                        />
                                     </InputAdornment>
                                 ),
                                 endAdornment: keyword && (
                                     <InputAdornment position="end">
-                                        <IconButton size="small" aria-label="Clear search" onClick={() => setKeyword('')} edge="end">
+                                        <IconButton
+                                            size="small"
+                                            aria-label="Clear search"
+                                            onClick={() => setKeyword('')}
+                                            edge="end"
+                                        >
                                             <CloseRoundedIcon fontSize="small" />
                                         </IconButton>
                                     </InputAdornment>
@@ -367,19 +456,31 @@ export default function ReviewsList() {
                             color="inherit"
                             startIcon={<TuneRoundedIcon />}
                             onClick={() => setMoreOpen((open) => !open)}
-                            sx={{ borderRadius: '12px', height: 40, color: moreOpen ? undefined : NEUTRAL, fontWeight: 500 }}
+                            sx={{
+                                borderRadius: '12px',
+                                height: 40,
+                                color: moreOpen ? undefined : NEUTRAL,
+                                fontWeight: 500,
+                            }}
                         >
                             Filters
                         </Button>
                     </Badge>
                     {filtering && (
-                        <Button color="inherit" onClick={clearFilters} sx={{ color: NEUTRAL, fontWeight: 500 }}>
+                        <Button
+                            color="inherit"
+                            onClick={clearFilters}
+                            sx={{ color: NEUTRAL, fontWeight: 500 }}
+                        >
                             Clear
                         </Button>
                     )}
                     <Box sx={{ flex: 1 }} />
                     <Typography variant="body2" color="text.secondary">
-                        {filtering ? `${filteredRows.length} of ${reviews.length}` : `${reviews.length}`} review
+                        {filtering
+                            ? `${filteredRows.length} of ${reviews.length}`
+                            : `${reviews.length}`}{' '}
+                        review
                         {reviews.length === 1 ? '' : 's'}
                     </Typography>
                 </Box>
@@ -395,7 +496,14 @@ export default function ReviewsList() {
                             gridTemplateColumns: { xs: 'repeat(2, 1fr)', md: 'repeat(3, 1fr)' },
                         }}
                     >
-                        <TextField select label="Comment" size="small" sx={fieldSx} value={commentFilter} onChange={(e) => setCommentFilter(e.target.value)}>
+                        <TextField
+                            select
+                            label="Comment"
+                            size="small"
+                            sx={fieldSx}
+                            value={commentFilter}
+                            onChange={(e) => setCommentFilter(e.target.value)}
+                        >
                             <MenuItem value="All">All reviews</MenuItem>
                             <MenuItem value="With">With comment</MenuItem>
                             <MenuItem value="Without">Without comment</MenuItem>
@@ -409,7 +517,10 @@ export default function ReviewsList() {
                             value={dateFrom}
                             error={Boolean(dateError)}
                             onChange={(e) => setDateFrom(e.target.value)}
-                            slotProps={{ inputLabel: { shrink: true }, htmlInput: { max: dateTo || undefined } }}
+                            slotProps={{
+                                inputLabel: { shrink: true },
+                                htmlInput: { max: dateTo || undefined },
+                            }}
                         />
                         <TextField
                             label="To"
@@ -420,7 +531,10 @@ export default function ReviewsList() {
                             error={Boolean(dateError)}
                             helperText={dateError}
                             onChange={(e) => setDateTo(e.target.value)}
-                            slotProps={{ inputLabel: { shrink: true }, htmlInput: { min: dateFrom || undefined } }}
+                            slotProps={{
+                                inputLabel: { shrink: true },
+                                htmlInput: { min: dateFrom || undefined },
+                            }}
                         />
                     </Box>
                 </Collapse>
@@ -436,7 +550,11 @@ export default function ReviewsList() {
                     rowHeight={64}
                     pageSizeOptions={[5, 10, 25]}
                     initialState={{ pagination: { paginationModel: { pageSize: 10 } } }}
-                    slots={{ noRowsOverlay: () => <EmptyState filtering={filtering} onClear={clearFilters} /> }}
+                    slots={{
+                        noRowsOverlay: () => (
+                            <EmptyState filtering={filtering} onClear={clearFilters} />
+                        ),
+                    }}
                     sx={{
                         border: 0,
                         borderTop: `1px solid ${BORDER}`,
@@ -445,11 +563,21 @@ export default function ReviewsList() {
                         '--DataGrid-t-header-background-base': '#fff',
                         '& .MuiDataGrid-columnHeader': { bgcolor: '#fff' },
                         '& .MuiDataGrid-columnHeaders': { borderBottom: `1px solid ${BORDER}` },
-                        '& .MuiDataGrid-columnHeaderTitle': { color: NEUTRAL, fontSize: '0.8rem', fontWeight: 500 },
+                        '& .MuiDataGrid-columnHeaderTitle': {
+                            color: NEUTRAL,
+                            fontSize: '0.8rem',
+                            fontWeight: 500,
+                        },
                         '& .MuiDataGrid-columnSeparator': { display: 'none' },
-                        '& .MuiDataGrid-cell': { display: 'flex', alignItems: 'center', borderColor: '#f0f1f4' },
-                        '& .MuiDataGrid-cell:focus, & .MuiDataGrid-cell:focus-within, & .MuiDataGrid-columnHeader:focus, & .MuiDataGrid-columnHeader:focus-within':
-                            { outline: 'none' },
+                        '& .MuiDataGrid-cell': {
+                            display: 'flex',
+                            alignItems: 'center',
+                            borderColor: '#f0f1f4',
+                        },
+                        ['& .MuiDataGrid-cell:focus, ' +
+                        '& .MuiDataGrid-cell:focus-within, ' +
+                        '& .MuiDataGrid-columnHeader:focus, ' +
+                        '& .MuiDataGrid-columnHeader:focus-within']: { outline: 'none' },
                         '& .MuiDataGrid-row:hover': { bgcolor: '#fafbfc' },
                         '& .MuiDataGrid-footerContainer': { borderColor: BORDER },
                     }}
@@ -466,9 +594,23 @@ export default function ReviewsList() {
             >
                 {viewing && (
                     <>
-                        <Box sx={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 2, p: 3, pb: 2 }}>
+                        <Box
+                            sx={{
+                                display: 'flex',
+                                alignItems: 'flex-start',
+                                justifyContent: 'space-between',
+                                gap: 2,
+                                p: 3,
+                                pb: 2,
+                            }}
+                        >
                             <Box sx={{ minWidth: 0 }}>
-                                <Typography variant="h6" component="h2" sx={{ fontWeight: 700 }} noWrap>
+                                <Typography
+                                    variant="h6"
+                                    component="h2"
+                                    sx={{ fontWeight: 700 }}
+                                    noWrap
+                                >
                                     {viewing.product?.name || 'Deleted product'}
                                 </Typography>
                                 {variantText(viewing) && (
@@ -477,21 +619,36 @@ export default function ReviewsList() {
                                     </Typography>
                                 )}
                             </Box>
-                            <IconButton size="small" onClick={() => setViewing(null)} aria-label="Close">
+                            <IconButton
+                                size="small"
+                                onClick={() => setViewing(null)}
+                                aria-label="Close"
+                            >
                                 <CloseRoundedIcon fontSize="small" />
                             </IconButton>
                         </Box>
 
                         <DialogContent sx={{ pt: 0 }}>
                             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 2 }}>
-                                <Avatar sx={{ bgcolor: '#eceef2', color: 'var(--brand-dark)', fontWeight: 700 }}>
+                                <Avatar
+                                    sx={{
+                                        bgcolor: '#eceef2',
+                                        color: 'var(--brand-dark)',
+                                        fontWeight: 700,
+                                    }}
+                                >
                                     {customerName(viewing)[0]?.toUpperCase()}
                                 </Avatar>
                                 <Box sx={{ minWidth: 0, flex: 1 }}>
                                     <Typography variant="body2" noWrap sx={{ fontWeight: 600 }}>
                                         {customerName(viewing)}
                                     </Typography>
-                                    <Typography variant="caption" noWrap component="p" sx={{ color: NEUTRAL }}>
+                                    <Typography
+                                        variant="caption"
+                                        noWrap
+                                        component="p"
+                                        sx={{ color: NEUTRAL }}
+                                    >
                                         {viewing.user?.email ? `${viewing.user.email} · ` : ''}
                                         {formatDate(viewing.createdAt)}
                                     </Typography>
@@ -505,20 +662,41 @@ export default function ReviewsList() {
                                     fullWidth
                                     size="small"
                                     value={showOriginal ? 'original' : 'filtered'}
-                                    onChange={(e, value) => value && setShowOriginal(value === 'original')}
+                                    onChange={(e, value) =>
+                                        value && setShowOriginal(value === 'original')
+                                    }
                                     sx={{ mb: 2 }}
                                 >
-                                    <ToggleButton value="filtered">As customers see it</ToggleButton>
+                                    <ToggleButton value="filtered">
+                                        As customers see it
+                                    </ToggleButton>
                                     <ToggleButton value="original">Original</ToggleButton>
                                 </ToggleButtonGroup>
                             )}
 
-                            <Box sx={{ border: `1px solid ${BORDER}`, bgcolor: '#fafbfc', borderRadius: '12px', p: 2 }}>
+                            <Box
+                                sx={{
+                                    border: `1px solid ${BORDER}`,
+                                    bgcolor: '#fafbfc',
+                                    borderRadius: '12px',
+                                    p: 2,
+                                }}
+                            >
                                 <Typography
                                     variant="body2"
-                                    sx={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word', lineHeight: 1.7, color: viewing.comment || viewing.originalComment ? undefined : NEUTRAL }}
+                                    sx={{
+                                        whiteSpace: 'pre-wrap',
+                                        wordBreak: 'break-word',
+                                        lineHeight: 1.7,
+                                        color:
+                                            viewing.comment || viewing.originalComment
+                                                ? undefined
+                                                : NEUTRAL,
+                                    }}
                                 >
-                                    {(viewing.flagged && showOriginal ? viewing.originalComment : viewing.comment) || 'No comment'}
+                                    {(viewing.flagged && showOriginal
+                                        ? viewing.originalComment
+                                        : viewing.comment) || 'No comment'}
                                 </Typography>
                             </Box>
                         </DialogContent>
@@ -533,7 +711,11 @@ export default function ReviewsList() {
                             >
                                 Remove review
                             </Button>
-                            <Button color="inherit" onClick={() => setViewing(null)} sx={{ borderRadius: 99, px: 2.5 }}>
+                            <Button
+                                color="inherit"
+                                onClick={() => setViewing(null)}
+                                sx={{ borderRadius: 99, px: 2.5 }}
+                            >
                                 Close
                             </Button>
                         </DialogActions>

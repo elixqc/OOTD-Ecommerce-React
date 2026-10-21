@@ -1,3 +1,5 @@
+// EXTRA · Wishlist — wishlist endpoints for the signed-in customer.
+// Guards with isAuthenticatedUser then controllers/wishlist.js; mounted under /api/v1.
 const express = require('express');
 const router = express.Router();
 

@@ -1,3 +1,5 @@
+// U2 · UI — admin shell.
+// Sidebar + content frame for every /admin route; links to dashboard, products, orders, users and reviews.
 import { useEffect, useState } from 'react';
 import { Link, NavLink, Outlet, useLocation } from 'react-router-dom';
 import { useSelector } from 'react-redux';
@@ -16,7 +18,12 @@ const STORAGE_KEY = 'adminSidebarCollapsed';
 const MENU = [
     { to: '/admin', label: 'Dashboard', icon: <DashboardOutlinedIcon />, end: true },
     { to: '/admin/products', label: 'Products', icon: <Inventory2OutlinedIcon />, end: true },
-    { to: '/admin/orders', label: 'Orders', icon: <ShoppingCartOutlinedIcon />, badge: 'processing' },
+    {
+        to: '/admin/orders',
+        label: 'Orders',
+        icon: <ShoppingCartOutlinedIcon />,
+        badge: 'processing',
+    },
     { to: '/admin/users', label: 'Users', icon: <PeopleOutlinedIcon /> },
     { to: '/admin/reviews', label: 'Reviews', icon: <RateReviewOutlinedIcon /> },
 ];
@@ -39,7 +46,8 @@ export default function AdminLayout() {
     const [processing, setProcessing] = useState(0);
     const { pathname } = useLocation();
 
-    // Orders still in Processing; refreshed on every page change so it updates after the admin handles one
+    // Orders still in Processing; refreshed on every page change so it updates
+    // after the admin handles one
     useEffect(() => {
         let active = true;
         api.get('/admin/orders/processing-count')
@@ -80,11 +88,20 @@ export default function AdminLayout() {
                         {MENU.map((item) => {
                             const count = item.badge ? badges[item.badge] : 0;
                             return (
-                                <Tooltip key={item.to} title={collapsed ? item.label : ''} placement="right" arrow>
+                                <Tooltip
+                                    key={item.to}
+                                    title={collapsed ? item.label : ''}
+                                    placement="right"
+                                    arrow
+                                >
                                     <NavLink to={item.to} end={item.end}>
                                         {item.icon}
                                         <span className="admin-side-text">{item.label}</span>
-                                        {count > 0 && <span className="admin-side-badge">{count > 99 ? '99+' : count}</span>}
+                                        {count > 0 && (
+                                            <span className="admin-side-badge">
+                                                {count > 99 ? '99+' : count}
+                                            </span>
+                                        )}
                                     </NavLink>
                                 </Tooltip>
                             );

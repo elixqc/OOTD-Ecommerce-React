@@ -1,3 +1,5 @@
+// EXTRA · User management — admin users table.
+// Lists accounts with role/status and links into UpdateUser.
 import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
@@ -41,7 +43,9 @@ const fieldSx = { '& .MuiOutlinedInput-root': { borderRadius: '12px' } };
 // YYYY-MM-DD in local time, to compare with <input type="date"> values
 const toInputDate = (value) => {
     const d = new Date(value);
-    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${d.getFullYear()}-${month}-${day}`;
 };
 
 // Admins don't shop, so their order numbers are just noise unless they really placed an order
@@ -59,7 +63,10 @@ function StatCard({ label, value, icon, loading }) {
                 {loading ? (
                     <Skeleton width={60} height={34} />
                 ) : (
-                    <Typography component="p" sx={{ fontSize: 26, fontWeight: 700, lineHeight: 1.3 }}>
+                    <Typography
+                        component="p"
+                        sx={{ fontSize: 26, fontWeight: 700, lineHeight: 1.3 }}
+                    >
                         {value}
                     </Typography>
                 )}
@@ -70,7 +77,15 @@ function StatCard({ label, value, icon, loading }) {
 
 function EmptyState({ filtering, onClear }) {
     return (
-        <Box sx={{ height: '100%', minHeight: 300, display: 'grid', placeItems: 'center', textAlign: 'center' }}>
+        <Box
+            sx={{
+                height: '100%',
+                minHeight: 300,
+                display: 'grid',
+                placeItems: 'center',
+                textAlign: 'center',
+            }}
+        >
             <Box>
                 <GroupOutlinedIcon sx={{ fontSize: 40, color: 'text.disabled' }} />
                 <Typography color="text.secondary" sx={{ mt: 0.5 }}>
@@ -132,7 +147,10 @@ export default function UsersList() {
             deactivated: users.filter((u) => !u.isActive).length,
             newThisMonth: users.filter((u) => {
                 const joined = new Date(u.createdAt);
-                return joined.getFullYear() === now.getFullYear() && joined.getMonth() === now.getMonth();
+                return (
+                    joined.getFullYear() === now.getFullYear() &&
+                    joined.getMonth() === now.getMonth()
+                );
             }).length,
         };
     }, [users]);
@@ -140,8 +158,12 @@ export default function UsersList() {
     const filteredRows = useMemo(() => {
         const text = keyword.trim().toLowerCase();
         return users.filter((u) => {
-            const matchesText = !text || u.name.toLowerCase().includes(text) || u.email.toLowerCase().includes(text);
-            const matchesStatus = statusFilter === 'All' || (statusFilter === 'Active' ? u.isActive : !u.isActive);
+            const matchesText =
+                !text ||
+                u.name.toLowerCase().includes(text) ||
+                u.email.toLowerCase().includes(text);
+            const matchesStatus =
+                statusFilter === 'All' || (statusFilter === 'Active' ? u.isActive : !u.isActive);
             const matchesRole = roleFilter === 'All' || u.role === roleFilter;
             const day = toInputDate(u.createdAt);
             const matchesDate = (!dateFrom || day >= dateFrom) && (!dateTo || day <= dateTo);
@@ -150,9 +172,14 @@ export default function UsersList() {
     }, [users, keyword, statusFilter, roleFilter, dateFrom, dateTo]);
 
     // Filters hidden behind the "Filters" button, counted for its badge
-    const moreActive = [roleFilter !== 'All', dateFrom !== '', dateTo !== ''].filter(Boolean).length;
+    const moreActive = [roleFilter !== 'All', dateFrom !== '', dateTo !== ''].filter(
+        Boolean,
+    ).length;
     const filtering = keyword !== '' || statusFilter !== 'All' || moreActive > 0;
-    const dateError = dateFrom && dateTo && dateFrom > dateTo ? 'Start date must be on or before the end date' : '';
+    const dateError =
+        dateFrom && dateTo && dateFrom > dateTo
+            ? 'Start date must be on or before the end date'
+            : '';
 
     const clearFilters = () => {
         setKeyword('');
@@ -168,7 +195,8 @@ export default function UsersList() {
             open: true,
             title: deactivating ? 'Deactivate this account?' : 'Activate this account?',
             text: deactivating
-                ? `${user.name} won't be able to log in or use their account until you activate it again.`
+                ? `${user.name} won't be able to log in or use their account ` +
+                  'until you activate it again.'
                 : `${user.name} will be able to log in again.`,
             confirmText: deactivating ? 'Yes, deactivate' : 'Yes, activate',
             onConfirm: () => dispatch(updateUser(user._id, !deactivating)),
@@ -183,7 +211,16 @@ export default function UsersList() {
             minWidth: 260,
             renderCell: (params) => (
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, minWidth: 0 }}>
-                    <Avatar src={params.row.avatar?.url || undefined} sx={{ width: 36, height: 36, bgcolor: '#eceef2', color: 'var(--brand-dark)', fontWeight: 700 }}>
+                    <Avatar
+                        src={params.row.avatar?.url || undefined}
+                        sx={{
+                            width: 36,
+                            height: 36,
+                            bgcolor: '#eceef2',
+                            color: 'var(--brand-dark)',
+                            fontWeight: 700,
+                        }}
+                    >
                         {params.row.name?.[0]?.toUpperCase()}
                     </Avatar>
                     <Box sx={{ minWidth: 0 }}>
@@ -216,7 +253,12 @@ export default function UsersList() {
             width: 130,
             valueGetter: (value, row) => (row.isActive ? 'Active' : 'Deactivated'),
             renderCell: (params) => (
-                <Chip size="small" variant="outlined" label={params.value} color={params.value === 'Active' ? 'success' : 'default'} />
+                <Chip
+                    size="small"
+                    variant="outlined"
+                    label={params.value}
+                    color={params.value === 'Active' ? 'success' : 'default'}
+                />
             ),
         },
         {
@@ -273,21 +315,41 @@ export default function UsersList() {
             filterable: false,
             disableColumnMenu: true,
             renderCell: (params) => (
-                <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', width: '100%' }}>
+                <Box
+                    sx={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'flex-end',
+                        width: '100%',
+                    }}
+                >
                     <Tooltip title="View user">
-                        <IconButton size="small" component={Link} to={`/admin/user/${params.row._id}`} aria-label="View user">
+                        <IconButton
+                            size="small"
+                            component={Link}
+                            to={`/admin/user/${params.row._id}`}
+                            aria-label="View user"
+                        >
                             <VisibilityOutlinedIcon fontSize="small" />
                         </IconButton>
                     </Tooltip>
                     {params.row.role !== 'admin' && (
-                        <Tooltip title={params.row.isActive ? 'Deactivate account' : 'Activate account'}>
+                        <Tooltip
+                            title={params.row.isActive ? 'Deactivate account' : 'Activate account'}
+                        >
                             <IconButton
                                 size="small"
                                 color={params.row.isActive ? 'error' : 'success'}
                                 onClick={() => handleToggle(params.row)}
-                                aria-label={params.row.isActive ? 'Deactivate account' : 'Activate account'}
+                                aria-label={
+                                    params.row.isActive ? 'Deactivate account' : 'Activate account'
+                                }
                             >
-                                {params.row.isActive ? <BlockOutlinedIcon fontSize="small" /> : <CheckCircleOutlinedIcon fontSize="small" />}
+                                {params.row.isActive ? (
+                                    <BlockOutlinedIcon fontSize="small" />
+                                ) : (
+                                    <CheckCircleOutlinedIcon fontSize="small" />
+                                )}
                             </IconButton>
                         </Tooltip>
                     )}
@@ -312,15 +374,44 @@ export default function UsersList() {
 
             {/* KPI cards */}
             <Box className="dash-stats" sx={{ mb: 3 }}>
-                <StatCard label="Total users" value={counts.total} icon={<GroupOutlinedIcon />} loading={initialLoad} />
-                <StatCard label="Active" value={counts.active} icon={<CheckCircleOutlinedIcon />} loading={initialLoad} />
-                <StatCard label="Deactivated" value={counts.deactivated} icon={<PersonOffOutlinedIcon />} loading={initialLoad} />
-                <StatCard label="New this month" value={counts.newThisMonth} icon={<PersonAddAltOutlinedIcon />} loading={initialLoad} />
+                <StatCard
+                    label="Total users"
+                    value={counts.total}
+                    icon={<GroupOutlinedIcon />}
+                    loading={initialLoad}
+                />
+                <StatCard
+                    label="Active"
+                    value={counts.active}
+                    icon={<CheckCircleOutlinedIcon />}
+                    loading={initialLoad}
+                />
+                <StatCard
+                    label="Deactivated"
+                    value={counts.deactivated}
+                    icon={<PersonOffOutlinedIcon />}
+                    loading={initialLoad}
+                />
+                <StatCard
+                    label="New this month"
+                    value={counts.newThisMonth}
+                    icon={<PersonAddAltOutlinedIcon />}
+                    loading={initialLoad}
+                />
             </Box>
 
             {/* Filters + table */}
-            <Box sx={{ border: `1px solid ${BORDER}`, borderRadius: '16px', bgcolor: '#fff', overflow: 'hidden' }}>
-                <Box sx={{ p: 2, display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 1.5 }}>
+            <Box
+                sx={{
+                    border: `1px solid ${BORDER}`,
+                    borderRadius: '16px',
+                    bgcolor: '#fff',
+                    overflow: 'hidden',
+                }}
+            >
+                <Box
+                    sx={{ p: 2, display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 1.5 }}
+                >
                     <TextField
                         size="small"
                         placeholder="Search name or email"
@@ -331,12 +422,20 @@ export default function UsersList() {
                             input: {
                                 startAdornment: (
                                     <InputAdornment position="start">
-                                        <SearchRoundedIcon fontSize="small" sx={{ color: NEUTRAL }} />
+                                        <SearchRoundedIcon
+                                            fontSize="small"
+                                            sx={{ color: NEUTRAL }}
+                                        />
                                     </InputAdornment>
                                 ),
                                 endAdornment: keyword && (
                                     <InputAdornment position="end">
-                                        <IconButton size="small" aria-label="Clear search" onClick={() => setKeyword('')} edge="end">
+                                        <IconButton
+                                            size="small"
+                                            aria-label="Clear search"
+                                            onClick={() => setKeyword('')}
+                                            edge="end"
+                                        >
                                             <CloseRoundedIcon fontSize="small" />
                                         </IconButton>
                                     </InputAdornment>
@@ -361,19 +460,31 @@ export default function UsersList() {
                             color="inherit"
                             startIcon={<TuneRoundedIcon />}
                             onClick={() => setMoreOpen((open) => !open)}
-                            sx={{ borderRadius: '12px', height: 40, color: moreOpen ? undefined : NEUTRAL, fontWeight: 500 }}
+                            sx={{
+                                borderRadius: '12px',
+                                height: 40,
+                                color: moreOpen ? undefined : NEUTRAL,
+                                fontWeight: 500,
+                            }}
                         >
                             Filters
                         </Button>
                     </Badge>
                     {filtering && (
-                        <Button color="inherit" onClick={clearFilters} sx={{ color: NEUTRAL, fontWeight: 500 }}>
+                        <Button
+                            color="inherit"
+                            onClick={clearFilters}
+                            sx={{ color: NEUTRAL, fontWeight: 500 }}
+                        >
                             Clear
                         </Button>
                     )}
                     <Box sx={{ flex: 1 }} />
                     <Typography variant="body2" color="text.secondary">
-                        {filtering ? `${filteredRows.length} of ${users.length}` : `${users.length}`} user
+                        {filtering
+                            ? `${filteredRows.length} of ${users.length}`
+                            : `${users.length}`}{' '}
+                        user
                         {users.length === 1 ? '' : 's'}
                     </Typography>
                 </Box>
@@ -389,7 +500,14 @@ export default function UsersList() {
                             gridTemplateColumns: { xs: 'repeat(2, 1fr)', md: 'repeat(3, 1fr)' },
                         }}
                     >
-                        <TextField select label="Role" size="small" sx={fieldSx} value={roleFilter} onChange={(e) => setRoleFilter(e.target.value)}>
+                        <TextField
+                            select
+                            label="Role"
+                            size="small"
+                            sx={fieldSx}
+                            value={roleFilter}
+                            onChange={(e) => setRoleFilter(e.target.value)}
+                        >
                             <MenuItem value="All">All roles</MenuItem>
                             <MenuItem value="customer">Customers</MenuItem>
                             <MenuItem value="admin">Admins</MenuItem>
@@ -402,7 +520,10 @@ export default function UsersList() {
                             value={dateFrom}
                             error={Boolean(dateError)}
                             onChange={(e) => setDateFrom(e.target.value)}
-                            slotProps={{ inputLabel: { shrink: true }, htmlInput: { max: dateTo || undefined } }}
+                            slotProps={{
+                                inputLabel: { shrink: true },
+                                htmlInput: { max: dateTo || undefined },
+                            }}
                         />
                         <TextField
                             label="Joined to"
@@ -413,7 +534,10 @@ export default function UsersList() {
                             error={Boolean(dateError)}
                             helperText={dateError}
                             onChange={(e) => setDateTo(e.target.value)}
-                            slotProps={{ inputLabel: { shrink: true }, htmlInput: { min: dateFrom || undefined } }}
+                            slotProps={{
+                                inputLabel: { shrink: true },
+                                htmlInput: { min: dateFrom || undefined },
+                            }}
                         />
                     </Box>
                 </Collapse>
@@ -429,7 +553,11 @@ export default function UsersList() {
                     rowHeight={64}
                     pageSizeOptions={[5, 10, 25]}
                     initialState={{ pagination: { paginationModel: { pageSize: 10 } } }}
-                    slots={{ noRowsOverlay: () => <EmptyState filtering={filtering} onClear={clearFilters} /> }}
+                    slots={{
+                        noRowsOverlay: () => (
+                            <EmptyState filtering={filtering} onClear={clearFilters} />
+                        ),
+                    }}
                     sx={{
                         border: 0,
                         borderTop: `1px solid ${BORDER}`,
@@ -438,11 +566,21 @@ export default function UsersList() {
                         '--DataGrid-t-header-background-base': '#fff',
                         '& .MuiDataGrid-columnHeader': { bgcolor: '#fff' },
                         '& .MuiDataGrid-columnHeaders': { borderBottom: `1px solid ${BORDER}` },
-                        '& .MuiDataGrid-columnHeaderTitle': { color: NEUTRAL, fontSize: '0.8rem', fontWeight: 500 },
+                        '& .MuiDataGrid-columnHeaderTitle': {
+                            color: NEUTRAL,
+                            fontSize: '0.8rem',
+                            fontWeight: 500,
+                        },
                         '& .MuiDataGrid-columnSeparator': { display: 'none' },
-                        '& .MuiDataGrid-cell': { display: 'flex', alignItems: 'center', borderColor: '#f0f1f4' },
-                        '& .MuiDataGrid-cell:focus, & .MuiDataGrid-cell:focus-within, & .MuiDataGrid-columnHeader:focus, & .MuiDataGrid-columnHeader:focus-within':
-                            { outline: 'none' },
+                        '& .MuiDataGrid-cell': {
+                            display: 'flex',
+                            alignItems: 'center',
+                            borderColor: '#f0f1f4',
+                        },
+                        ['& .MuiDataGrid-cell:focus, ' +
+                        '& .MuiDataGrid-cell:focus-within, ' +
+                        '& .MuiDataGrid-columnHeader:focus, ' +
+                        '& .MuiDataGrid-columnHeader:focus-within']: { outline: 'none' },
                         '& .MuiDataGrid-row:hover': { bgcolor: '#fafbfc' },
                         '& .MuiDataGrid-footerContainer': { borderColor: BORDER },
                     }}

@@ -1,3 +1,5 @@
+// TTL · Transactions — status chip.
+// Colour-coded badge for an order's Processing/Shipped/Delivered/Cancelled status.
 import { Chip } from '@mui/material';
 
 const COLORS = {

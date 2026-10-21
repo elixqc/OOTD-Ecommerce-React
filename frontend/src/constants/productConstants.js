@@ -1,3 +1,5 @@
+// MP1 · Product CRUD + MP2 · Filters — product action types and shared option lists.
+// CATEGORIES/GENDERS feed the filter drawer and product form; the type constants are used by reducers.
 export const ADMIN_PRODUCTS_REQUEST = 'ADMIN_PRODUCTS_REQUEST';
 export const ADMIN_PRODUCTS_SUCCESS = 'ADMIN_PRODUCTS_SUCCESS';
 export const ADMIN_PRODUCTS_FAIL = 'ADMIN_PRODUCTS_FAIL';
@@ -36,5 +38,6 @@ export const CATEGORIES = ['Tops', 'Bottoms', 'Dresses', 'Outerwear', 'Shoes', '
 export const GENDERS = ['Men', 'Women', 'Unisex'];
 
 export const MAX_IMAGES_PER_COLOR = 5; // must match backend/utils/constants.js
-export const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10 MB picked from the device (it is resized before upload)
+// 10 MB picked from the device (it is resized before upload)
+export const MAX_FILE_SIZE = 10 * 1024 * 1024;
 export const ACCEPTED_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/webp'];

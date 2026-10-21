@@ -1,5 +1,12 @@
+// TTL · Transactions — cart thunks (add, update, remove, stock check).
+// Keeps the cart in localStorage and re-checks stock with /cart/stock-check before checkout.
 import { getColorImageUrl } from '../Utils/productImages';
-import { ADD_TO_CART, REMOVE_FROM_CART, CLEAR_CART, SAVE_SHIPPING_INFO } from '../constants/cartConstants';
+import {
+    ADD_TO_CART,
+    REMOVE_FROM_CART,
+    CLEAR_CART,
+    SAVE_SHIPPING_INFO,
+} from '../constants/cartConstants';
 import api from '../api';
 
 // Guests use 'cartItems'. A logged-in user gets their own key.
@@ -29,9 +36,10 @@ export const addToCart = (product, size, color, quantity) => (dispatch, getState
     const newQuantity = (existing ? existing.quantity : 0) + quantity;
 
     if (newQuantity > variant.stock) {
+        const availableMessage = `Only ${variant.stock} available`;
         return existing
-            ? `Only ${variant.stock} available, and you already have ${existing.quantity} in your cart`
-            : `Only ${variant.stock} available`;
+            ? `${availableMessage}, and you already have ${existing.quantity} in your cart`
+            : availableMessage;
     }
 
     dispatch({
@@ -112,7 +120,14 @@ export const applyStockIssues = (issues) => (dispatch, getState) => {
         if (available <= 0) {
             dispatch({ type: REMOVE_FROM_CART, payload: key });
         } else {
-            dispatch({ type: ADD_TO_CART, payload: { ...item, quantity: Math.min(item.quantity, available), stock: available } });
+            dispatch({
+                type: ADD_TO_CART,
+                payload: {
+                    ...item,
+                    quantity: Math.min(item.quantity, available),
+                    stock: available,
+                },
+            });
         }
     });
     saveCart(getState);
@@ -126,10 +141,17 @@ export const checkCartStock = () => async (dispatch, getState) => {
 
     try {
         const { data } = await api.post('/cart/stock-check', {
-            items: items.map(({ product, size, color, quantity }) => ({ product, size, color, quantity })),
+            items: items.map(({ product, size, color, quantity }) => ({
+                product,
+                size,
+                color,
+                quantity,
+            })),
         });
         const issues = (data.stockIssues || []).map((issue) => {
-            const item = items.find((i) => i.key === getCartKey(issue.product, issue.size, issue.color));
+            const item = items.find(
+                (i) => i.key === getCartKey(issue.product, issue.size, issue.color),
+            );
             return { ...issue, name: item?.name || issue.name };
         });
         if (issues.length > 0) dispatch(applyStockIssues(issues));

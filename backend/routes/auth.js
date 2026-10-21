@@ -1,7 +1,16 @@
+// Q4 · Clerk login — auth endpoints (register, me, update profile, admin users).
+// Wires middlewares/auth.js guards to controllers/auth.js; mounted under /api/v1 by app.js.
 const express = require('express');
 const router = express.Router();
 
-const { registerUser, getMe, updateProfile, allUsers, getUserDetails, updateUser } = require('../controllers/auth');
+const {
+    registerUser,
+    getMe,
+    updateProfile,
+    allUsers,
+    getUserDetails,
+    updateUser,
+} = require('../controllers/auth');
 const { verifyToken, isAuthenticatedUser, authorizeRoles } = require('../middlewares/auth');
 
 const adminOnly = [isAuthenticatedUser, authorizeRoles('admin')];

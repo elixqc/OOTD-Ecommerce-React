@@ -1,3 +1,5 @@
+// TTL · Transactions — admin order detail.
+// Shows one order and offers only the legal next statuses; dispatches updateOrder to change it.
 import { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
@@ -32,7 +34,12 @@ import ConfirmDialog from '../Layout/ConfirmDialog';
 // Same palette as the dashboard, products and orders pages
 const NEUTRAL = '#8a8f98';
 const BORDER = '#eceef2';
-const STATUS_COLORS = { Processing: 'warning', Shipped: 'info', Delivered: 'success', Cancelled: 'error' };
+const STATUS_COLORS = {
+    Processing: 'warning',
+    Shipped: 'info',
+    Delivered: 'success',
+    Cancelled: 'error',
+};
 const STEPS = ['Processing', 'Shipped', 'Delivered'];
 
 // What each next status is called on its button
@@ -46,11 +53,23 @@ const cardSx = { border: `1px solid ${BORDER}`, borderRadius: '16px', bgcolor: '
 
 function SummaryRow({ label, children, bold }) {
     return (
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 2, py: 0.75 }}>
+        <Box
+            sx={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                gap: 2,
+                py: 0.75,
+            }}
+        >
             <Typography variant="body2" color="text.secondary">
                 {label}
             </Typography>
-            <Typography variant="body2" component="div" sx={{ fontWeight: bold ? 700 : 500, fontSize: bold ? '1rem' : undefined }}>
+            <Typography
+                variant="body2"
+                component="div"
+                sx={{ fontWeight: bold ? 700 : 500, fontSize: bold ? '1rem' : undefined }}
+            >
                 {children}
             </Typography>
         </Box>
@@ -63,8 +82,12 @@ export default function ProcessOrder() {
     const [confirm, setConfirm] = useState({ open: false });
     const closeConfirm = () => setConfirm((current) => ({ ...current, open: false }));
     const { order, loading, error } = useSelector((state) => state.orderDetails);
-    const { loading: updating, isUpdated, error: updateError } = useSelector((state) => state.order);
-    
+    const {
+        loading: updating,
+        isUpdated,
+        error: updateError,
+    } = useSelector((state) => state.order);
+
     useEffect(() => {
         dispatch(getOrderDetails(id));
     }, [dispatch, id]);
@@ -93,7 +116,13 @@ export default function ProcessOrder() {
             <>
                 <Skeleton width={260} height={40} sx={{ mb: 3 }} />
                 <Skeleton variant="rounded" height={90} sx={{ mb: 3, borderRadius: '16px' }} />
-                <Box sx={{ display: 'grid', gap: 3, gridTemplateColumns: { xs: '1fr', lg: 'minmax(0,1.8fr) minmax(300px,1fr)' } }}>
+                <Box
+                    sx={{
+                        display: 'grid',
+                        gap: 3,
+                        gridTemplateColumns: { xs: '1fr', lg: 'minmax(0,1.8fr) minmax(300px,1fr)' },
+                    }}
+                >
                     <Skeleton variant="rounded" height={320} sx={{ borderRadius: '16px' }} />
                     <Skeleton variant="rounded" height={320} sx={{ borderRadius: '16px' }} />
                 </Box>
@@ -103,7 +132,9 @@ export default function ProcessOrder() {
 
     if (!order) {
         return (
-            <Box sx={{ minHeight: 300, display: 'grid', placeItems: 'center', textAlign: 'center' }}>
+            <Box
+                sx={{ minHeight: 300, display: 'grid', placeItems: 'center', textAlign: 'center' }}
+            >
                 <Box>
                     <ReceiptLongOutlinedIcon sx={{ fontSize: 40, color: 'text.disabled' }} />
                     <Typography color="text.secondary" sx={{ mt: 0.5 }}>
@@ -122,7 +153,8 @@ export default function ProcessOrder() {
     const nextStatuses = NEXT_ORDER_STATUSES[order.orderStatus] || [];
     const cancelled = order.orderStatus === 'Cancelled';
     // Delivered is the last step, so every step shows as done
-    const activeStep = order.orderStatus === 'Delivered' ? STEPS.length : STEPS.indexOf(order.orderStatus);
+    const activeStep =
+        order.orderStatus === 'Delivered' ? STEPS.length : STEPS.indexOf(order.orderStatus);
     const itemCount = order.orderItems.reduce((sum, i) => sum + i.quantity, 0);
 
     const handleUpdate = (status) => {
@@ -147,22 +179,49 @@ export default function ProcessOrder() {
     return (
         <>
             {/* Title, status and receipt */}
-            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 2, flexWrap: 'wrap', mb: 3 }}>
+            <Box
+                sx={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    gap: 2,
+                    flexWrap: 'wrap',
+                    mb: 3,
+                }}
+            >
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
                     <Tooltip title="Back to orders">
-                        <IconButton component={Link} to="/admin/orders" aria-label="Back to orders" sx={{ border: `1px solid ${BORDER}`, bgcolor: '#fff' }}>
+                        <IconButton
+                            component={Link}
+                            to="/admin/orders"
+                            aria-label="Back to orders"
+                            sx={{ border: `1px solid ${BORDER}`, bgcolor: '#fff' }}
+                        >
                             <ArrowBackRoundedIcon fontSize="small" />
                         </IconButton>
                     </Tooltip>
                     <Box>
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.25, flexWrap: 'wrap' }}>
+                        <Box
+                            sx={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: 1.25,
+                                flexWrap: 'wrap',
+                            }}
+                        >
                             <Typography variant="h5" component="h1" sx={{ fontWeight: 700 }}>
                                 Order {shortOrderId(order._id)}
                             </Typography>
-                            <Chip size="small" variant="outlined" label={order.orderStatus} color={STATUS_COLORS[order.orderStatus] ?? 'default'} />
+                            <Chip
+                                size="small"
+                                variant="outlined"
+                                label={order.orderStatus}
+                                color={STATUS_COLORS[order.orderStatus] ?? 'default'}
+                            />
                         </Box>
                         <Typography variant="body2" color="text.secondary">
-                            Placed on {formatDate(order.createdAt)} · {itemCount} item{itemCount === 1 ? '' : 's'}
+                            Placed on {formatDate(order.createdAt)} · {itemCount} item
+                            {itemCount === 1 ? '' : 's'}
                         </Typography>
                     </Box>
                 </Box>
@@ -208,7 +267,14 @@ export default function ProcessOrder() {
                 )}
             </Box>
 
-            <Box sx={{ display: 'grid', gap: 3, alignItems: 'start', gridTemplateColumns: { xs: '1fr', lg: 'minmax(0,1.8fr) minmax(300px,1fr)' } }}>
+            <Box
+                sx={{
+                    display: 'grid',
+                    gap: 3,
+                    alignItems: 'start',
+                    gridTemplateColumns: { xs: '1fr', lg: 'minmax(0,1.8fr) minmax(300px,1fr)' },
+                }}
+            >
                 {/* Left: items and customer */}
                 <Box sx={{ display: 'grid', gap: 3, minWidth: 0 }}>
                     <Box sx={cardSx}>
@@ -218,21 +284,50 @@ export default function ProcessOrder() {
                         {order.orderItems.map((item) => (
                             <Box
                                 key={`${item.product}|${item.size}|${item.color}`}
-                                sx={{ display: 'flex', alignItems: 'center', gap: 2, py: 1.75, borderBottom: '1px solid #f0f1f4', '&:last-of-type': { borderBottom: 0, pb: 0 } }}
+                                sx={{
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: 2,
+                                    py: 1.75,
+                                    borderBottom: '1px solid #f0f1f4',
+                                    '&:last-of-type': { borderBottom: 0, pb: 0 },
+                                }}
                             >
-                                <Avatar variant="rounded" src={item.image} alt={item.name} sx={{ width: 56, height: 72, borderRadius: '10px', bgcolor: '#f3f3f3', flexShrink: 0 }} />
+                                <Avatar
+                                    variant="rounded"
+                                    src={item.image}
+                                    alt={item.name}
+                                    sx={{
+                                        width: 56,
+                                        height: 72,
+                                        borderRadius: '10px',
+                                        bgcolor: '#f3f3f3',
+                                        flexShrink: 0,
+                                    }}
+                                />
                                 <Box sx={{ flex: 1, minWidth: 0 }}>
                                     <Typography variant="body2" noWrap sx={{ fontWeight: 600 }}>
                                         {item.name}
                                     </Typography>
-                                    <Typography variant="caption" component="p" sx={{ color: NEUTRAL }}>
+                                    <Typography
+                                        variant="caption"
+                                        component="p"
+                                        sx={{ color: NEUTRAL }}
+                                    >
                                         Size: {item.size} · Color: {item.color}
                                     </Typography>
-                                    <Typography variant="caption" component="p" color="text.secondary">
+                                    <Typography
+                                        variant="caption"
+                                        component="p"
+                                        color="text.secondary"
+                                    >
                                         {item.quantity} × {peso(item.price)}
                                     </Typography>
                                 </Box>
-                                <Typography variant="body2" sx={{ fontWeight: 600, whiteSpace: 'nowrap' }}>
+                                <Typography
+                                    variant="body2"
+                                    sx={{ fontWeight: 600, whiteSpace: 'nowrap' }}
+                                >
                                     {peso(item.price * item.quantity)}
                                 </Typography>
                             </Box>
@@ -244,22 +339,40 @@ export default function ProcessOrder() {
                             Customer &amp; shipping
                         </Typography>
                         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 2 }}>
-                            <Avatar sx={{ bgcolor: '#eceef2', color: 'var(--brand-dark)', fontWeight: 700 }}>{customerName[0]}</Avatar>
+                            <Avatar
+                                sx={{
+                                    bgcolor: '#eceef2',
+                                    color: 'var(--brand-dark)',
+                                    fontWeight: 700,
+                                }}
+                            >
+                                {customerName[0]}
+                            </Avatar>
                             <Box sx={{ minWidth: 0 }}>
                                 <Typography variant="body2" noWrap sx={{ fontWeight: 600 }}>
                                     {customerName}
                                 </Typography>
-                                <Typography variant="caption" noWrap component="p" sx={{ color: NEUTRAL }}>
+                                <Typography
+                                    variant="caption"
+                                    noWrap
+                                    component="p"
+                                    sx={{ color: NEUTRAL }}
+                                >
                                     {order.user?.email || '—'}
                                 </Typography>
                             </Box>
                         </Box>
                         <Box sx={{ display: 'flex', gap: 1.5, mb: 1.25 }}>
-                            <LocationOnOutlinedIcon fontSize="small" sx={{ color: NEUTRAL, mt: 0.25 }} />
+                            <LocationOnOutlinedIcon
+                                fontSize="small"
+                                sx={{ color: NEUTRAL, mt: 0.25 }}
+                            />
                             <Typography variant="body2">
                                 {ship.address}
                                 <br />
-                                {[ship.city, ship.region, ship.postalCode, ship.country].filter(Boolean).join(', ')}
+                                {[ship.city, ship.region, ship.postalCode, ship.country]
+                                    .filter(Boolean)
+                                    .join(', ')}
                             </Typography>
                         </Box>
                         <Box sx={{ display: 'flex', gap: 1.5, alignItems: 'center' }}>
@@ -277,12 +390,18 @@ export default function ProcessOrder() {
                         </Typography>
                         {nextStatuses.length === 0 ? (
                             <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
-                                This order is {order.orderStatus.toLowerCase()}, so its status can&apos;t be changed anymore.
+                                This order is {order.orderStatus.toLowerCase()}, so its status
+                                can&apos;t be changed anymore.
                             </Typography>
                         ) : (
                             <>
-                                <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5, mb: 2 }}>
-                                    Currently {order.orderStatus.toLowerCase()}. Choose what happens next.
+                                <Typography
+                                    variant="body2"
+                                    color="text.secondary"
+                                    sx={{ mt: 0.5, mb: 2 }}
+                                >
+                                    Currently {order.orderStatus.toLowerCase()}. Choose what happens
+                                    next.
                                 </Typography>
                                 <Box sx={{ display: 'grid', gap: 1.25 }}>
                                     {nextStatuses.map((status) => {
@@ -305,8 +424,13 @@ export default function ProcessOrder() {
                                         );
                                     })}
                                 </Box>
-                                <Typography variant="caption" component="p" sx={{ color: NEUTRAL, mt: 2 }}>
-                                    The customer is emailed the new status with a PDF receipt. Cancelling puts the items back in stock.
+                                <Typography
+                                    variant="caption"
+                                    component="p"
+                                    sx={{ color: NEUTRAL, mt: 2 }}
+                                >
+                                    The customer is emailed the new status with a PDF receipt.
+                                    Cancelling puts the items back in stock.
                                 </Typography>
                             </>
                         )}
@@ -318,12 +442,23 @@ export default function ProcessOrder() {
                         </Typography>
                         <SummaryRow label="Payment">{order.paymentMethod}</SummaryRow>
                         <SummaryRow label="Payment status">
-                            <Chip size="small" variant="outlined" label={order.isPaid ? 'Paid' : 'Unpaid'} color={order.isPaid ? 'success' : 'default'} />
+                            <Chip
+                                size="small"
+                                variant="outlined"
+                                label={order.isPaid ? 'Paid' : 'Unpaid'}
+                                color={order.isPaid ? 'success' : 'default'}
+                            />
                         </SummaryRow>
-                        {order.deliveredAt && <SummaryRow label="Delivered">{formatDate(order.deliveredAt)}</SummaryRow>}
+                        {order.deliveredAt && (
+                            <SummaryRow label="Delivered">
+                                {formatDate(order.deliveredAt)}
+                            </SummaryRow>
+                        )}
                         <Box sx={{ borderTop: '1px solid #f0f1f4', mt: 1, pt: 1 }}>
                             <SummaryRow label="Items">{peso(order.itemsPrice)}</SummaryRow>
-                            <SummaryRow label="Shipping">{order.shippingPrice === 0 ? 'Free' : peso(order.shippingPrice)}</SummaryRow>
+                            <SummaryRow label="Shipping">
+                                {order.shippingPrice === 0 ? 'Free' : peso(order.shippingPrice)}
+                            </SummaryRow>
                             <SummaryRow label="Total" bold>
                                 {peso(order.totalPrice)}
                             </SummaryRow>

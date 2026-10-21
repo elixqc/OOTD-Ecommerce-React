@@ -1,3 +1,5 @@
+// TTL · Transactions + U1-B · Validation — payment step.
+// COD or a validated card form; places the order via createOrder and redirects to success.
 import { useEffect, useRef, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
@@ -23,10 +25,15 @@ const isFutureExpiry = (value) => {
 };
 
 const cardSchema = Yup.object({
-    cardName: Yup.string().trim().min(2, 'Enter the name on the card').required('Name on card is required'),
+    cardName: Yup.string()
+        .trim()
+        .min(2, 'Enter the name on the card')
+        .required('Name on card is required'),
     cardNumber: Yup.string()
         .required('Card number is required')
-        .test('digits', 'Enter a 16-digit card number', (v) => /^\d{16}$/.test((v || '').replace(/\s/g, ''))),
+        .test('digits', 'Enter a 16-digit card number', (v) =>
+            /^\d{16}$/.test((v || '').replace(/\s/g, '')),
+        ),
     expiry: Yup.string()
         .required('Expiry date is required')
         .test('expiry', 'Enter a future date as MM/YY', isFutureExpiry),
@@ -42,7 +49,8 @@ export default function Payment() {
     const { user } = useSelector((state) => state.auth);
     const { loading, error } = useSelector((state) => state.newOrder);
     const [method, setMethod] = useState(COD);
-    const orderPlaced = useRef(false); // stops the "empty cart" redirect once the order goes through
+    // Stops the "empty cart" redirect once the order goes through
+    const orderPlaced = useRef(false);
 
     const totalPrice = cartItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
 
@@ -64,10 +72,15 @@ export default function Payment() {
         // The server reads names and prices from the database; it only needs these.
         const order = await dispatch(
             createOrder({
-                orderItems: cartItems.map(({ product, size, color, quantity }) => ({ product, size, color, quantity })),
+                orderItems: cartItems.map(({ product, size, color, quantity }) => ({
+                    product,
+                    size,
+                    color,
+                    quantity,
+                })),
                 shippingInfo,
                 paymentMethod: method,
-            })
+            }),
         );
         if (order?.stockIssues) {
             orderPlaced.current = true; // stops the "empty cart" redirect from overriding this one
@@ -119,7 +132,13 @@ export default function Payment() {
                 <div className="review-row">
                     <span className="review-label">Ship to</span>
                     <span className="review-value">
-                        {[shippingInfo.address, shippingInfo.city, shippingInfo.region, shippingInfo.postalCode, shippingInfo.country]
+                        {[
+                            shippingInfo.address,
+                            shippingInfo.city,
+                            shippingInfo.region,
+                            shippingInfo.postalCode,
+                            shippingInfo.country,
+                        ]
                             .filter(Boolean)
                             .join(', ')}
                     </span>
@@ -139,30 +158,48 @@ export default function Payment() {
 
                     <div className="pay-options">
                         <label className={method === COD ? 'pay-option selected' : 'pay-option'}>
-                            <Radio name="method" value={COD} checked={method === COD} onChange={() => chooseMethod(COD)} />
+                            <Radio
+                                name="method"
+                                value={COD}
+                                checked={method === COD}
+                                onChange={() => chooseMethod(COD)}
+                            />
                             <span>Cash on Delivery</span>
                         </label>
                         {method === COD && (
                             <div className="pay-panel">
-                                Pay in cash when your order arrives. Please prepare the exact amount.
+                                Pay in cash when your order arrives. Please prepare the exact
+                                amount.
                             </div>
                         )}
 
                         <label className={method === CARD ? 'pay-option selected' : 'pay-option'}>
-                            <Radio name="method" value={CARD} checked={method === CARD} onChange={() => chooseMethod(CARD)} />
+                            <Radio
+                                name="method"
+                                value={CARD}
+                                checked={method === CARD}
+                                onChange={() => chooseMethod(CARD)}
+                            />
                             <span>Credit / debit card</span>
                         </label>
                         {method === CARD && (
                             <div className="pay-panel">
                                 <span>
-                                    Demo only: no real payment is made, and your card details are not stored or sent anywhere.
+                                    Demo only: no real payment is made, and your card details are
+                                    not stored or sent anywhere.
                                 </span>
-                                <TextField {...field('cardName', 'Name on card', { autoComplete: 'cc-name' })} />
+                                <TextField
+                                    {...field('cardName', 'Name on card', {
+                                        autoComplete: 'cc-name',
+                                    })}
+                                />
                                 <TextField
                                     {...field('cardNumber', 'Card number', {
                                         autoComplete: 'cc-number',
                                         placeholder: '1234 5678 9012 3456',
-                                        slotProps: { htmlInput: { inputMode: 'numeric', maxLength: 19 } },
+                                        slotProps: {
+                                            htmlInput: { inputMode: 'numeric', maxLength: 19 },
+                                        },
                                     })}
                                 />
                                 <div className="checkout-row">
@@ -176,7 +213,9 @@ export default function Payment() {
                                     <TextField
                                         {...field('cvc', 'CVC', {
                                             autoComplete: 'cc-csc',
-                                            slotProps: { htmlInput: { inputMode: 'numeric', maxLength: 4 } },
+                                            slotProps: {
+                                                htmlInput: { inputMode: 'numeric', maxLength: 4 },
+                                            },
                                         })}
                                     />
                                 </div>

@@ -1,3 +1,5 @@
+// MP1 · Product CRUD + MP2 · Filters — picks the cover and gallery images for a product.
+// getCardImages() is used by the catalog card, search overlay and admin lists.
 const sameColor = (a, b) => String(a).trim().toLowerCase() === String(b).trim().toLowerCase();
 
 // Photos for one color. Older products only have shared photos, so fall back to those.
@@ -6,8 +8,8 @@ export const getColorImages = (product, color) => {
     return gallery?.images?.length ? gallery.images : product.images || [];
 };
 
-export const getColorImageUrl = (product, color) => getColorImages(product, color)[0]?.url || product.coverImage || '';
-
+export const getColorImageUrl = (product, color) =>
+    getColorImages(product, color)[0]?.url || product.coverImage || '';
 
 export const getColors = (product) => {
     const seen = new Set();

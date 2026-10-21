@@ -1,3 +1,5 @@
+// TTL · Transactions — review-order step.
+// Shows items, subtotal, shipping and grand total before the customer places the order.
 import { useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
@@ -32,7 +34,13 @@ export default function ConfirmOrder() {
                 <div className="review-row">
                     <span className="review-label">Ship to</span>
                     <span className="review-value">
-                        {[shippingInfo.address, shippingInfo.city, shippingInfo.region, shippingInfo.postalCode, shippingInfo.country]
+                        {[
+                            shippingInfo.address,
+                            shippingInfo.city,
+                            shippingInfo.region,
+                            shippingInfo.postalCode,
+                            shippingInfo.country,
+                        ]
                             .filter(Boolean)
                             .join(', ')}
                     </span>

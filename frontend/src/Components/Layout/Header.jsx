@@ -1,3 +1,5 @@
+// CORE + U2 · UI — storefront top bar.
+// Shows nav, the search trigger and cart/wishlist badges (hidden for admins); links into storefront routes.
 import { useState } from 'react';
 import { Link, NavLink, useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
@@ -56,7 +58,7 @@ const navTextSx = {
     '&::after': {
         content: '""',
         position: 'absolute',
-        left: 10,   // matches px: 1.25 so it lines up with the text
+        left: 10, // matches px: 1.25 so it lines up with the text
         right: 10,
         bottom: 2,
         height: '1px',
@@ -96,8 +98,12 @@ export default function Header() {
 
     const navLinks = [
         { to: '/', label: 'Shop', icon: <StorefrontOutlinedIcon />, end: true },
-        ...(user && !isAdmin ? [{ to: '/orders/me', label: 'My orders', icon: <ReceiptLongOutlinedIcon /> }] : []),
-        ...(isAdmin ? [{ to: '/admin', label: 'Admin dashboard', icon: <DashboardOutlinedIcon /> }] : []),
+        ...(user && !isAdmin
+            ? [{ to: '/orders/me', label: 'My orders', icon: <ReceiptLongOutlinedIcon /> }]
+            : []),
+        ...(isAdmin
+            ? [{ to: '/admin', label: 'Admin dashboard', icon: <DashboardOutlinedIcon /> }]
+            : []),
     ];
 
     const initial = user?.name?.charAt(0).toUpperCase();
@@ -172,18 +178,39 @@ export default function Header() {
                     </Typography>
 
                     {/* Right: cart and account */}
-                    <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 0.5 }}>
+                    <Box
+                        sx={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'flex-end',
+                            gap: 0.5,
+                        }}
+                    >
                         {!isAdmin && (
                             <>
-                                <IconButton color="inherit" aria-label="Search products" onClick={() => setSearchOpen(true)}>
+                                <IconButton
+                                    color="inherit"
+                                    aria-label="Search products"
+                                    onClick={() => setSearchOpen(true)}
+                                >
                                     <SearchIcon />
                                 </IconButton>
-                                <IconButton color="inherit" component={Link} to="/wishlist" aria-label="Wishlist">
+                                <IconButton
+                                    color="inherit"
+                                    component={Link}
+                                    to="/wishlist"
+                                    aria-label="Wishlist"
+                                >
                                     <Badge badgeContent={wishlistCount} max={99} color="secondary">
                                         <FavoriteBorderIcon />
                                     </Badge>
                                 </IconButton>
-                                <IconButton color="inherit" component={Link} to="/cart" aria-label="Shopping cart">
+                                <IconButton
+                                    color="inherit"
+                                    component={Link}
+                                    to="/cart"
+                                    aria-label="Shopping cart"
+                                >
                                     <Badge badgeContent={cartCount} max={99} color="secondary">
                                         <ShoppingBagOutlinedIcon />
                                     </Badge>
@@ -204,7 +231,12 @@ export default function Header() {
                                     <Avatar
                                         src={user.avatar?.url || undefined}
                                         alt={user.name}
-                                        sx={{ width: 30, height: 30, bgcolor: 'primary.main', fontSize: 14 }}
+                                        sx={{
+                                            width: 30,
+                                            height: 30,
+                                            bgcolor: 'primary.main',
+                                            fontSize: 14,
+                                        }}
                                     >
                                         {initial}
                                     </Avatar>
@@ -238,14 +270,22 @@ export default function Header() {
                                         </ListItemIcon>
                                         Edit profile
                                     </MenuItem>
-                                    <MenuItem component={Link} to="/password/update" onClick={closeMenu}>
+                                    <MenuItem
+                                        component={Link}
+                                        to="/password/update"
+                                        onClick={closeMenu}
+                                    >
                                         <ListItemIcon>
                                             <LockOutlinedIcon fontSize="small" />
                                         </ListItemIcon>
                                         Change password
                                     </MenuItem>
                                     {!isAdmin && (
-                                        <MenuItem component={Link} to="/wishlist" onClick={closeMenu}>
+                                        <MenuItem
+                                            component={Link}
+                                            to="/wishlist"
+                                            onClick={closeMenu}
+                                        >
                                             <ListItemIcon>
                                                 <FavoriteBorderIcon fontSize="small" />
                                             </ListItemIcon>
@@ -253,7 +293,11 @@ export default function Header() {
                                         </MenuItem>
                                     )}
                                     {!isAdmin && (
-                                        <MenuItem component={Link} to="/reviews/me" onClick={closeMenu}>
+                                        <MenuItem
+                                            component={Link}
+                                            to="/reviews/me"
+                                            onClick={closeMenu}
+                                        >
                                             <ListItemIcon>
                                                 <RateReviewOutlinedIcon fontSize="small" />
                                             </ListItemIcon>
@@ -261,7 +305,11 @@ export default function Header() {
                                         </MenuItem>
                                     )}
                                     {!isAdmin && (
-                                        <MenuItem component={Link} to="/orders/me" onClick={closeMenu}>
+                                        <MenuItem
+                                            component={Link}
+                                            to="/orders/me"
+                                            onClick={closeMenu}
+                                        >
                                             <ListItemIcon>
                                                 <ReceiptLongOutlinedIcon fontSize="small" />
                                             </ListItemIcon>
@@ -290,7 +338,12 @@ export default function Header() {
                                 <Button component={Link} to="/login" disableRipple sx={navTextSx}>
                                     Login
                                 </Button>
-                                <Button component={Link} to="/register" disableRipple sx={navTextSx}>
+                                <Button
+                                    component={Link}
+                                    to="/register"
+                                    disableRipple
+                                    sx={navTextSx}
+                                >
                                     Register
                                 </Button>
                             </Box>
@@ -303,7 +356,15 @@ export default function Header() {
             {/* Mobile drawer */}
             <Drawer anchor="left" open={drawerOpen} onClose={closeDrawer}>
                 <Box sx={{ width: 280 }} role="presentation">
-                    <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', px: 2, py: 1.5 }}>
+                    <Box
+                        sx={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'space-between',
+                            px: 2,
+                            py: 1.5,
+                        }}
+                    >
                         <Typography variant="h6" className="brand-link" sx={{ fontWeight: 800 }}>
                             OOTD
                             <Box component="span" sx={{ color: 'secondary.main' }}>
@@ -357,7 +418,11 @@ export default function Header() {
                                     </ListItemIcon>
                                     <ListItemText primary="Login" />
                                 </ListItemButton>
-                                <ListItemButton component={Link} to="/register" onClick={closeDrawer}>
+                                <ListItemButton
+                                    component={Link}
+                                    to="/register"
+                                    onClick={closeDrawer}
+                                >
                                     <ListItemIcon>
                                         <PersonAddAltOutlinedIcon />
                                     </ListItemIcon>

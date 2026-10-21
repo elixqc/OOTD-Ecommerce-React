@@ -1,3 +1,5 @@
+// MP1 · Product CRUD — client-side image checks before upload.
+// Used by the admin form and ColorImageUploader to validate/limit the selected files.
 const MAX_EDGE = 1600;
 
 const loadImage = (file) =>

@@ -1,3 +1,5 @@
+// MP3 · Review ratings + U1-B · Validation — write/edit review form.
+// Formik + Yup validated; submits to POST/PUT review and is opened from ProductDetails or MyReviews.
 import { useDispatch } from 'react-redux';
 import { useFormik } from 'formik';
 import * as Yup from 'yup';
@@ -6,11 +8,18 @@ import { submitReview, updateReview } from '../../actions/reviewActions';
 import { notifyError, notifySuccess } from '../../Utils/helpers';
 
 const validationSchema = Yup.object({
-    rating: Yup.number().min(1, 'Please choose a star rating').max(5).required('Please choose a star rating'),
+    rating: Yup.number()
+        .min(1, 'Please choose a star rating')
+        .max(5)
+        .required('Please choose a star rating'),
     comment: Yup.string()
         .trim()
         .max(1000, 'Review cannot exceed 1000 characters')
-        .test('min-length', 'Write at least 3 characters, or leave it empty', (value) => !value || value.length >= 3),
+        .test(
+            'min-length',
+            'Write at least 3 characters, or leave it empty',
+            (value) => !value || value.length >= 3,
+        ),
 });
 
 // Writes a new review, or edits `existing` when it is given
@@ -37,7 +46,7 @@ export default function ReviewForm({ productId, existing, onDone, onCancel }) {
         },
     });
 
-        return (
+    return (
         <Paper
             component="form"
             variant="outlined"
@@ -58,7 +67,9 @@ export default function ReviewForm({ productId, existing, onDone, onCancel }) {
                         value={formik.values.rating}
                         onChange={(e, value) => formik.setFieldValue('rating', value ?? 0)}
                     />
-                    {formik.errors.rating && <FormHelperText error>{formik.errors.rating}</FormHelperText>}
+                    {formik.errors.rating && (
+                        <FormHelperText error>{formik.errors.rating}</FormHelperText>
+                    )}
                 </div>
 
                 <TextField
@@ -75,7 +86,11 @@ export default function ReviewForm({ productId, existing, onDone, onCancel }) {
 
                 <Stack direction="row" spacing={1.5} sx={{ pt: 0.5 }}>
                     <Button type="submit" variant="contained" disabled={formik.isSubmitting}>
-                        {formik.isSubmitting ? 'Saving...' : existing ? 'Save changes' : 'Submit review'}
+                        {formik.isSubmitting
+                            ? 'Saving...'
+                            : existing
+                              ? 'Save changes'
+                              : 'Submit review'}
                     </Button>
                     {onCancel && <Button onClick={onCancel}>Cancel</Button>}
                 </Stack>

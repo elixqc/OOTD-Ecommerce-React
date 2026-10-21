@@ -1,3 +1,5 @@
+// MP3 · Review ratings — review thunks.
+// Loads product reviews/status and submits create/update/delete calls to the review API.
 import api from '../api';
 import { getErrorMessage } from '../Utils/helpers';
 import { getProductDetails } from './productActions';
@@ -123,7 +125,6 @@ export const getMyReviews = () => async (dispatch) => {
         dispatch({ type: MY_REVIEWS_FAIL, payload: getErrorMessage(error) });
     }
 };
-
 
 // The "My reviews" page: the customer's reviews together with the product each one is about
 export const getMyReviewList = () => async (dispatch) => {

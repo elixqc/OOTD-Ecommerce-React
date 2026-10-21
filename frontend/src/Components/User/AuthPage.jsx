@@ -1,3 +1,5 @@
+// Q4 · Clerk login + U2 · UI — shared login/register shell.
+// Hosts Login and Register in one sliding card with the hero photo panel.
 import { useLocation } from 'react-router-dom';
 import { Box, Paper, Typography } from '@mui/material';
 import heroImage from '../../assets/ootd-hero.jpg';
@@ -36,7 +38,9 @@ const panelSx = (active, side) => ({
     pointerEvents: active ? 'auto' : 'none',
     transform: { md: active ? 'translateX(0)' : `translateX(${side === 'left' ? '-14%' : '14%'})` },
     transition: {
-        md: `transform 0.8s ${EASE}, opacity 0.5s ease ${active ? '0.3s' : '0s'}, visibility 0s linear ${active ? '0s' : '0.8s'}`,
+        md:
+            `transform 0.8s ${EASE}, opacity 0.5s ease ${active ? '0.3s' : '0s'}, ` +
+            `visibility 0s linear ${active ? '0s' : '0.8s'}`,
     },
     animation: { xs: active ? `${fadeIn} 0.4s ease` : 'none', md: 'none' },
     [reducedMotion]: { transition: 'none', animation: 'none' },
@@ -65,7 +69,10 @@ export default function AuthPage() {
                 overflow: 'hidden',
                 boxSizing: 'border-box',
                 background:
-                    'radial-gradient(1200px 600px at 10% -10%, rgba(200,85,61,0.16), transparent 60%), radial-gradient(900px 500px at 100% 110%, rgba(31,31,31,0.10), transparent 60%), linear-gradient(180deg, #fbf9f6 0%, #f1ece6 100%)',
+                    'radial-gradient(1200px 600px at 10% -10%, rgba(200,85,61,0.16), ' +
+                    'transparent 60%), radial-gradient(900px 500px at 100% 110%, ' +
+                    'rgba(31,31,31,0.10), transparent 60%), linear-gradient(180deg, ' +
+                    '#fbf9f6 0%, #f1ece6 100%)',
                 // Soft dot grid
                 '&::before': {
                     content: '""',
@@ -74,7 +81,8 @@ export default function AuthPage() {
                     backgroundImage: 'radial-gradient(rgba(31,31,31,0.10) 1px, transparent 1px)',
                     backgroundSize: '22px 22px',
                     maskImage: 'radial-gradient(ellipse at center, #000 30%, transparent 75%)',
-                    WebkitMaskImage: 'radial-gradient(ellipse at center, #000 30%, transparent 75%)',
+                    WebkitMaskImage:
+                        'radial-gradient(ellipse at center, #000 30%, transparent 75%)',
                 },
             }}
         >
@@ -131,7 +139,8 @@ export default function AuthPage() {
                     borderColor: 'rgba(255,255,255,0.7)',
                     bgcolor: 'background.paper',
                     boxShadow:
-                        '0 2px 4px rgba(31,31,31,0.04), 0 12px 24px rgba(31,31,31,0.08), 0 40px 90px rgba(31,31,31,0.18)',
+                        '0 2px 4px rgba(31,31,31,0.04), 0 12px 24px ' +
+                        'rgba(31,31,31,0.08), 0 40px 90px rgba(31,31,31,0.18)',
                 }}
             >
                 <Box sx={panelSx(isLogin, 'left')}>
@@ -141,7 +150,8 @@ export default function AuthPage() {
                     <Register active={!isLogin} />
                 </Box>
 
-                {/* Photo panel: covers the half that isn't in use and glides across when the mode changes */}
+                {/* Photo panel: covers the half that isn't in use and glides across
+                    when the mode changes */}
                 <Box
                     sx={{
                         display: { xs: 'none', md: 'block' },
@@ -175,7 +185,8 @@ export default function AuthPage() {
                             position: 'absolute',
                             inset: 0,
                             background:
-                                'linear-gradient(180deg, rgba(20,20,20,0.55) 0%, rgba(20,20,20,0.15) 40%, rgba(20,20,20,0.85) 100%)',
+                                'linear-gradient(180deg, rgba(20,20,20,0.55) 0%, ' +
+                                'rgba(20,20,20,0.15) 40%, rgba(20,20,20,0.85) 100%)',
                         }}
                     />
 
@@ -195,18 +206,32 @@ export default function AuthPage() {
                         </Typography>
 
                         {/* Keyed so the copy re-enters each time the panel changes sides */}
-                        <Box key={mode} sx={{ animation: `${riseIn} 0.8s ${EASE} 0.35s both`, [reducedMotion]: { animation: 'none' } }}>
-                            <Typography variant="h2" sx={{ fontWeight: 800, lineHeight: 1.05, letterSpacing: '-0.02em' }}>
+                        <Box
+                            key={mode}
+                            sx={{
+                                animation: `${riseIn} 0.8s ${EASE} 0.35s both`,
+                                [reducedMotion]: { animation: 'none' },
+                            }}
+                        >
+                            <Typography
+                                variant="h2"
+                                sx={{ fontWeight: 800, lineHeight: 1.05, letterSpacing: '-0.02em' }}
+                            >
                                 {copy.lines.map((line) => (
                                     <Box component="span" key={line} sx={{ display: 'block' }}>
                                         {line}
                                     </Box>
                                 ))}
-                                <Box component="span" sx={{ display: 'block', color: 'secondary.main' }}>
+                                <Box
+                                    component="span"
+                                    sx={{ display: 'block', color: 'secondary.main' }}
+                                >
                                     {copy.accent}
                                 </Box>
                             </Typography>
-                            <Typography sx={{ mt: 2, maxWidth: 320, opacity: 0.8 }}>{copy.text}</Typography>
+                            <Typography sx={{ mt: 2, maxWidth: 320, opacity: 0.8 }}>
+                                {copy.text}
+                            </Typography>
                         </Box>
                     </Box>
                 </Box>

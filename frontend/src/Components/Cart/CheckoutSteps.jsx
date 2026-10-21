@@ -1,3 +1,5 @@
+// TTL · Transactions + U2 · UI — checkout stepper.
+// Highlights the current step (Shipping → Review → Payment) across the checkout pages.
 import { Step, StepLabel, Stepper } from '@mui/material';
 
 const STEPS = ['Shipping', 'Confirm order', 'Payment', 'Done'];

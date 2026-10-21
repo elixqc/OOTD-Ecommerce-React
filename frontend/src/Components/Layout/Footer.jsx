@@ -1,3 +1,5 @@
+// MP2 · Filters + U2 · UI — storefront footer.
+// Renders category links that navigate to /?category=<name> plus the shared support/legal links.
 import { useEffect, useState } from 'react';
 import { Link as RouterLink } from 'react-router-dom';
 import { useSelector } from 'react-redux';
@@ -6,7 +8,8 @@ import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp';
 import { CATEGORIES } from '../../constants/productConstants';
 
 // Shop links go straight to the shop with that category already filtered.
-// toShop tells the footer not to jump to the top first, because the shop page scrolls to the products itself.
+// toShop tells the footer not to jump to the top first, because the shop page
+// scrolls to the products itself.
 const shopColumn = {
     title: 'Shop',
     links: [
@@ -119,12 +122,23 @@ function ScrollTopButton() {
     return (
         <Box
             className={visible ? 'scroll-top scroll-top-visible' : 'scroll-top'}
-            sx={{ position: 'fixed', right: { xs: 16, md: 24 }, bottom: { xs: 16, md: 24 }, zIndex: 1000 }}
+            sx={{
+                position: 'fixed',
+                right: { xs: 16, md: 24 },
+                bottom: { xs: 16, md: 24 },
+                zIndex: 1000,
+            }}
         >
             <IconButton
                 aria-label="Back to top"
                 onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-                sx={{ width: 48, height: 48, bgcolor: '#000', color: '#fff', '&:hover': { bgcolor: '#333' } }}
+                sx={{
+                    width: 48,
+                    height: 48,
+                    bgcolor: '#000',
+                    color: '#fff',
+                    '&:hover': { bgcolor: '#333' },
+                }}
             >
                 <KeyboardArrowUpIcon />
             </IconButton>
@@ -148,7 +162,10 @@ export default function Footer() {
                 sx={{
                     display: 'grid',
                     gap: { xs: 4, md: 6 },
-                    gridTemplateColumns: { xs: '1fr 1fr', md: `1.6fr repeat(${columns.length}, 1fr)` },
+                    gridTemplateColumns: {
+                        xs: '1fr 1fr',
+                        md: `1.6fr repeat(${columns.length}, 1fr)`,
+                    },
                     px: { xs: 3, sm: 6, md: 10 },
                     pt: { xs: 5, md: 7 },
                     pb: { xs: 4, md: 6 },
@@ -177,11 +194,27 @@ export default function Footer() {
                         {badge && <span className="footer-badge">{badge}</span>}
                     </Stack>
                     {slogan && (
-                        <Typography sx={{ mt: 2.5, fontSize: 20, fontWeight: 700, letterSpacing: '1.5px', color: '#1a1a1a' }}>
+                        <Typography
+                            sx={{
+                                mt: 2.5,
+                                fontSize: 20,
+                                fontWeight: 700,
+                                letterSpacing: '1.5px',
+                                color: '#1a1a1a',
+                            }}
+                        >
                             {slogan}
                         </Typography>
                     )}
-                    <Typography sx={{ mt: slogan ? 1 : 2, maxWidth: 300, fontSize: 14, lineHeight: 1.6, color: '#666' }}>
+                    <Typography
+                        sx={{
+                            mt: slogan ? 1 : 2,
+                            maxWidth: 300,
+                            fontSize: 14,
+                            lineHeight: 1.6,
+                            color: '#666',
+                        }}
+                    >
                         {tagline}
                     </Typography>
                 </Box>

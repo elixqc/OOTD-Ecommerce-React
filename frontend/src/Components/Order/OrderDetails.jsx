@@ -1,3 +1,5 @@
+// TTL · Transactions — single order page.
+// Shows one order, its items/totals/status and the downloadable PDF receipt.
 import { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
@@ -83,7 +85,12 @@ export default function OrderDetails() {
 
             <OrderInfo order={order} itemAction={reviewButton} />
 
-            <Dialog open={Boolean(reviewing)} onClose={() => setReviewing(null)} fullWidth maxWidth="sm">
+            <Dialog
+                open={Boolean(reviewing)}
+                onClose={() => setReviewing(null)}
+                fullWidth
+                maxWidth="sm"
+            >
                 <DialogContent>
                     {reviewing && (
                         <>

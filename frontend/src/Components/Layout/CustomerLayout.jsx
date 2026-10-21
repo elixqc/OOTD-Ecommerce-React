@@ -1,3 +1,5 @@
+// CORE + U2 · UI — storefront shell.
+// Wraps the public/customer routes with the header and footer via <Outlet/>.
 import { Outlet, useLocation } from 'react-router-dom';
 import Header from './Header';
 import Footer from './Footer';

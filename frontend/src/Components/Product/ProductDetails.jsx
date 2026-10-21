@@ -1,3 +1,5 @@
+// MP3 · Review ratings — product detail page.
+// Shows variants/images, the write/edit-review entry point and rating/review filters for the review list.
 import { useEffect, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
@@ -35,7 +37,12 @@ const VISIBLE_COLORS = 6;
 
 // One color tile: a photo of that color, crossed out when it can't be bought
 function ColorOption({ product, name, selected, unavailable, onSelect, showName = false }) {
-    const classes = ['color-option', selected && 'selected', unavailable && 'cross-out', showName && 'with-name'];
+    const classes = [
+        'color-option',
+        selected && 'selected',
+        unavailable && 'cross-out',
+        showName && 'with-name',
+    ];
 
     return (
         <button
@@ -67,7 +74,9 @@ function InfoSection({ title, children }) {
             square
             className="info-section"
         >
-            <AccordionSummary expandIcon={open ? <RemoveIcon fontSize="small" /> : <AddIcon fontSize="small" />}>
+            <AccordionSummary
+                expandIcon={open ? <RemoveIcon fontSize="small" /> : <AddIcon fontSize="small" />}
+            >
                 <Typography className="info-section-title">{title}</Typography>
             </AccordionSummary>
             <AccordionDetails>{children}</AccordionDetails>
@@ -87,27 +96,59 @@ function ProductDetailsSkeleton() {
                     <Skeleton
                         variant="rounded"
                         animation="wave"
-                        sx={{ width: '100%', height: 'auto', aspectRatio: '1 / 1', borderRadius: '8px' }}
+                        sx={{
+                            width: '100%',
+                            height: 'auto',
+                            aspectRatio: '1 / 1',
+                            borderRadius: '8px',
+                        }}
                     />
                     <div className="product-thumbs">
                         {[0, 1, 2, 3].map((i) => (
-                            <Skeleton key={i} variant="rounded" animation="wave" width={72} height={72} />
+                            <Skeleton
+                                key={i}
+                                variant="rounded"
+                                animation="wave"
+                                width={72}
+                                height={72}
+                            />
                         ))}
                     </div>
                 </div>
 
                 {/* Info */}
                 <div className="product-info">
-                    <Skeleton variant="text" animation="wave" width={90} sx={{ fontSize: '0.875rem' }} />
-                    <Skeleton variant="text" animation="wave" width="75%" sx={{ fontSize: '2.125rem' }} />
+                    <Skeleton
+                        variant="text"
+                        animation="wave"
+                        width={90}
+                        sx={{ fontSize: '0.875rem' }}
+                    />
+                    <Skeleton
+                        variant="text"
+                        animation="wave"
+                        width="75%"
+                        sx={{ fontSize: '2.125rem' }}
+                    />
                     <Skeleton variant="text" animation="wave" width={170} />
-                    <Skeleton variant="text" animation="wave" width={110} sx={{ fontSize: '1.5rem' }} />
+                    <Skeleton
+                        variant="text"
+                        animation="wave"
+                        width={110}
+                        sx={{ fontSize: '1.5rem' }}
+                    />
 
                     <div className="option-group">
                         <Skeleton variant="text" animation="wave" width={40} />
                         <Stack direction="row" spacing={1}>
                             {[0, 1, 2, 3, 4].map((i) => (
-                                <Skeleton key={i} variant="rounded" animation="wave" width={35} height={29} />
+                                <Skeleton
+                                    key={i}
+                                    variant="rounded"
+                                    animation="wave"
+                                    width={35}
+                                    height={29}
+                                />
                             ))}
                         </Stack>
                     </div>
@@ -116,12 +157,24 @@ function ProductDetailsSkeleton() {
                         <Skeleton variant="text" animation="wave" width={140} />
                         <div className="color-options">
                             {[0, 1, 2, 3, 4, 5].map((i) => (
-                                <Skeleton key={i} variant="rounded" animation="wave" width={64} height={64} />
+                                <Skeleton
+                                    key={i}
+                                    variant="rounded"
+                                    animation="wave"
+                                    width={64}
+                                    height={64}
+                                />
                             ))}
                         </div>
                     </div>
 
-                    <Skeleton variant="rounded" animation="wave" width={80} height={24} sx={{ borderRadius: 99 }} />
+                    <Skeleton
+                        variant="rounded"
+                        animation="wave"
+                        width={80}
+                        height={24}
+                        sx={{ borderRadius: 99 }}
+                    />
 
                     <div className="option-group">
                         <Skeleton variant="text" animation="wave" width={60} />
@@ -140,7 +193,12 @@ function ProductDetailsSkeleton() {
 
             {/* Related products */}
             <section className="related-products">
-                <Skeleton variant="text" animation="wave" width={220} sx={{ fontSize: '1.5rem', mb: 1 }} />
+                <Skeleton
+                    variant="text"
+                    animation="wave"
+                    width={220}
+                    sx={{ fontSize: '1.5rem', mb: 1 }}
+                />
                 <div className="product-grid">
                     {[0, 1, 2, 3].map((i) => (
                         <div key={i}>
@@ -159,7 +217,8 @@ function ProductDetailsSkeleton() {
     );
 }
 
-// Separate component so the selected image, size, color, and quantity reset whenever the product changes
+// Separate component so the selected image, size, color, and quantity reset
+// whenever the product changes
 function ProductInfo({ product }) {
     const dispatch = useDispatch();
     const [confirm, setConfirm] = useState({ open: false });
@@ -202,7 +261,6 @@ function ProductInfo({ product }) {
 
     // Each color has its own photos. Picking a color swaps the whole gallery.
     const images = getColorImages(product, color);
-    
 
     // Load the first photo of every color up front so switching colors feels instant
     useEffect(() => {
@@ -212,15 +270,19 @@ function ProductInfo({ product }) {
         });
     }, [product]);
 
-    // Unavailable options stay clickable so shoppers can still look at them, but they are crossed out
-    // and "Add to cart" is disabled. A color is unavailable in the chosen size, a size in the chosen color.
-    const inStock = (s, c) => product.variants.some((v) => v.size === s && v.color === c && v.stock > 0);
+    // Unavailable options stay clickable so shoppers can still look at them, but
+    // they are crossed out, and "Add to cart" is disabled. A color is unavailable
+    // in the chosen size, a size in the chosen color.
+    const inStock = (s, c) =>
+        product.variants.some((v) => v.size === s && v.color === c && v.stock > 0);
     const colorUnavailable = (c) => !inStock(size, c);
     const sizeUnavailable = (s) => !inStock(s, color);
 
-    // First six colors in the row; the rest are in the side panel. The chosen color is always visible.
+    // First six colors in the row; the rest are in the side panel. The chosen
+    // color is always visible.
     let visibleColors = colorNames.slice(0, VISIBLE_COLORS);
-    if (!visibleColors.includes(color)) visibleColors = [...visibleColors.slice(0, VISIBLE_COLORS - 1), color];
+    if (!visibleColors.includes(color))
+        visibleColors = [...visibleColors.slice(0, VISIBLE_COLORS - 1), color];
     const hasMoreColors = colorNames.length > VISIBLE_COLORS;
 
     const showPhoto = (index) => setActiveImage((index + images.length) % images.length);
@@ -267,121 +329,255 @@ function ProductInfo({ product }) {
 
     return (
         <>
-        <div className="product-detail">
-            <div className="product-gallery">
-                <div className="product-gallery-frame">
-                    <div className="gallery-viewport">
-                        <div
-                            key={color}
-                            className="gallery-track"
-                            style={{ transform: `translateX(-${activeImage * 100}%)` }}
-                        >
+            <div className="product-detail">
+                <div className="product-gallery">
+                    <div className="product-gallery-frame">
+                        <div className="gallery-viewport">
+                            <div
+                                key={color}
+                                className="gallery-track"
+                                style={{ transform: `translateX(-${activeImage * 100}%)` }}
+                            >
+                                {images.map((img, index) => (
+                                    <img
+                                        key={img.public_id}
+                                        src={img.url}
+                                        alt={`${product.name} in ${color} ${index + 1}`}
+                                        className="product-gallery-main"
+                                        draggable={false}
+                                    />
+                                ))}
+                            </div>
+                        </div>
+                        {images.length > 1 && (
+                            <>
+                                <IconButton
+                                    className="gallery-arrow gallery-arrow-left"
+                                    aria-label="Previous photo"
+                                    onClick={() => showPhoto(activeImage - 1)}
+                                >
+                                    <ChevronLeftIcon />
+                                </IconButton>
+                                <IconButton
+                                    className="gallery-arrow gallery-arrow-right"
+                                    aria-label="Next photo"
+                                    onClick={() => showPhoto(activeImage + 1)}
+                                >
+                                    <ChevronRightIcon />
+                                </IconButton>
+                                <span className="gallery-counter">
+                                    {activeImage + 1} / {images.length}
+                                </span>
+                            </>
+                        )}
+                    </div>
+                    {images.length > 1 && (
+                        <div className="product-thumbs">
                             {images.map((img, index) => (
                                 <img
                                     key={img.public_id}
                                     src={img.url}
-                                    alt={`${product.name} in ${color} ${index + 1}`}
-                                    className="product-gallery-main"
-                                    draggable={false}
+                                    alt={`${product.name} ${color} ${index + 1}`}
+                                    className={
+                                        index === activeImage
+                                            ? 'product-thumb active'
+                                            : 'product-thumb'
+                                    }
+                                    onClick={() => setActiveImage(index)}
                                 />
                             ))}
                         </div>
-                    </div>
-                    {images.length > 1 && (
-                        <>
-                            <IconButton
-                                className="gallery-arrow gallery-arrow-left"
-                                aria-label="Previous photo"
-                                onClick={() => showPhoto(activeImage - 1)}
-                            >
-                                <ChevronLeftIcon />
-                            </IconButton>
-                            <IconButton
-                                className="gallery-arrow gallery-arrow-right"
-                                aria-label="Next photo"
-                                onClick={() => showPhoto(activeImage + 1)}
-                            >
-                                <ChevronRightIcon />
-                            </IconButton>
-                            <span className="gallery-counter">
-                                {activeImage + 1} / {images.length}
-                            </span>
-                        </>
                     )}
                 </div>
-                {images.length > 1 && (
-                    <div className="product-thumbs">
-                        {images.map((img, index) => (
-                            <img
-                                key={img.public_id}
-                                src={img.url}
-                                alt={`${product.name} ${color} ${index + 1}`}
-                                className={index === activeImage ? 'product-thumb active' : 'product-thumb'}
-                                onClick={() => setActiveImage(index)}
-                            />
-                        ))}
+
+                <div className="product-info">
+                    <Typography variant="body2" color="text.secondary">
+                        {product.brand || product.category}
+                    </Typography>
+                    <div className="product-title-row">
+                        <Typography variant="h4" component="h1">
+                            {product.name}
+                        </Typography>
+                        {stockLabel}
                     </div>
-                )}
+
+                    <div className="product-rating">
+                        <Rating value={product.ratings} precision={0.5} size="small" readOnly />
+                        <Typography variant="body2">
+                            {product.numOfReviews} review{product.numOfReviews === 1 ? '' : 's'}
+                        </Typography>
+                    </div>
+
+                    <Typography variant="h5">₱{product.price.toLocaleString()}</Typography>
+
+                    <div className="option-group">
+                        <Typography variant="subtitle2">Size</Typography>
+                        <Stack direction="row" useFlexGap spacing={1} sx={{ flexWrap: 'wrap' }}>
+                            {sizes.map((s) => (
+                                <ToggleButton
+                                    key={s}
+                                    value={s}
+                                    selected={s === size}
+                                    onChange={() => handleSize(s)}
+                                    className={sizeUnavailable(s) ? 'cross-out' : undefined}
+                                    sx={{
+                                        minWidth: 35,
+                                        height: 29,
+                                        px: 1,
+                                        fontSize: '0.8rem',
+                                        fontWeight: 400,
+                                        borderRadius: '6px',
+                                        border: '1px solid #d4d4d4',
+                                        color: 'var(--brand-dark)',
+                                        textTransform: 'none',
+                                        '&:hover': {
+                                            borderColor: 'var(--brand-dark)',
+                                            bgcolor: '#fff',
+                                        },
+                                        '&.Mui-selected, &.Mui-selected:hover': {
+                                            bgcolor: 'var(--brand-dark)',
+                                            borderColor: 'var(--brand-dark)',
+                                            color: '#fff',
+                                        },
+                                    }}
+                                >
+                                    {s}
+                                </ToggleButton>
+                            ))}
+                        </Stack>
+                    </div>
+
+                    <div className="option-group">
+                        <Typography variant="subtitle2">Select color: {color}</Typography>
+                        <div className="color-options">
+                            {visibleColors.map((name) => (
+                                <ColorOption
+                                    key={name}
+                                    product={product}
+                                    name={name}
+                                    selected={name === color}
+                                    unavailable={colorUnavailable(name)}
+                                    onSelect={handleColor}
+                                />
+                            ))}
+                        </div>
+                        {hasMoreColors && (
+                            <button
+                                type="button"
+                                className="more-colors"
+                                onClick={() => setColorsOpen(true)}
+                            >
+                                More colours <ChevronRightIcon fontSize="small" />
+                            </button>
+                        )}
+                    </div>
+
+                    {isAdmin ? (
+                        <div className="admin-product-actions">
+                            <Button
+                                variant="contained"
+                                size="large"
+                                fullWidth
+                                component={Link}
+                                to={`/admin/product/${product._id}`}
+                                startIcon={<EditOutlinedIcon />}
+                                className="admin-btn admin-btn-primary"
+                            >
+                                Edit product
+                            </Button>
+                            <Button
+                                variant="outlined"
+                                size="large"
+                                fullWidth
+                                startIcon={<DeleteOutlinedIcon />}
+                                onClick={handleDelete}
+                                disabled={deleting}
+                                className="admin-btn admin-btn-danger"
+                            >
+                                {deleting ? 'Deleting...' : 'Delete product'}
+                            </Button>
+                        </div>
+                    ) : (
+                        <>
+                            <div className="option-group">
+                                <Typography variant="body2">Quantity:</Typography>
+                                <div className="qty-control">
+                                    <IconButton
+                                        size="small"
+                                        aria-label="Decrease quantity"
+                                        onClick={() => setQuantity((q) => q - 1)}
+                                        disabled={quantity <= 1}
+                                    >
+                                        <RemoveIcon />
+                                    </IconButton>
+                                    <span className="qty-value">{quantity}</span>
+                                    <IconButton
+                                        size="small"
+                                        aria-label="Increase quantity"
+                                        onClick={() => setQuantity((q) => q + 1)}
+                                        disabled={outOfStock || quantity >= selected.stock}
+                                    >
+                                        <AddIcon />
+                                    </IconButton>
+                                </div>
+                            </div>
+
+                            <div className="add-to-cart-row">
+                                <Button
+                                    variant="contained"
+                                    size="large"
+                                    className="add-to-cart"
+                                    onClick={handleAddToCart}
+                                    disabled={outOfStock}
+                                >
+                                    {outOfStock ? 'Out of stock' : 'Add to cart'}
+                                </Button>
+                                <WishlistButton product={product} variant="detail" />
+                            </div>
+                        </>
+                    )}
+
+                    <div className="info-sections">
+                        <InfoSection title="Product description">
+                            <p className="product-description">{product.description}</p>
+                        </InfoSection>
+
+                        <InfoSection title="Product details">
+                            <ul className="product-meta">
+                                <li>Category: {product.category}</li>
+                                <li>Gender: {product.gender}</li>
+                                {product.material && <li>Material: {product.material}</li>}
+                            </ul>
+                        </InfoSection>
+
+                        <InfoSection title="Delivery & returns">
+                            <ul className="product-meta">
+                                <li>Standard delivery is free on every order.</li>
+                                <li>Pay with Cash on Delivery or by card at checkout.</li>
+                                <li>
+                                    We email you a receipt, and again each time your order status
+                                    changes.
+                                </li>
+                                <li>
+                                    Need to return or exchange something? Message us with your order
+                                    number and we'll sort it out.
+                                </li>
+                            </ul>
+                        </InfoSection>
+                    </div>
+                </div>
             </div>
 
-            <div className="product-info">
-                <Typography variant="body2" color="text.secondary">
-                    {product.brand || product.category}
-                </Typography>
-                <div className="product-title-row">
-                    <Typography variant="h4" component="h1">
-                        {product.name}
-                    </Typography>
-                    {stockLabel}
-                </div>
-
-                <div className="product-rating">
-                    <Rating value={product.ratings} precision={0.5} size="small" readOnly />
-                    <Typography variant="body2">
-                        {product.numOfReviews} review{product.numOfReviews === 1 ? '' : 's'}
-                    </Typography>
-                </div>
-
-                <Typography variant="h5">₱{product.price.toLocaleString()}</Typography>
-
-                <div className="option-group">
-                    <Typography variant="subtitle2">Size</Typography>
-                    <Stack direction="row" useFlexGap spacing={1} sx={{ flexWrap: 'wrap' }}>
-                        {sizes.map((s) => (
-                            <ToggleButton
-                                key={s}
-                                value={s}
-                                selected={s === size}
-                                onChange={() => handleSize(s)}
-                                className={sizeUnavailable(s) ? 'cross-out' : undefined}
-                                sx={{
-                                    minWidth: 35,
-                                    height: 29,
-                                    px: 1,
-                                    fontSize: '0.8rem',
-                                    fontWeight: 400,
-                                    borderRadius: '6px',
-                                    border: '1px solid #d4d4d4',
-                                    color: 'var(--brand-dark)',
-                                    textTransform: 'none',
-                                    '&:hover': { borderColor: 'var(--brand-dark)', bgcolor: '#fff' },
-                                    '&.Mui-selected, &.Mui-selected:hover': {
-                                        bgcolor: 'var(--brand-dark)',
-                                        borderColor: 'var(--brand-dark)',
-                                        color: '#fff',
-                                    },
-                                }}
-                            >
-                                {s}
-                            </ToggleButton>
-                        ))}
-                    </Stack>
-                </div>
-
-                <div className="option-group">
-                    <Typography variant="subtitle2">Select color: {color}</Typography>
-                    <div className="color-options">
-                        {visibleColors.map((name) => (
+            <Drawer anchor="right" open={colorsOpen} onClose={() => setColorsOpen(false)}>
+                <div className="color-drawer">
+                    <div className="color-drawer-header">
+                        <Typography variant="subtitle2">SELECT COLOR</Typography>
+                        <IconButton aria-label="Close" onClick={() => setColorsOpen(false)}>
+                            <CloseIcon />
+                        </IconButton>
+                    </div>
+                    <div className="color-drawer-grid">
+                        {colorNames.map((name) => (
                             <ColorOption
                                 key={name}
                                 product={product}
@@ -389,132 +585,13 @@ function ProductInfo({ product }) {
                                 selected={name === color}
                                 unavailable={colorUnavailable(name)}
                                 onSelect={handleColor}
+                                showName
                             />
                         ))}
                     </div>
-                    {hasMoreColors && (
-                        <button type="button" className="more-colors" onClick={() => setColorsOpen(true)}>
-                            More colours <ChevronRightIcon fontSize="small" />
-                        </button>
-                    )}
                 </div>
-
-            
-
-                {isAdmin ? (
-                    <div className="admin-product-actions">
-                        <Button
-                            variant="contained"
-                            size="large"
-                            fullWidth
-                            component={Link}
-                            to={`/admin/product/${product._id}`}
-                            startIcon={<EditOutlinedIcon />}
-                            className="admin-btn admin-btn-primary"
-                        >
-                            Edit product
-                        </Button>
-                        <Button
-                            variant="outlined"
-                            size="large"
-                            fullWidth
-                            startIcon={<DeleteOutlinedIcon />}
-                            onClick={handleDelete}
-                            disabled={deleting}
-                            className="admin-btn admin-btn-danger"
-                        >
-                            {deleting ? 'Deleting...' : 'Delete product'}
-                        </Button>
-                    </div>
-                ) : (
-                    <>
-                        <div className="option-group">
-                            <Typography variant="body2">Quantity:</Typography>
-                            <div className="qty-control">
-                                <IconButton
-                                    size="small"
-                                    aria-label="Decrease quantity"
-                                    onClick={() => setQuantity((q) => q - 1)}
-                                    disabled={quantity <= 1}
-                                >
-                                    <RemoveIcon />
-                                </IconButton>
-                                <span className="qty-value">{quantity}</span>
-                                <IconButton
-                                    size="small"
-                                    aria-label="Increase quantity"
-                                    onClick={() => setQuantity((q) => q + 1)}
-                                    disabled={outOfStock || quantity >= selected.stock}
-                                >
-                                    <AddIcon />
-                                </IconButton>
-                            </div>
-                        </div>
-
-                        <div className="add-to-cart-row">
-                            <Button
-                                variant="contained"
-                                size="large"
-                                className="add-to-cart"
-                                onClick={handleAddToCart}
-                                disabled={outOfStock}
-                            >
-                                {outOfStock ? 'Out of stock' : 'Add to cart'}
-                            </Button>
-                            <WishlistButton product={product} variant="detail" />
-                        </div>
-                    </>
-                )}
-
-                <div className="info-sections">
-                    <InfoSection title="Product description">
-                        <p className="product-description">{product.description}</p>
-                    </InfoSection>
-
-                    <InfoSection title="Product details">
-                        <ul className="product-meta">
-                            <li>Category: {product.category}</li>
-                            <li>Gender: {product.gender}</li>
-                            {product.material && <li>Material: {product.material}</li>}
-                        </ul>
-                    </InfoSection>
-
-                    <InfoSection title="Delivery & returns">
-                        <ul className="product-meta">
-                            <li>Standard delivery is free on every order.</li>
-                            <li>Pay with Cash on Delivery or by card at checkout.</li>
-                            <li>We email you a receipt, and again each time your order status changes.</li>
-                            <li>Need to return or exchange something? Message us with your order number and we'll sort it out.</li>
-                        </ul>
-                    </InfoSection>
-                </div>
-            </div>
-        </div>
-
-        <Drawer anchor="right" open={colorsOpen} onClose={() => setColorsOpen(false)}>
-            <div className="color-drawer">
-                <div className="color-drawer-header">
-                    <Typography variant="subtitle2">SELECT COLOR</Typography>
-                    <IconButton aria-label="Close" onClick={() => setColorsOpen(false)}>
-                        <CloseIcon />
-                    </IconButton>
-                </div>
-                <div className="color-drawer-grid">
-                    {colorNames.map((name) => (
-                        <ColorOption
-                            key={name}
-                            product={product}
-                            name={name}
-                            selected={name === color}
-                            unavailable={colorUnavailable(name)}
-                            onSelect={handleColor}
-                            showName
-                        />
-                    ))}
-                </div>
-            </div>
-        </Drawer>
-        <ConfirmDialog {...confirm} onClose={closeConfirm} />
+            </Drawer>
+            <ConfirmDialog {...confirm} onClose={closeConfirm} />
         </>
     );
 }

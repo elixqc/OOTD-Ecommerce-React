@@ -1,3 +1,5 @@
+// EXTRA · Search overlay — live product search drawer.
+// Debounces /products as you type and navigates to /?q=<term> on submit; keeps recent searches.
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Box, CircularProgress, Drawer, IconButton, InputBase, Typography } from '@mui/material';
@@ -49,24 +51,30 @@ const buildSuggestions = (products, query) => {
     };
 
     products.forEach((product) => {
-        [product.name, product.brand, product.category, product.gender].forEach((field, fieldIndex) => {
-            if (!field) return;
-            const lower = field.toLowerCase();
-            const at = lower.indexOf(q);
+        [product.name, product.brand, product.category, product.gender].forEach(
+            (field, fieldIndex) => {
+                if (!field) return;
+                const lower = field.toLowerCase();
+                const at = lower.indexOf(q);
 
-            if (at >= 0) {
-                const atWordStart = at === 0 || lower[at - 1] === ' ';
-                const wordEnd = lower.indexOf(' ', at + q.length);
-                const completion = field.slice(at, wordEnd === -1 ? field.length : wordEnd);
-                add(completion, (at === 0 ? 0 : atWordStart ? 1 : 3) + fieldIndex * 0.1);
-            }
+                if (at >= 0) {
+                    const atWordStart = at === 0 || lower[at - 1] === ' ';
+                    const wordEnd = lower.indexOf(' ', at + q.length);
+                    const completion = field.slice(at, wordEnd === -1 ? field.length : wordEnd);
+                    add(completion, (at === 0 ? 0 : atWordStart ? 1 : 3) + fieldIndex * 0.1);
+                }
 
-            // Whole product name, when every typed word starts a word in it ("black tee" finds "Tee - Black")
-            const nameWords = lower.split(/[\s-]+/);
-            if (fieldIndex === 0 && tokens.every((token) => nameWords.some((word) => word.startsWith(token)))) {
-                add(field, at === 0 ? 2 : 4);
-            }
-        });
+                // Whole product name, when every typed word starts a word in it
+                // ("black tee" finds "Tee - Black")
+                const nameWords = lower.split(/[\s-]+/);
+                if (
+                    fieldIndex === 0 &&
+                    tokens.every((token) => nameWords.some((word) => word.startsWith(token)))
+                ) {
+                    add(field, at === 0 ? 2 : 4);
+                }
+            },
+        );
     });
 
     return [...found.values()]
@@ -126,7 +134,8 @@ function SearchPanel({ onClose, inputRef }) {
 
     const q = query.trim();
 
-    // Ask the shop for matches shortly after typing stops. An older answer never replaces a newer one.
+    // Ask the shop for matches shortly after typing stops.
+    // An older answer never replaces a newer one.
     useEffect(() => {
         if (!q) return undefined;
         const controller = new AbortController();
@@ -170,7 +179,10 @@ function SearchPanel({ onClose, inputRef }) {
     const search = (text) => {
         const term = text.trim();
         if (!term) return;
-        const next = [term, ...recent.filter((t) => t.toLowerCase() !== term.toLowerCase())].slice(0, MAX_RECENT);
+        const next = [term, ...recent.filter((t) => t.toLowerCase() !== term.toLowerCase())].slice(
+            0,
+            MAX_RECENT,
+        );
         setRecent(next);
         writeRecent(next);
         navigate(`/?q=${encodeURIComponent(term)}`);
@@ -244,15 +256,27 @@ function SearchPanel({ onClose, inputRef }) {
                         role: 'combobox',
                         'aria-expanded': items.length > 0,
                         'aria-controls': 'search-results',
-                        'aria-activedescendant': current >= 0 ? `search-item-${current}` : undefined,
+                        'aria-activedescendant':
+                            current >= 0 ? `search-item-${current}` : undefined,
                         autoComplete: 'off',
                         enterKeyHint: 'search',
                     }}
                     sx={{ fontSize: 17, '& input::placeholder': { opacity: 0.55 } }}
                 />
-                {loading && <CircularProgress size={18} thickness={5} color="inherit" sx={{ color: '#9a9a9a', flexShrink: 0 }} />}
+                {loading && (
+                    <CircularProgress
+                        size={18}
+                        thickness={5}
+                        color="inherit"
+                        sx={{ color: '#9a9a9a', flexShrink: 0 }}
+                    />
+                )}
                 {query && (
-                    <IconButton size="small" aria-label="Clear search" onClick={() => fillInput('')}>
+                    <IconButton
+                        size="small"
+                        aria-label="Clear search"
+                        onClick={() => fillInput('')}
+                    >
                         <CloseIcon fontSize="small" />
                     </IconButton>
                 )}
@@ -279,11 +303,22 @@ function SearchPanel({ onClose, inputRef }) {
             </Box>
 
             {/* Results */}
-            <Box id="search-results" role="listbox" sx={{ pt: 0.5 }} onMouseDown={(e) => e.preventDefault()}>
+            <Box
+                id="search-results"
+                role="listbox"
+                sx={{ pt: 0.5 }}
+                onMouseDown={(e) => e.preventDefault()}
+            >
                 {/* Nothing typed yet: recent searches */}
                 {!q && recent.length > 0 && (
                     <>
-                        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                        <Box
+                            sx={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'space-between',
+                            }}
+                        >
                             <Typography sx={sectionLabelSx}>Recent searches</Typography>
                             <Typography
                                 component="button"
@@ -350,7 +385,13 @@ function SearchPanel({ onClose, inputRef }) {
                                         e.stopPropagation();
                                         fillInput(text);
                                     }}
-                                    sx={{ color: '#9a9a9a', '&:hover': { color: 'var(--brand-dark)', bgcolor: 'transparent' } }}
+                                    sx={{
+                                        color: '#9a9a9a',
+                                        '&:hover': {
+                                            color: 'var(--brand-dark)',
+                                            bgcolor: 'transparent',
+                                        },
+                                    }}
                                 >
                                     <NorthWestIcon fontSize="small" />
                                 </IconButton>
@@ -379,7 +420,14 @@ function SearchPanel({ onClose, inputRef }) {
                                         component="img"
                                         src={cover}
                                         alt=""
-                                        sx={{ width: 44, height: 56, objectFit: 'cover', bgcolor: '#f3f3f3', borderRadius: 0.5, flexShrink: 0 }}
+                                        sx={{
+                                            width: 44,
+                                            height: 56,
+                                            objectFit: 'cover',
+                                            bgcolor: '#f3f3f3',
+                                            borderRadius: 0.5,
+                                            flexShrink: 0,
+                                        }}
                                     />
                                     <Box sx={{ minWidth: 0, flex: 1 }}>
                                         <Typography sx={{ fontSize: 14 }} noWrap>
@@ -400,7 +448,11 @@ function SearchPanel({ onClose, inputRef }) {
                             aria-selected={current === items.length - 1}
                             onMouseEnter={() => setActive(items.length - 1)}
                             onClick={() => run(items[items.length - 1])}
-                            sx={{ ...rowSx(current === items.length - 1), mt: 1, justifyContent: 'space-between' }}
+                            sx={{
+                                ...rowSx(current === items.length - 1),
+                                mt: 1,
+                                justifyContent: 'space-between',
+                            }}
                         >
                             <Typography
                                 sx={{
@@ -410,7 +462,8 @@ function SearchPanel({ onClose, inputRef }) {
                                     textTransform: 'uppercase',
                                 }}
                             >
-                                See all {results.total} result{results.total === 1 ? '' : 's'} for “{q}”
+                                See all {results.total} result{results.total === 1 ? '' : 's'} for “
+                                {q}”
                             </Typography>
                             <NorthWestIcon sx={{ fontSize: 18, transform: 'rotate(90deg)' }} />
                         </Box>
@@ -419,7 +472,9 @@ function SearchPanel({ onClose, inputRef }) {
 
                 {q && settled && !loading && products.length === 0 && (
                     <Box sx={{ px: 1.5, py: 3 }}>
-                        <Typography sx={{ fontSize: 14, fontWeight: 600 }}>No results for “{q}”</Typography>
+                        <Typography sx={{ fontSize: 14, fontWeight: 600 }}>
+                            No results for “{q}”
+                        </Typography>
                         <Typography sx={{ fontSize: 13, color: '#6b6b6b', mt: 0.5 }}>
                             Check the spelling or try a different keyword.
                         </Typography>

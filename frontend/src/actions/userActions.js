@@ -1,3 +1,5 @@
+// Q4 · Clerk login + U1-B · Validation — auth/profile/user thunks.
+// syncUser maps the Clerk session to our DB user; updateMyProfile and admin user actions call /api/v1.
 import api from '../api';
 import { getErrorMessage } from '../Utils/helpers';
 import {
@@ -18,7 +20,7 @@ import {
     USER_DETAILS_FAIL,
     UPDATE_USER_REQUEST,
     UPDATE_USER_SUCCESS,
-    UPDATE_USER_FAIL
+    UPDATE_USER_FAIL,
 } from '../constants/userConstants';
 import { CLEAR_CART } from '../constants/cartConstants';
 import { loadUserCart } from './cartActions';

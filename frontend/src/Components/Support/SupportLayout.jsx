@@ -1,12 +1,21 @@
+// EXTRA · Support pages + U2 · UI — layout wrapper for the legal/support screens.
+// Provides the shared heading and body styling for SupportPages.
 import { useState } from 'react';
 import { Link as RouterLink, useLocation } from 'react-router-dom';
-import { Accordion, AccordionDetails, AccordionSummary, Box, Button, Chip, Typography } from '@mui/material';
+import {
+    Accordion,
+    AccordionDetails,
+    AccordionSummary,
+    Box,
+    Button,
+    Chip,
+    Typography,
+} from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
 import RemoveIcon from '@mui/icons-material/Remove';
 import { STORE } from '../../constants/storeInfo';
 import { bodyText } from './supportStyles';
-
 
 const TABS = {
     support: [
@@ -23,14 +32,30 @@ const TABS = {
 
 // The frame every support / legal page sits in.
 // Reuses the shop's .page-enter animation, so the header rises in first and the sections follow.
-export function SupportPage({ group = 'support', eyebrow, title, intro, showHelp = true, children }) {
+export function SupportPage({
+    group = 'support',
+    eyebrow,
+    title,
+    intro,
+    showHelp = true,
+    children,
+}) {
     const { pathname } = useLocation();
 
     return (
-        <Box className="support-page page-enter" sx={{ maxWidth: 900, mx: 'auto', py: { xs: 2, md: 5 } }}>
+        <Box
+            className="support-page page-enter"
+            sx={{ maxWidth: 900, mx: 'auto', py: { xs: 2, md: 5 } }}
+        >
             <Box component="header">
                 <Typography
-                    sx={{ fontSize: 12, fontWeight: 600, letterSpacing: '2px', textTransform: 'uppercase', color: 'secondary.main' }}
+                    sx={{
+                        fontSize: 12,
+                        fontWeight: 600,
+                        letterSpacing: '2px',
+                        textTransform: 'uppercase',
+                        color: 'secondary.main',
+                    }}
                 >
                     {eyebrow}
                 </Typography>
@@ -41,9 +66,18 @@ export function SupportPage({ group = 'support', eyebrow, title, intro, showHelp
                 >
                     {title}
                 </Typography>
-                {intro && <Typography sx={{ ...bodyText, mt: 2, maxWidth: 620, fontSize: 16 }}>{intro}</Typography>}
+                {intro && (
+                    <Typography sx={{ ...bodyText, mt: 2, maxWidth: 620, fontSize: 16 }}>
+                        {intro}
+                    </Typography>
+                )}
 
-                <Box component="nav" aria-label="Help pages" className="support-nav" sx={{ mt: 3, display: 'flex', flexWrap: 'wrap', gap: 1 }}>
+                <Box
+                    component="nav"
+                    aria-label="Help pages"
+                    className="support-nav"
+                    sx={{ mt: 3, display: 'flex', flexWrap: 'wrap', gap: 1 }}
+                >
                     {TABS[group].map((tab) => {
                         const active = pathname === tab.to;
                         return (
@@ -61,7 +95,15 @@ export function SupportPage({ group = 'support', eyebrow, title, intro, showHelp
                 </Box>
             </Box>
 
-            <Box className="support-body support-stagger" sx={{ mt: { xs: 5, md: 6 }, display: 'flex', flexDirection: 'column', gap: { xs: 5, md: 6 } }}>
+            <Box
+                className="support-body support-stagger"
+                sx={{
+                    mt: { xs: 5, md: 6 },
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: { xs: 5, md: 6 },
+                }}
+            >
                 {children}
             </Box>
 
@@ -77,7 +119,14 @@ export function SupportSection({ title, children }) {
             {title && (
                 <Typography
                     component="h2"
-                    sx={{ mb: 2, fontSize: 13, fontWeight: 700, letterSpacing: '1.5px', textTransform: 'uppercase', color: '#1a1a1a' }}
+                    sx={{
+                        mb: 2,
+                        fontSize: 13,
+                        fontWeight: 700,
+                        letterSpacing: '1.5px',
+                        textTransform: 'uppercase',
+                        color: '#1a1a1a',
+                    }}
                 >
                     {title}
                 </Typography>
@@ -124,19 +173,33 @@ export function InfoCard({ icon, title, to, href, children }) {
         >
             <Box
                 className="support-card-icon"
-                sx={{ width: 44, height: 44, borderRadius: '50%', display: 'grid', placeItems: 'center', bgcolor: '#f1efeb', color: '#1a1a1a' }}
+                sx={{
+                    width: 44,
+                    height: 44,
+                    borderRadius: '50%',
+                    display: 'grid',
+                    placeItems: 'center',
+                    bgcolor: '#f1efeb',
+                    color: '#1a1a1a',
+                }}
             >
                 {icon}
             </Box>
             <Typography component="h3" sx={{ mt: 2, fontSize: 16, fontWeight: 700 }}>
                 {title}
             </Typography>
-            <Typography component="div" sx={{ mt: 0.5, fontSize: 14, lineHeight: 1.6, color: '#666' }}>
+            <Typography
+                component="div"
+                sx={{ mt: 0.5, fontSize: 14, lineHeight: 1.6, color: '#666' }}
+            >
                 {children}
             </Typography>
             {to && (
                 <Box sx={{ mt: 'auto', pt: 2, display: 'flex' }}>
-                    <ArrowForwardIcon className="support-card-arrow" sx={{ fontSize: 18, color: '#1a1a1a' }} />
+                    <ArrowForwardIcon
+                        className="support-card-arrow"
+                        sx={{ fontSize: 18, color: '#1a1a1a' }}
+                    />
                 </Box>
             )}
         </Box>
@@ -194,8 +257,17 @@ export function SupportAccordion({ title, children }) {
             square
             className="info-section"
         >
-            <AccordionSummary expandIcon={open ? <RemoveIcon fontSize="small" /> : <AddIcon fontSize="small" />}>
-                <Typography className="info-section-title" sx={{ textTransform: 'none !important', letterSpacing: '0 !important', fontWeight: 600 }}>
+            <AccordionSummary
+                expandIcon={open ? <RemoveIcon fontSize="small" /> : <AddIcon fontSize="small" />}
+            >
+                <Typography
+                    className="info-section-title"
+                    sx={{
+                        textTransform: 'none !important',
+                        letterSpacing: '0 !important',
+                        fontWeight: 600,
+                    }}
+                >
                     {title}
                 </Typography>
             </AccordionSummary>

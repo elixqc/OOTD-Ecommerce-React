@@ -1,3 +1,5 @@
+// TTL · Transactions — order state.
+// newOrder/myOrders/orderDetails/adminOrders/order reducers update state from orderActions.
 import {
     NEW_ORDER_REQUEST,
     NEW_ORDER_SUCCESS,
@@ -71,7 +73,11 @@ export const adminOrdersReducer = (state = { orders: [], totalAmount: 0 }, actio
         case ADMIN_ORDERS_REQUEST:
             return { ...state, loading: true };
         case ADMIN_ORDERS_SUCCESS:
-            return { loading: false, orders: action.payload.orders, totalAmount: action.payload.totalAmount };
+            return {
+                loading: false,
+                orders: action.payload.orders,
+                totalAmount: action.payload.totalAmount,
+            };
         case ADMIN_ORDERS_FAIL:
             return { ...state, loading: false, error: action.payload };
         case CLEAR_ERRORS:

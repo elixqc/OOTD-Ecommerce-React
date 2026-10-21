@@ -1,7 +1,18 @@
+// MP3 · Review ratings — product review list.
+// Shows reviews with rating/comment/size/color filters plus author/admin delete controls.
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
-import { Box, Button, MenuItem, Paper, Rating, Skeleton, TextField, Typography } from '@mui/material';
+import {
+    Box,
+    Button,
+    MenuItem,
+    Paper,
+    Rating,
+    Skeleton,
+    TextField,
+    Typography,
+} from '@mui/material';
 import { useAuth } from '@clerk/react';
 import StarRoundedIcon from '@mui/icons-material/StarRounded';
 import CheckCircleOutlineRoundedIcon from '@mui/icons-material/CheckCircleOutlineRounded';
@@ -38,7 +49,8 @@ export default function ListReviews({ productId }) {
     const isAdmin = user?.role === 'admin';
     const { isLoaded: authLoaded, isSignedIn } = useAuth();
     // Don't guess "logged out" or "can't review" until login and review status are known
-    const pending = !authLoaded || (isSignedIn && !user) || (Boolean(userId) && status.loading !== false);
+    const pending =
+        !authLoaded || (isSignedIn && !user) || (Boolean(userId) && status.loading !== false);
 
     useEffect(() => {
         if (userId) dispatch(getReviewStatus(productId));
@@ -56,7 +68,9 @@ export default function ListReviews({ productId }) {
     const colors = ready ? variantOptions.colors : [];
     const myReview = status.productId === productId ? status.review : null;
     const canReview = status.productId === productId && status.canReview;
-    const filtering = Boolean(filters.rating || filters.withComment || filters.size || filters.color);
+    const filtering = Boolean(
+        filters.rating || filters.withComment || filters.size || filters.color,
+    );
     const hasReviews = ready && stats?.total > 0;
     const isEmpty = ready && stats?.total === 0;
 
@@ -81,7 +95,10 @@ export default function ListReviews({ productId }) {
         setConfirm({
             open: true,
             title: 'Are you sure?',
-            text: review._id === myReview?._id ? 'Delete your review?' : `Remove ${review.name}'s review?`,
+            text:
+                review._id === myReview?._id
+                    ? 'Delete your review?'
+                    : `Remove ${review.name}'s review?`,
             confirmText: 'Yes, delete',
             onConfirm: () => removeReview(review),
         });
@@ -100,7 +117,12 @@ export default function ListReviews({ productId }) {
         );
     } else if (editing && myReview) {
         form = (
-            <ReviewForm productId={productId} existing={myReview} onDone={handleDone} onCancel={() => setEditing(false)} />
+            <ReviewForm
+                productId={productId}
+                existing={myReview}
+                onDone={handleDone}
+                onCancel={() => setEditing(false)}
+            />
         );
     } else if (!myReview && canReview) {
         form = <ReviewForm productId={productId} onDone={handleDone} />;
@@ -130,7 +152,12 @@ export default function ListReviews({ productId }) {
     }
 
     const pill = (label, active, onClick) => (
-        <button type="button" className={active ? 'reviews-pill active' : 'reviews-pill'} onClick={onClick} aria-pressed={active}>
+        <button
+            type="button"
+            className={active ? 'reviews-pill active' : 'reviews-pill'}
+            onClick={onClick}
+            aria-pressed={active}
+        >
             {label}
         </button>
     );
@@ -148,7 +175,9 @@ export default function ListReviews({ productId }) {
 
             {form}
 
-            {!ready && loading && <Typography color="text.secondary">Loading reviews...</Typography>}
+            {!ready && loading && (
+                <Typography color="text.secondary">Loading reviews...</Typography>
+            )}
 
             {isEmpty && (
                 <Paper
@@ -156,7 +185,15 @@ export default function ListReviews({ productId }) {
                     className="reviews-empty-anim"
                     sx={{ borderRadius: 3, borderColor: '#e5e0d8', py: 6, px: 2 }}
                 >
-                    <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', gap: 1 }}>
+                    <Box
+                        sx={{
+                            display: 'flex',
+                            flexDirection: 'column',
+                            alignItems: 'center',
+                            textAlign: 'center',
+                            gap: 1,
+                        }}
+                    >
                         <Rating
                             value={0}
                             readOnly
@@ -169,7 +206,11 @@ export default function ListReviews({ productId }) {
                         {pending ? (
                             <Skeleton variant="text" width={260} />
                         ) : (
-                            <Typography variant="body2" color="text.secondary" sx={{ maxWidth: 420 }}>
+                            <Typography
+                                variant="body2"
+                                color="text.secondary"
+                                sx={{ maxWidth: 420 }}
+                            >
                                 {emptyText}
                             </Typography>
                         )}
@@ -198,7 +239,9 @@ export default function ListReviews({ productId }) {
                                         type="button"
                                         key={stars}
                                         className={active ? 'reviews-bar active' : 'reviews-bar'}
-                                        onClick={() => setFilter('rating', active ? '' : String(stars))}
+                                        onClick={() =>
+                                            setFilter('rating', active ? '' : String(stars))
+                                        }
                                         aria-pressed={active}
                                         aria-label={`${stars} star reviews: ${count}`}
                                     >
@@ -207,7 +250,10 @@ export default function ListReviews({ productId }) {
                                             <StarRoundedIcon fontSize="inherit" />
                                         </span>
                                         <span className="reviews-bar-track">
-                                            <span className="reviews-bar-fill" style={{ width: `${(count / stats.total) * 100}%` }} />
+                                            <span
+                                                className="reviews-bar-fill"
+                                                style={{ width: `${(count / stats.total) * 100}%` }}
+                                            />
                                         </span>
                                         <span className="reviews-bar-count">{count}</span>
                                     </button>
@@ -222,7 +268,7 @@ export default function ListReviews({ productId }) {
                         <div className="reviews-filters">
                             {pill(`All (${stats.total})`, !filtering, () => setFilters(noFilters))}
                             {pill(`With comment (${stats.withComment})`, filters.withComment, () =>
-                                setFilter('withComment', !filters.withComment)
+                                setFilter('withComment', !filters.withComment),
                             )}
                             {sizes.length > 0 && (
                                 <TextField
@@ -258,7 +304,9 @@ export default function ListReviews({ productId }) {
                                     ))}
                                 </TextField>
                             )}
-                            {filtering && <Button onClick={() => setFilters(noFilters)}>Clear filters</Button>}
+                            {filtering && (
+                                <Button onClick={() => setFilters(noFilters)}>Clear filters</Button>
+                            )}
                         </div>
 
                         {list.length === 0 && (
@@ -270,40 +318,69 @@ export default function ListReviews({ productId }) {
                         <div className="reviews-list">
                             {list.map((review) => {
                                 const isMine = review._id === myReview?._id;
-                                const variant = [review.color, review.size].filter(Boolean).join(' · ');
+                                const variant = [review.color, review.size]
+                                    .filter(Boolean)
+                                    .join(' · ');
                                 return (
                                     <article className="review-card" key={review._id}>
-                                        <div className="review-avatar">{review.name?.[0]?.toUpperCase() || '?'}</div>
+                                        <div className="review-avatar">
+                                            {review.name?.[0]?.toUpperCase() || '?'}
+                                        </div>
                                         <div className="review-body">
                                             <div className="review-top">
                                                 <div className="review-who">
                                                     <span className="review-name">
                                                         {review.name}
-                                                        {isMine && <span className="review-you">You</span>}
+                                                        {isMine && (
+                                                            <span className="review-you">You</span>
+                                                        )}
                                                     </span>
                                                     <span className="review-verified">
-                                                        <CheckCircleOutlineRoundedIcon fontSize="inherit" />
+                                                        {/* prettier-ignore */}
+                                                        <CheckCircleOutlineRoundedIcon
+                                                            fontSize="inherit"
+                                                        />
                                                         Verified purchase
                                                     </span>
                                                 </div>
-                                                <span className="review-date">{formatDate(review.createdAt)}</span>
+                                                <span className="review-date">
+                                                    {formatDate(review.createdAt)}
+                                                </span>
                                             </div>
 
                                             <div className="review-meta">
-                                                <Rating value={review.rating} size="small" readOnly />
-                                                {variant && <span className="review-variant">{variant}</span>}
+                                                <Rating
+                                                    value={review.rating}
+                                                    size="small"
+                                                    readOnly
+                                                />
+                                                {variant && (
+                                                    <span className="review-variant">
+                                                        {variant}
+                                                    </span>
+                                                )}
                                             </div>
 
-                                            {review.comment && <p className="review-text">{review.comment}</p>}
+                                            {review.comment && (
+                                                <p className="review-text">{review.comment}</p>
+                                            )}
 
                                             {(isMine || isAdmin) && (
                                                 <div className="review-actions">
                                                     {isMine && (
-                                                        <Button size="small" onClick={() => setEditing(true)} disabled={editing}>
+                                                        <Button
+                                                            size="small"
+                                                            onClick={() => setEditing(true)}
+                                                            disabled={editing}
+                                                        >
                                                             Edit
                                                         </Button>
                                                     )}
-                                                    <Button size="small" color="error" onClick={() => handleDelete(review)}>
+                                                    <Button
+                                                        size="small"
+                                                        color="error"
+                                                        onClick={() => handleDelete(review)}
+                                                    >
                                                         {isMine ? 'Delete' : 'Remove'}
                                                     </Button>
                                                 </div>

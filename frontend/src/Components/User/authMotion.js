@@ -1,3 +1,5 @@
+// U2 · UI — auth animation constants.
+// Shared keyframes/easing imported by AuthPage and the auth forms.
 import { keyframes } from '@mui/material/styles';
 
 export const EASE = 'cubic-bezier(0.77, 0, 0.175, 1)';

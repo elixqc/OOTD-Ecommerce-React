@@ -1,7 +1,19 @@
+// TTL · Transactions — cart page.
+// Lists cart lines, edits quantity, checks stock and continues to the shipping step.
 import { useEffect, useRef, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
-import { Badge, Box, Button, Dialog, DialogActions, DialogContent, DialogTitle, IconButton, Typography } from '@mui/material';
+import {
+    Badge,
+    Box,
+    Button,
+    Dialog,
+    DialogActions,
+    DialogContent,
+    DialogTitle,
+    IconButton,
+    Typography,
+} from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import RemoveIcon from '@mui/icons-material/Remove';
 import DeleteOutlineIcon from '@mui/icons-material/DeleteOutlined';
@@ -12,7 +24,6 @@ import { notifyInfo, peso } from '../../Utils/helpers';
 import WarningAmberRoundedIcon from '@mui/icons-material/WarningAmberRounded';
 import LockOutlinedIcon from '@mui/icons-material/LockOutlined';
 
-
 function StockDialog({ issues, onClose }) {
     return (
         <Dialog
@@ -21,12 +32,39 @@ function StockDialog({ issues, onClose }) {
             maxWidth="xs"
             fullWidth
             slotProps={{
-                backdrop: { sx: { bgcolor: 'rgba(31, 31, 31, 0.45)', backdropFilter: 'blur(3px)' } },
-                paper: { sx: { borderRadius: '20px', border: '1px solid #eceef2', boxShadow: '0 24px 60px rgba(31, 31, 31, 0.18)', p: 1 } },
+                backdrop: {
+                    sx: { bgcolor: 'rgba(31, 31, 31, 0.45)', backdropFilter: 'blur(3px)' },
+                },
+                paper: {
+                    sx: {
+                        borderRadius: '20px',
+                        border: '1px solid #eceef2',
+                        boxShadow: '0 24px 60px rgba(31, 31, 31, 0.18)',
+                        p: 1,
+                    },
+                },
             }}
         >
-            <DialogTitle sx={{ display: 'flex', alignItems: 'center', gap: 1.5, fontWeight: 700, fontSize: '1.2rem' }}>
-                <Box sx={{ width: 40, height: 40, borderRadius: '50%', display: 'grid', placeItems: 'center', bgcolor: 'rgba(200, 85, 61, 0.12)', flexShrink: 0 }}>
+            <DialogTitle
+                sx={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 1.5,
+                    fontWeight: 700,
+                    fontSize: '1.2rem',
+                }}
+            >
+                <Box
+                    sx={{
+                        width: 40,
+                        height: 40,
+                        borderRadius: '50%',
+                        display: 'grid',
+                        placeItems: 'center',
+                        bgcolor: 'rgba(200, 85, 61, 0.12)',
+                        flexShrink: 0,
+                    }}
+                >
                     <WarningAmberRoundedIcon color="secondary" fontSize="small" />
                 </Box>
                 Your cart was updated
@@ -39,13 +77,22 @@ function StockDialog({ issues, onClose }) {
                     {issues.map((i) => (
                         <li key={`${i.product}|${i.size}|${i.color}`}>
                             <strong>{i.name}</strong> ({i.size} / {i.color}):{' '}
-                            {i.available > 0 ? `only ${i.available} left, quantity lowered` : 'sold out, removed from your cart'}
+                            {i.available > 0
+                                ? `only ${i.available} left, quantity lowered`
+                                : 'sold out, removed from your cart'}
                         </li>
                     ))}
                 </Box>
             </DialogContent>
             <DialogActions sx={{ px: 3, pb: 2 }}>
-                <Button variant="contained" color="secondary" disableElevation onClick={onClose} autoFocus sx={{ borderRadius: 99, px: 2.5, height: 40 }}>
+                <Button
+                    variant="contained"
+                    color="secondary"
+                    disableElevation
+                    onClick={onClose}
+                    autoFocus
+                    sx={{ borderRadius: 99, px: 2.5, height: 40 }}
+                >
                     Got it
                 </Button>
             </DialogActions>
@@ -105,7 +152,8 @@ export default function Cart() {
                     Your cart is empty
                 </Typography>
                 <Typography color="text.secondary" className="cart-empty-text">
-                    Looks like you haven't added anything yet. Find something you love and it'll show up here.
+                    Looks like you haven't added anything yet. Find something you love and it'll
+                    show up here.
                 </Typography>
                 <Button variant="contained" component={Link} to="/" className="cart-empty-btn">
                     Start shopping
@@ -150,7 +198,9 @@ export default function Cart() {
                                 <IconButton
                                     size="small"
                                     aria-label="Decrease quantity"
-                                    onClick={() => dispatch(updateCartQuantity(item.key, item.quantity - 1))}
+                                    onClick={() =>
+                                        dispatch(updateCartQuantity(item.key, item.quantity - 1))
+                                    }
                                     disabled={item.quantity <= 1}
                                 >
                                     <RemoveIcon fontSize="small" />
@@ -159,14 +209,18 @@ export default function Cart() {
                                 <IconButton
                                     size="small"
                                     aria-label="Increase quantity"
-                                    onClick={() => dispatch(updateCartQuantity(item.key, item.quantity + 1))}
+                                    onClick={() =>
+                                        dispatch(updateCartQuantity(item.key, item.quantity + 1))
+                                    }
                                     disabled={item.quantity >= item.stock}
                                 >
                                     <AddIcon fontSize="small" />
                                 </IconButton>
                             </div>
 
-                            <Typography className="cart-row-subtotal">{peso(item.price * item.quantity)}</Typography>
+                            <Typography className="cart-row-subtotal">
+                                {peso(item.price * item.quantity)}
+                            </Typography>
 
                             <IconButton
                                 className="cart-row-remove"
@@ -178,7 +232,12 @@ export default function Cart() {
                         </div>
                     ))}
 
-                    <Button component={Link} to="/" startIcon={<ArrowBackRoundedIcon />} className="cart-continue">
+                    <Button
+                        component={Link}
+                        to="/"
+                        startIcon={<ArrowBackRoundedIcon />}
+                        className="cart-continue"
+                    >
                         Continue shopping
                     </Button>
                 </div>
@@ -199,7 +258,13 @@ export default function Cart() {
                         <span>Total</span>
                         <span>{peso(total)}</span>
                     </div>
-                    <Button variant="contained" size="large" onClick={handleCheckout} className="cart-checkout-btn" startIcon={<LockOutlinedIcon />}>
+                    <Button
+                        variant="contained"
+                        size="large"
+                        onClick={handleCheckout}
+                        className="cart-checkout-btn"
+                        startIcon={<LockOutlinedIcon />}
+                    >
                         Checkout
                     </Button>
                 </aside>

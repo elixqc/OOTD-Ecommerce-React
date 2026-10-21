@@ -1,3 +1,5 @@
+// CORE · MongoDB — connects Mongoose to MONGO_URI from config/.env.
+// Called once at boot by server.js; every model relies on this connection.
 const mongoose = require('mongoose');
 
 const connectDatabase = async () => {

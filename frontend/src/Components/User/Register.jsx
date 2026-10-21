@@ -1,3 +1,5 @@
+// Q4 · Clerk login + U1-B · Validation — registration form.
+// Formik + Yup validated; creates the Clerk account and syncs the user to our DB.
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useSignUp } from '@clerk/react';
@@ -17,7 +19,9 @@ const validationSchema = Yup.object({
     firstName: Yup.string().trim().max(25, 'Too long').required('First name is required'),
     lastName: Yup.string().trim().max(25, 'Too long').required('Last name is required'),
     email: Yup.string().trim().email('Enter a valid email').required('Email is required'),
-    password: Yup.string().min(8, 'Password must be at least 8 characters').required('Password is required'),
+    password: Yup.string()
+        .min(8, 'Password must be at least 8 characters')
+        .required('Password is required'),
     confirmPassword: Yup.string()
         .oneOf([Yup.ref('password')], 'Passwords do not match')
         .required('Please confirm your password'),
@@ -49,7 +53,13 @@ export default function Register({ active = true }) {
     const [awaitingCode, setAwaitingCode] = useState(false);
 
     const formik = useFormik({
-        initialValues: { firstName: '', lastName: '', email: '', password: '', confirmPassword: '' },
+        initialValues: {
+            firstName: '',
+            lastName: '',
+            email: '',
+            password: '',
+            confirmPassword: '',
+        },
         validationSchema,
         validateOnChange: false,
         validateOnBlur: false,
@@ -79,7 +89,9 @@ export default function Register({ active = true }) {
         validateOnChange: false,
         validateOnBlur: false,
         onSubmit: async (values) => {
-            const { error } = await signUp.verifications.verifyEmailCode({ code: values.code.trim() });
+            const { error } = await signUp.verifications.verifyEmailCode({
+                code: values.code.trim(),
+            });
             if (error) {
                 notifyError(errorText(error));
                 return;
@@ -133,7 +145,13 @@ export default function Register({ active = true }) {
                         error={Boolean(codeFormik.errors.code)}
                         helperText={codeFormik.errors.code}
                     />
-                    <Button type="submit" variant="contained" size="large" fullWidth disabled={loading}>
+                    <Button
+                        type="submit"
+                        variant="contained"
+                        size="large"
+                        fullWidth
+                        disabled={loading}
+                    >
                         {loading ? 'Please wait...' : 'Verify and continue'}
                     </Button>
                     <Button onClick={resendCode} disabled={loading}>

@@ -1,3 +1,5 @@
+// CORE · 404 — fallback page for unknown routes.
+// Rendered by the catch-all route in App.jsx.
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Box, Button, Typography } from '@mui/material';
 import MetaData from './MetaData';
@@ -47,7 +49,15 @@ export default function NotFound() {
                     The page you&apos;re looking for doesn&apos;t exist or may have been moved.
                 </Typography>
 
-                <Box sx={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: 1.5, mt: 2 }}>
+                <Box
+                    sx={{
+                        display: 'flex',
+                        flexWrap: 'wrap',
+                        justifyContent: 'center',
+                        gap: 1.5,
+                        mt: 2,
+                    }}
+                >
                     <Button component={Link} to="/" variant="contained" size="large">
                         Back to shop
                     </Button>

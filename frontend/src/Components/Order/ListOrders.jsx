@@ -1,3 +1,5 @@
+// TTL · Transactions — customer order history.
+// Lists the signed-in customer's orders and links to each order's details.
 import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
@@ -32,14 +34,21 @@ import { formatDate, notifyError, peso, shortOrderId } from '../../Utils/helpers
 // Same palette as the admin orders table
 const NEUTRAL = '#8a8f98';
 const BORDER = '#eceef2';
-const STATUS_COLORS = { Processing: 'warning', Shipped: 'info', Delivered: 'success', Cancelled: 'error' };
+const STATUS_COLORS = {
+    Processing: 'warning',
+    Shipped: 'info',
+    Delivered: 'success',
+    Cancelled: 'error',
+};
 
 const fieldSx = { '& .MuiOutlinedInput-root': { borderRadius: '12px' } };
 
 // YYYY-MM-DD in local time, to compare with <input type="date"> values
 const toInputDate = (value) => {
     const d = new Date(value);
-    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${d.getFullYear()}-${month}-${day}`;
 };
 
 // "Blue Hoodie +2 more", same wording as the admin orders table
@@ -61,7 +70,10 @@ function StatCard({ label, value, icon, loading }) {
                 {loading ? (
                     <Skeleton width={60} height={34} />
                 ) : (
-                    <Typography component="p" sx={{ fontSize: 26, fontWeight: 700, lineHeight: 1.3 }}>
+                    <Typography
+                        component="p"
+                        sx={{ fontSize: 26, fontWeight: 700, lineHeight: 1.3 }}
+                    >
                         {value}
                     </Typography>
                 )}
@@ -72,11 +84,21 @@ function StatCard({ label, value, icon, loading }) {
 
 function EmptyState({ filtering, onClear }) {
     return (
-        <Box sx={{ height: '100%', minHeight: 300, display: 'grid', placeItems: 'center', textAlign: 'center' }}>
+        <Box
+            sx={{
+                height: '100%',
+                minHeight: 300,
+                display: 'grid',
+                placeItems: 'center',
+                textAlign: 'center',
+            }}
+        >
             <Box>
                 <ReceiptLongOutlinedIcon sx={{ fontSize: 40, color: 'text.disabled' }} />
                 <Typography color="text.secondary" sx={{ mt: 0.5 }}>
-                    {filtering ? 'No orders match your filters' : "You haven't placed any orders yet"}
+                    {filtering
+                        ? 'No orders match your filters'
+                        : "You haven't placed any orders yet"}
                 </Typography>
                 {filtering ? (
                     <Button size="small" onClick={onClear} sx={{ mt: 1 }}>
@@ -121,9 +143,11 @@ export default function ListOrders() {
             total: orders.length,
             processing: orders.filter((o) => o.orderStatus === 'Processing').length,
             delivered: orders.filter((o) => o.orderStatus === 'Delivered').length,
-            spent: orders.filter((o) => o.orderStatus !== 'Cancelled').reduce((sum, o) => sum + o.totalPrice, 0),
+            spent: orders
+                .filter((o) => o.orderStatus !== 'Cancelled')
+                .reduce((sum, o) => sum + o.totalPrice, 0),
         }),
-        [orders]
+        [orders],
     );
 
     const filteredRows = useMemo(() => {
@@ -139,15 +163,21 @@ export default function ListOrders() {
             const matchesStatus = statusFilter === 'All' || o.orderStatus === statusFilter;
             const day = toInputDate(o.createdAt);
             const matchesDate = (!dateFrom || day >= dateFrom) && (!dateTo || day <= dateTo);
-            const matchesTotal = (min === null || o.totalPrice >= min) && (max === null || o.totalPrice <= max);
+            const matchesTotal =
+                (min === null || o.totalPrice >= min) && (max === null || o.totalPrice <= max);
             return matchesText && matchesStatus && matchesDate && matchesTotal;
         });
     }, [orders, keyword, statusFilter, dateFrom, dateTo, minTotal, maxTotal]);
 
     // Filters hidden behind the "Filters" button, counted for its badge
-    const moreActive = [dateFrom !== '', dateTo !== '', minTotal !== '', maxTotal !== ''].filter(Boolean).length;
+    const moreActive = [dateFrom !== '', dateTo !== '', minTotal !== '', maxTotal !== ''].filter(
+        Boolean,
+    ).length;
     const filtering = keyword !== '' || statusFilter !== 'All' || moreActive > 0;
-    const dateError = dateFrom && dateTo && dateFrom > dateTo ? 'Start date must be on or before the end date' : '';
+    const dateError =
+        dateFrom && dateTo && dateFrom > dateTo
+            ? 'Start date must be on or before the end date'
+            : '';
 
     const clearFilters = () => {
         setKeyword('');
@@ -164,7 +194,11 @@ export default function ListOrders() {
             headerName: 'Order ID',
             width: 120,
             renderCell: (params) => (
-                <Link to={`/order/${params.row._id}`} className="dash-order-link" style={{ fontWeight: 600 }}>
+                <Link
+                    to={`/order/${params.row._id}`}
+                    className="dash-order-link"
+                    style={{ fontWeight: 600 }}
+                >
                     {shortOrderId(params.value)}
                 </Link>
             ),
@@ -181,12 +215,22 @@ export default function ListOrders() {
                 const count = items.reduce((sum, i) => sum + i.quantity, 0);
                 return (
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, minWidth: 0 }}>
-                        <Avatar variant="rounded" src={items[0]?.image} alt={items[0]?.name} sx={{ width: 40, height: 40 }} />
+                        <Avatar
+                            variant="rounded"
+                            src={items[0]?.image}
+                            alt={items[0]?.name}
+                            sx={{ width: 40, height: 40 }}
+                        />
                         <Box sx={{ minWidth: 0 }}>
                             <Typography variant="body2" noWrap sx={{ fontWeight: 600 }}>
                                 {params.value}
                             </Typography>
-                            <Typography variant="caption" noWrap component="p" sx={{ color: NEUTRAL }}>
+                            <Typography
+                                variant="caption"
+                                noWrap
+                                component="p"
+                                sx={{ color: NEUTRAL }}
+                            >
                                 {count} {count === 1 ? 'item' : 'items'}
                             </Typography>
                         </Box>
@@ -220,7 +264,12 @@ export default function ListOrders() {
             headerName: 'Status',
             width: 130,
             renderCell: (params) => (
-                <Chip size="small" variant="outlined" label={params.value} color={STATUS_COLORS[params.value] ?? 'default'} />
+                <Chip
+                    size="small"
+                    variant="outlined"
+                    label={params.value}
+                    color={STATUS_COLORS[params.value] ?? 'default'}
+                />
             ),
         },
         {
@@ -233,7 +282,14 @@ export default function ListOrders() {
             filterable: false,
             disableColumnMenu: true,
             renderCell: (params) => (
-                <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', width: '100%' }}>
+                <Box
+                    sx={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'flex-end',
+                        width: '100%',
+                    }}
+                >
                     <Button size="small" component={Link} to={`/order/${params.row._id}`}>
                         {params.row.orderStatus === 'Delivered' ? 'View & review' : 'View'}
                     </Button>
@@ -258,15 +314,44 @@ export default function ListOrders() {
 
             {/* KPI cards */}
             <Box className="dash-stats" sx={{ mb: 3 }}>
-                <StatCard label="Total orders" value={counts.total} icon={<ReceiptLongOutlinedIcon />} loading={initialLoad} />
-                <StatCard label="Processing" value={counts.processing} icon={<HourglassEmptyOutlinedIcon />} loading={initialLoad} />
-                <StatCard label="Delivered" value={counts.delivered} icon={<AssignmentTurnedInOutlinedIcon />} loading={initialLoad} />
-                <StatCard label="Total spent" value={peso(counts.spent)} icon={<PaymentsOutlinedIcon />} loading={initialLoad} />
+                <StatCard
+                    label="Total orders"
+                    value={counts.total}
+                    icon={<ReceiptLongOutlinedIcon />}
+                    loading={initialLoad}
+                />
+                <StatCard
+                    label="Processing"
+                    value={counts.processing}
+                    icon={<HourglassEmptyOutlinedIcon />}
+                    loading={initialLoad}
+                />
+                <StatCard
+                    label="Delivered"
+                    value={counts.delivered}
+                    icon={<AssignmentTurnedInOutlinedIcon />}
+                    loading={initialLoad}
+                />
+                <StatCard
+                    label="Total spent"
+                    value={peso(counts.spent)}
+                    icon={<PaymentsOutlinedIcon />}
+                    loading={initialLoad}
+                />
             </Box>
 
             {/* Filters + table */}
-            <Box sx={{ border: `1px solid ${BORDER}`, borderRadius: '16px', bgcolor: '#fff', overflow: 'hidden' }}>
-                <Box sx={{ p: 2, display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 1.5 }}>
+            <Box
+                sx={{
+                    border: `1px solid ${BORDER}`,
+                    borderRadius: '16px',
+                    bgcolor: '#fff',
+                    overflow: 'hidden',
+                }}
+            >
+                <Box
+                    sx={{ p: 2, display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 1.5 }}
+                >
                     <TextField
                         size="small"
                         placeholder="Search order # or item"
@@ -277,12 +362,20 @@ export default function ListOrders() {
                             input: {
                                 startAdornment: (
                                     <InputAdornment position="start">
-                                        <SearchRoundedIcon fontSize="small" sx={{ color: NEUTRAL }} />
+                                        <SearchRoundedIcon
+                                            fontSize="small"
+                                            sx={{ color: NEUTRAL }}
+                                        />
                                     </InputAdornment>
                                 ),
                                 endAdornment: keyword && (
                                     <InputAdornment position="end">
-                                        <IconButton size="small" aria-label="Clear search" onClick={() => setKeyword('')} edge="end">
+                                        <IconButton
+                                            size="small"
+                                            aria-label="Clear search"
+                                            onClick={() => setKeyword('')}
+                                            edge="end"
+                                        >
                                             <CloseRoundedIcon fontSize="small" />
                                         </IconButton>
                                     </InputAdornment>
@@ -310,19 +403,31 @@ export default function ListOrders() {
                             color="inherit"
                             startIcon={<TuneRoundedIcon />}
                             onClick={() => setMoreOpen((open) => !open)}
-                            sx={{ borderRadius: '12px', height: 40, color: moreOpen ? undefined : NEUTRAL, fontWeight: 500 }}
+                            sx={{
+                                borderRadius: '12px',
+                                height: 40,
+                                color: moreOpen ? undefined : NEUTRAL,
+                                fontWeight: 500,
+                            }}
                         >
                             Filters
                         </Button>
                     </Badge>
                     {filtering && (
-                        <Button color="inherit" onClick={clearFilters} sx={{ color: NEUTRAL, fontWeight: 500 }}>
+                        <Button
+                            color="inherit"
+                            onClick={clearFilters}
+                            sx={{ color: NEUTRAL, fontWeight: 500 }}
+                        >
                             Clear
                         </Button>
                     )}
                     <Box sx={{ flex: 1 }} />
                     <Typography variant="body2" color="text.secondary">
-                        {filtering ? `${filteredRows.length} of ${orders.length}` : `${orders.length}`} order
+                        {filtering
+                            ? `${filteredRows.length} of ${orders.length}`
+                            : `${orders.length}`}{' '}
+                        order
                         {orders.length === 1 ? '' : 's'}
                     </Typography>
                 </Box>
@@ -346,7 +451,10 @@ export default function ListOrders() {
                             value={dateFrom}
                             error={Boolean(dateError)}
                             onChange={(e) => setDateFrom(e.target.value)}
-                            slotProps={{ inputLabel: { shrink: true }, htmlInput: { max: dateTo || undefined } }}
+                            slotProps={{
+                                inputLabel: { shrink: true },
+                                htmlInput: { max: dateTo || undefined },
+                            }}
                         />
                         <TextField
                             label="To"
@@ -357,10 +465,27 @@ export default function ListOrders() {
                             error={Boolean(dateError)}
                             helperText={dateError}
                             onChange={(e) => setDateTo(e.target.value)}
-                            slotProps={{ inputLabel: { shrink: true }, htmlInput: { min: dateFrom || undefined } }}
+                            slotProps={{
+                                inputLabel: { shrink: true },
+                                htmlInput: { min: dateFrom || undefined },
+                            }}
                         />
-                        <TextField label="Min total" type="number" size="small" sx={fieldSx} value={minTotal} onChange={(e) => setMinTotal(e.target.value)} />
-                        <TextField label="Max total" type="number" size="small" sx={fieldSx} value={maxTotal} onChange={(e) => setMaxTotal(e.target.value)} />
+                        <TextField
+                            label="Min total"
+                            type="number"
+                            size="small"
+                            sx={fieldSx}
+                            value={minTotal}
+                            onChange={(e) => setMinTotal(e.target.value)}
+                        />
+                        <TextField
+                            label="Max total"
+                            type="number"
+                            size="small"
+                            sx={fieldSx}
+                            value={maxTotal}
+                            onChange={(e) => setMaxTotal(e.target.value)}
+                        />
                     </Box>
                 </Collapse>
 
@@ -375,7 +500,11 @@ export default function ListOrders() {
                     rowHeight={64}
                     pageSizeOptions={[5, 10, 25]}
                     initialState={{ pagination: { paginationModel: { pageSize: 10 } } }}
-                    slots={{ noRowsOverlay: () => <EmptyState filtering={filtering} onClear={clearFilters} /> }}
+                    slots={{
+                        noRowsOverlay: () => (
+                            <EmptyState filtering={filtering} onClear={clearFilters} />
+                        ),
+                    }}
                     sx={{
                         border: 0,
                         borderTop: `1px solid ${BORDER}`,
@@ -384,11 +513,21 @@ export default function ListOrders() {
                         '--DataGrid-t-header-background-base': '#fff',
                         '& .MuiDataGrid-columnHeader': { bgcolor: '#fff' },
                         '& .MuiDataGrid-columnHeaders': { borderBottom: `1px solid ${BORDER}` },
-                        '& .MuiDataGrid-columnHeaderTitle': { color: NEUTRAL, fontSize: '0.8rem', fontWeight: 500 },
+                        '& .MuiDataGrid-columnHeaderTitle': {
+                            color: NEUTRAL,
+                            fontSize: '0.8rem',
+                            fontWeight: 500,
+                        },
                         '& .MuiDataGrid-columnSeparator': { display: 'none' },
-                        '& .MuiDataGrid-cell': { display: 'flex', alignItems: 'center', borderColor: '#f0f1f4' },
-                        '& .MuiDataGrid-cell:focus, & .MuiDataGrid-cell:focus-within, & .MuiDataGrid-columnHeader:focus, & .MuiDataGrid-columnHeader:focus-within':
-                            { outline: 'none' },
+                        '& .MuiDataGrid-cell': {
+                            display: 'flex',
+                            alignItems: 'center',
+                            borderColor: '#f0f1f4',
+                        },
+                        ['& .MuiDataGrid-cell:focus, ' +
+                        '& .MuiDataGrid-cell:focus-within, ' +
+                        '& .MuiDataGrid-columnHeader:focus, ' +
+                        '& .MuiDataGrid-columnHeader:focus-within']: { outline: 'none' },
                         '& .MuiDataGrid-row:hover': { bgcolor: '#fafbfc' },
                         '& .MuiDataGrid-footerContainer': { borderColor: BORDER },
                     }}

@@ -1,3 +1,5 @@
+// MP3 · Review ratings — review state.
+// Tracks product reviews, review status, admin list and my-reviews from reviewActions.
 import {
     PRODUCT_REVIEWS_REQUEST,
     PRODUCT_REVIEWS_SUCCESS,
@@ -24,7 +26,7 @@ const noVariants = { sizes: [], colors: [] };
 
 export const productReviewsReducer = (
     state = { reviews: [], productId: null, summary: null, variantOptions: noVariants },
-    action
+    action,
 ) => {
     switch (action.type) {
         case PRODUCT_REVIEWS_REQUEST:
@@ -46,7 +48,10 @@ export const productReviewsReducer = (
     }
 };
 
-export const reviewStatusReducer = (state = { productId: null, canReview: false, review: null }, action) => {
+export const reviewStatusReducer = (
+    state = { productId: null, canReview: false, review: null },
+    action,
+) => {
     switch (action.type) {
         case REVIEW_STATUS_REQUEST:
             return { productId: null, canReview: false, review: null, loading: true };
@@ -92,7 +97,10 @@ export const myReviewsReducer = (state = { reviews: [] }, action) => {
 
 // The "My reviews" page: full reviews with their product. Kept apart from myReviews above,
 // where product is just an id that the order page compares against.
-export const myReviewListReducer = (state = { reviews: [], loading: false, loaded: false }, action) => {
+export const myReviewListReducer = (
+    state = { reviews: [], loading: false, loaded: false },
+    action,
+) => {
     switch (action.type) {
         case MY_REVIEW_LIST_REQUEST:
             return { ...state, loading: true };

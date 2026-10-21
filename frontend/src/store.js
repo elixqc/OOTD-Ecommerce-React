@@ -1,7 +1,14 @@
+// CORE · Redux store — combines every reducer and restores the saved cart.
+// Provides global state (auth, catalog, cart, orders, reviews, wishlist) read by all components.
 import { combineReducers, applyMiddleware, legacy_createStore as createStore } from 'redux';
 import { thunk } from 'redux-thunk';
 import { authReducer, userReducer } from './reducers/userReducers';
-import { allUsersReducer, userDetailsReducer, adminUserReducer, updatePasswordReducer } from './reducers/userReducers';
+import {
+    allUsersReducer,
+    userDetailsReducer,
+    adminUserReducer,
+    updatePasswordReducer,
+} from './reducers/userReducers';
 import { forgotPasswordReducer } from './reducers/userReducers';
 import {
     adminProductsReducer,
@@ -13,7 +20,13 @@ import {
 } from './reducers/productReducers';
 import { cartReducer } from './reducers/cartReducers';
 import { wishlistReducer } from './reducers/wishlistReducers';
-import { productReviewsReducer, reviewStatusReducer, adminReviewsReducer, myReviewsReducer, myReviewListReducer } from './reducers/reviewReducers';
+import {
+    productReviewsReducer,
+    reviewStatusReducer,
+    adminReviewsReducer,
+    myReviewsReducer,
+    myReviewListReducer,
+} from './reducers/reviewReducers';
 import {
     newOrderReducer,
     myOrdersReducer,
@@ -46,7 +59,7 @@ const reducer = combineReducers({
     reviewStatus: reviewStatusReducer,
     adminReviews: adminReviewsReducer,
     myReviews: myReviewsReducer,
-    wishlist: wishlistReducer, 
+    wishlist: wishlistReducer,
     myReviewList: myReviewListReducer,
 });
 
@@ -56,14 +69,19 @@ const loadCartItems = () => {
         const items = JSON.parse(localStorage.getItem('cartItems'));
         if (!Array.isArray(items)) return [];
         return items.filter(
-            (i) => i && typeof i.key === 'string' && Number.isFinite(i.price) && Number.isFinite(i.quantity)
+            (i) =>
+                i &&
+                typeof i.key === 'string' &&
+                Number.isFinite(i.price) &&
+                Number.isFinite(i.quantity),
         );
     } catch {
         return [];
     }
 };
 
-// An address remembered in this browser by older versions must not fill in checkout for whoever uses it next
+// An address remembered in this browser by older versions must not fill in
+// checkout for whoever uses it next
 try {
     localStorage.removeItem('shippingInfo');
 } catch {

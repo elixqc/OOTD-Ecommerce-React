@@ -1,3 +1,5 @@
+// EXTRA · Wishlist — wishlist state.
+// Holds the saved product ids read by every heart button.
 import {
     WISHLIST_REQUEST,
     WISHLIST_SUCCESS,

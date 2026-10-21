@@ -1,3 +1,5 @@
+// EXTRA · Wishlist — the heart button.
+// Toggles the product in the wishlist and is hidden for admins.
 import { useDispatch, useSelector } from 'react-redux';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { IconButton } from '@mui/material';
@@ -7,7 +9,8 @@ import { addToWishlist, removeFromWishlist } from '../../actions/wishlistActions
 import { notifyError, notifyInfo, notifySuccess } from '../../Utils/helpers';
 
 // Heart that saves / un-saves a product.
-// variant "card": small round button on a product photo. variant "detail": square button beside Add to cart.
+// variant "card": small round button on a product photo.
+// variant "detail": square button beside Add to cart.
 export default function WishlistButton({ product, variant = 'card' }) {
     const dispatch = useDispatch();
     const navigate = useNavigate();
@@ -30,7 +33,9 @@ export default function WishlistButton({ product, variant = 'card' }) {
             return;
         }
 
-        const message = await dispatch(saved ? removeFromWishlist(product._id) : addToWishlist(product));
+        const message = await dispatch(
+            saved ? removeFromWishlist(product._id) : addToWishlist(product),
+        );
         if (message) notifyError(message);
         else notifySuccess(saved ? 'Removed from wishlist' : 'Saved to wishlist');
     };

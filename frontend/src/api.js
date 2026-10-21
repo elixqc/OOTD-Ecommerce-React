@@ -1,3 +1,5 @@
+// Q4 · Clerk login — shared axios instance for every API call.
+// baseURL is VITE_API_URL; a request interceptor attaches the Clerk session token as a Bearer header.
 import axios from 'axios';
 
 const api = axios.create({

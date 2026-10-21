@@ -1,3 +1,5 @@
+// Q4 · Clerk login — route guard.
+// Requires a signed-in user, or an admin when adminOnly; otherwise redirects to /login or the homepage.
 import { Navigate, Outlet, useLocation } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import { CircularProgress } from '@mui/material';

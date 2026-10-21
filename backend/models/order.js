@@ -1,3 +1,5 @@
+// TTL · Transactions — order schema (item snapshot, shipping, totals, payment, status).
+// Created by newOrder and updated by admin status changes; status drives emails, receipts and review eligibility.
 const mongoose = require('mongoose');
 const { ORDER_STATUSES, PAYMENT_METHODS } = require('../utils/constants');
 
@@ -36,7 +38,8 @@ const orderSchema = new mongoose.Schema(
             enum: PAYMENT_METHODS,
             default: 'Cash on Delivery',
         },
-        // Card payments are a demo (no real gateway), so they are marked paid when the order is placed
+        // Card payments are a demo (no real gateway), so they are marked paid when the
+        // order is placed
         isPaid: { type: Boolean, default: false },
         paidAt: { type: Date },
         itemsPrice: { type: Number, required: true, default: 0 },
@@ -49,7 +52,7 @@ const orderSchema = new mongoose.Schema(
         },
         deliveredAt: { type: Date },
     },
-    { timestamps: true }
+    { timestamps: true },
 );
 
 module.exports = mongoose.model('Order', orderSchema);

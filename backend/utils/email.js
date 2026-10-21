@@ -1,27 +1,18 @@
-
+// TTL · Transactions — status emails with the item table, subtotal and grand total.
+// sendOrderStatusEmail() is called by newOrder + updateOrder; attaches the PDF from utils/receipt.js.
 const nodemailer = require('nodemailer');
 const { buildReceiptPdf } = require('./receipt');
-const {
-    shortOrderId,
-    money,
-    formatDate,
-    escapeHtml
-} = require('./orderFormat');
+const { shortOrderId, money, formatDate, escapeHtml } = require('./orderFormat');
 
 const STATUS_MESSAGES = {
     Processing: 'Your order has been received and is being processed.',
     Shipped: 'Your order has been shipped.',
     Delivered: 'Your order has been delivered.',
-    Cancelled: 'Your order has been cancelled.'
+    Cancelled: 'Your order has been cancelled.',
 };
 
 function getTransporter() {
-    const {
-        SMTP_HOST,
-        SMTP_PORT,
-        SMTP_USER,
-        SMTP_PASS
-    } = process.env;
+    const { SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASS } = process.env;
 
     if (!SMTP_HOST || !SMTP_USER || !SMTP_PASS) {
         console.warn('Email skipped: SMTP configuration is incomplete.');
@@ -36,8 +27,8 @@ function getTransporter() {
         secure: port === 465,
         auth: {
             user: SMTP_USER,
-            pass: SMTP_PASS
-        }
+            pass: SMTP_PASS,
+        },
     });
 }
 
@@ -46,31 +37,60 @@ exports.buildOrderEmail = (order, user) => {
     const status = order.orderStatus;
     const intro = STATUS_MESSAGES[status] || `Your order status is now ${status}.`;
     const subject =
-        status === 'Processing' ? `We got your OOTD order ${id}` : `Your OOTD order ${id} is now ${status}`;
+        status === 'Processing'
+            ? `We got your OOTD order ${id}`
+            : `Your OOTD order ${id} is now ${status}`;
 
+    const cellStyle = 'padding:8px;border-bottom:1px solid #e5e0d8;text-align:right;';
     const rows = order.orderItems
-        .map(
-            (item) => `
+        .map((item) => {
+            const variant = `${escapeHtml(item.size)} / ${escapeHtml(item.color)}`;
+
+            return `
             <tr>
                 <td style="padding:8px;border-bottom:1px solid #e5e0d8;">
                     ${escapeHtml(item.name)}<br>
-                    <span style="color:#666;font-size:12px;">${escapeHtml(item.size)} / ${escapeHtml(item.color)}</span>
+                    <span style="color:#666;font-size:12px;">${variant}</span>
                 </td>
-                <td style="padding:8px;border-bottom:1px solid #e5e0d8;text-align:right;">${item.quantity}</td>
-                <td style="padding:8px;border-bottom:1px solid #e5e0d8;text-align:right;">₱${money(item.price)}</td>
-                <td style="padding:8px;border-bottom:1px solid #e5e0d8;text-align:right;">₱${money(item.price * item.quantity)}</td>
-            </tr>`
-        )
+                <td style="${cellStyle}">${item.quantity}</td>
+                <td style="${cellStyle}">₱${money(item.price)}</td>
+                <td style="${cellStyle}">₱${money(item.price * item.quantity)}</td>
+            </tr>`;
+        })
         .join('');
 
+    const wrapperStyle =
+        'font-family:Helvetica,Arial,sans-serif;max-width:600px;margin:0 auto;color:#1f1f1f;';
+    const orderLine =
+        `<strong>Order ${id}</strong> · ${formatDate(order.createdAt)} · ` +
+        `Status: <strong>${escapeHtml(status)}</strong>`;
+    const location = [
+        order.shippingInfo.city,
+        order.shippingInfo.region,
+        order.shippingInfo.postalCode,
+        order.shippingInfo.country,
+    ]
+        .filter(Boolean)
+        .map(escapeHtml)
+        .join(', ');
+    const payment = escapeHtml(order.paymentMethod);
+    const totalRow = (label, amount, bold = false) => {
+        const style = `padding:8px;text-align:right;${bold ? 'font-weight:bold;' : ''}`;
+
+        return (
+            `<tr><td colspan="3" style="${style}">${label}</td>` +
+            `<td style="${style}">₱${money(amount)}</td></tr>`
+        );
+    };
+
     const html = `
-    <div style="font-family:Helvetica,Arial,sans-serif;max-width:600px;margin:0 auto;color:#1f1f1f;">
+    <div style="${wrapperStyle}">
         <h1 style="margin-bottom:0;">OOTD</h1>
         <p style="margin-top:0;color:#666;">Own. Outfit. Today.</p>
 
         <p>Hi ${escapeHtml(user?.name || 'there')},</p>
         <p>${escapeHtml(intro)}</p>
-        <p><strong>Order ${id}</strong> · ${formatDate(order.createdAt)} · Status: <strong>${escapeHtml(status)}</strong></p>
+        <p>${orderLine}</p>
 
         <table style="width:100%;border-collapse:collapse;font-size:14px;">
             <thead>
@@ -83,18 +103,18 @@ exports.buildOrderEmail = (order, user) => {
             </thead>
             <tbody>${rows}</tbody>
             <tfoot>
-                <tr><td colspan="3" style="padding:8px;text-align:right;">Items</td><td style="padding:8px;text-align:right;">₱${money(order.itemsPrice)}</td></tr>
-                <tr><td colspan="3" style="padding:8px;text-align:right;">Shipping</td><td style="padding:8px;text-align:right;">₱${money(order.shippingPrice)}</td></tr>
-                <tr><td colspan="3" style="padding:8px;text-align:right;font-weight:bold;">Grand total</td><td style="padding:8px;text-align:right;font-weight:bold;">₱${money(order.totalPrice)}</td></tr>
+                ${totalRow('Items', order.itemsPrice)}
+                ${totalRow('Shipping', order.shippingPrice)}
+                ${totalRow('Grand total', order.totalPrice, true)}
             </tfoot>
         </table>
 
         <p style="font-size:14px;"><strong>Shipping to:</strong><br>
             ${escapeHtml(order.shippingInfo.address)}<br>
-            ${[order.shippingInfo.city, order.shippingInfo.region, order.shippingInfo.postalCode, order.shippingInfo.country].filter(Boolean).map(escapeHtml).join(', ')}<br>
+            ${location}<br>
             Phone: ${escapeHtml(order.shippingInfo.phoneNo)}
         </p>
-        <p style="font-size:14px;">Payment: ${escapeHtml(order.paymentMethod)}. Your PDF receipt is attached.</p>
+        <p style="font-size:14px;">Payment: ${payment}. Your PDF receipt is attached.</p>
     </div>`;
 
     const text = [
@@ -103,9 +123,11 @@ exports.buildOrderEmail = (order, user) => {
         intro,
         `Order ${id} - Status: ${status}`,
         '',
-        ...order.orderItems.map(
-            (i) => `${i.name} (${i.size} / ${i.color}) x${i.quantity}  PHP ${money(i.price * i.quantity)}`
-        ),
+        ...order.orderItems.map((i) => {
+            const total = money(i.price * i.quantity);
+
+            return `${i.name} (${i.size} / ${i.color}) x${i.quantity}  PHP ${total}`;
+        }),
         '',
         `Grand total: PHP ${money(order.totalPrice)}`,
         '',
@@ -127,8 +149,7 @@ exports.sendOrderStatusEmail = async (order, user) => {
         if (!mailer) return;
 
         const pdf = await buildReceiptPdf(order, user);
-        const { subject, html, text } =
-            exports.buildOrderEmail(order, user);
+        const { subject, html, text } = exports.buildOrderEmail(order, user);
 
         const info = await mailer.sendMail({
             from: process.env.EMAIL_FROM || `OOTD <${process.env.SMTP_USER}>`,
@@ -140,9 +161,9 @@ exports.sendOrderStatusEmail = async (order, user) => {
                 {
                     filename: `OOTD-receipt-${shortOrderId(order._id).slice(1)}.pdf`,
                     content: pdf,
-                    contentType: 'application/pdf'
-                }
-            ]
+                    contentType: 'application/pdf',
+                },
+            ],
         });
 
         console.log('Order email accepted:', info.messageId);

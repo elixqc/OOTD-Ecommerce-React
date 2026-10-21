@@ -1,3 +1,5 @@
+// TTL · Transactions + Q2 · Sales chart — order endpoints (cart check, new order, status, stats).
+// Public stock-check, customer routes and adminOnly order/status/dashboard routes; mounted under /api/v1.
 const express = require('express');
 const router = express.Router();
 
@@ -10,7 +12,7 @@ const {
     updateOrder,
     downloadReceipt,
     dashboardStats,
-    processingCount
+    processingCount,
 } = require('../controllers/order');
 const { isAuthenticatedUser, authorizeRoles } = require('../middlewares/auth');
 

@@ -1,3 +1,5 @@
+// Q4 · Clerk login + U1-B · Validation — edit-profile form.
+// Formik + Yup validated; dispatches updateMyProfile to save name, phone and address.
 import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
@@ -23,13 +25,19 @@ const validationSchema = Yup.object({
         .required('Name is required'),
     phone: Yup.string()
         .trim()
-        .matches(/^[0-9+\-\s()]{7,15}$/, { message: 'Enter a valid phone number', excludeEmptyString: true }),
+        .matches(/^[0-9+\-\s()]{7,15}$/, {
+            message: 'Enter a valid phone number',
+            excludeEmptyString: true,
+        }),
     address: Yup.string().trim().max(200, 'Address is too long'),
     region: Yup.string().trim().max(80, 'Region is too long'),
     city: Yup.string().trim().max(60, 'City is too long'),
     postalCode: Yup.string()
         .trim()
-        .matches(/^[A-Za-z0-9\s-]{3,10}$/, { message: 'Enter a valid postal code', excludeEmptyString: true }),
+        .matches(/^[A-Za-z0-9\s-]{3,10}$/, {
+            message: 'Enter a valid postal code',
+            excludeEmptyString: true,
+        }),
     country: Yup.string().trim().max(60, 'Country is too long'),
 });
 
@@ -122,7 +130,13 @@ export default function UpdateProfile() {
     return (
         <form onSubmit={formik.handleSubmit} noValidate className="profile-page page-enter">
             <div className="edit-header">
-                <Button component={Link} to="/me" startIcon={<ArrowBackRoundedIcon />} className="edit-back-btn" disabled={loading}>
+                <Button
+                    component={Link}
+                    to="/me"
+                    startIcon={<ArrowBackRoundedIcon />}
+                    className="edit-back-btn"
+                    disabled={loading}
+                >
                     Back to profile
                 </Button>
                 <Typography variant="h5" component="h1" className="profile-name">
@@ -133,20 +147,37 @@ export default function UpdateProfile() {
             <Card elevation={0} className="profile-hero">
                 <div className="profile-banner" />
                 <div className="profile-hero-body">
-                    <Avatar src={avatar || user.avatar?.url || undefined} alt={user.name} className="profile-avatar">
+                    <Avatar
+                        src={avatar || user.avatar?.url || undefined}
+                        alt={user.name}
+                        className="profile-avatar"
+                    >
                         {user.name?.[0]?.toUpperCase()}
                     </Avatar>
                     <div className="profile-hero-info">
                         <Typography component="h2" className="edit-photo-title">
                             Profile photo
                         </Typography>
-                        <Typography variant="body2" color={avatarError ? 'error' : 'text.secondary'}>
+                        <Typography
+                            variant="body2"
+                            color={avatarError ? 'error' : 'text.secondary'}
+                        >
                             {avatarError || 'JPG, PNG or WebP, up to 2 MB'}
                         </Typography>
                     </div>
-                    <Button variant="outlined" component="label" startIcon={<PhotoCameraOutlinedIcon />} className="profile-edit-btn">
+                    <Button
+                        variant="outlined"
+                        component="label"
+                        startIcon={<PhotoCameraOutlinedIcon />}
+                        className="profile-edit-btn"
+                    >
                         Change photo
-                        <input hidden type="file" accept="image/png,image/jpeg,image/webp" onChange={handleAvatar} />
+                        <input
+                            hidden
+                            type="file"
+                            accept="image/png,image/jpeg,image/webp"
+                            onChange={handleAvatar}
+                        />
                     </Button>
                 </div>
             </Card>
@@ -175,7 +206,9 @@ export default function UpdateProfile() {
                 <div className="edit-stack">
                     <LocationFields formik={formik} rowClassName="edit-grid" />
                     {field('address', 'Address', { autoComplete: 'street-address' })}
-                    <div className="edit-grid">{field('postalCode', 'Postal code', { autoComplete: 'postal-code' })}</div>
+                    <div className="edit-grid">
+                        {field('postalCode', 'Postal code', { autoComplete: 'postal-code' })}
+                    </div>
                 </div>
             </Card>
 
@@ -183,7 +216,12 @@ export default function UpdateProfile() {
                 <Button component={Link} to="/me" disabled={loading}>
                     Cancel
                 </Button>
-                <Button type="submit" variant="contained" disabled={loading} className="profile-edit-btn">
+                <Button
+                    type="submit"
+                    variant="contained"
+                    disabled={loading}
+                    className="profile-edit-btn"
+                >
                     {loading ? 'Saving...' : 'Save changes'}
                 </Button>
             </div>

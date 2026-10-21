@@ -1,3 +1,5 @@
+// EXTRA · Support pages — store name, contact details and address.
+// Shared by the footer, support pages and legal copy as the single source of store facts.
 export const STORE = {
     name: 'OOTD',
     email: 'ootd.official@gmail.com',

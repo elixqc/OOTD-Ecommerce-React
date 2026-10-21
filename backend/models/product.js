@@ -1,3 +1,5 @@
+// MP1 · Product CRUD + MP2 · Filters — product schema (name, price, category, gender, ratings, colors/images).
+// Fields are indexed for filter/sort; variants hold per-color photos + sizes written by ProductForm.
 const mongoose = require('mongoose');
 const { CATEGORIES, GENDERS } = require('../utils/constants');
 
@@ -20,12 +22,19 @@ const variantSchema = new mongoose.Schema({
     },
 });
 
+const variantKey = (variant) => {
+    const size = String(variant.size || '').toLowerCase();
+    const color = String(variant.color || '').toLowerCase();
+
+    return `${size}|${color}`;
+};
+
 const imageSchema = new mongoose.Schema(
     {
         public_id: { type: String, required: true },
         url: { type: String, required: true },
     },
-    { _id: false }
+    { _id: false },
 );
 
 // One gallery per color. The first image is the main one.
@@ -38,7 +47,7 @@ const colorImagesSchema = new mongoose.Schema(
         },
         images: { type: [imageSchema], default: [] },
     },
-    { _id: false }
+    { _id: false },
 );
 
 const productSchema = new mongoose.Schema(
@@ -98,10 +107,7 @@ const productSchema = new mongoose.Schema(
                     message: 'Please add at least one size/color variant',
                 },
                 {
-                    validator: (arr) =>
-                        new Set(
-                            arr.map((v) => `${String(v.size || '').toLowerCase()}|${String(v.color || '').toLowerCase()}`)
-                        ).size === arr.length,
+                    validator: (arr) => new Set(arr.map(variantKey)).size === arr.length,
                     message: 'Each size and color combination can only appear once',
                 },
             ],
@@ -123,7 +129,7 @@ const productSchema = new mongoose.Schema(
         timestamps: true,
         toJSON: { virtuals: true },
         toObject: { virtuals: true },
-    }
+    },
 );
 
 productSchema.virtual('totalStock').get(function () {
@@ -133,12 +139,22 @@ productSchema.virtual('totalStock').get(function () {
 // Every color must have its own photos, unless the product still has legacy shared photos
 productSchema.pre('validate', function () {
     const hasFallback = this.images.length > 0;
-    const colors = [...new Set(this.variants.map((v) => String(v.color || '').trim().toLowerCase()))];
+    const colors = [
+        ...new Set(
+            this.variants.map((v) =>
+                String(v.color || '')
+                    .trim()
+                    .toLowerCase(),
+            ),
+        ),
+    ];
 
     colors.forEach((key) => {
         const gallery = this.colorImages.find((c) => c.color.trim().toLowerCase() === key);
         if (!hasFallback && (!gallery || gallery.images.length === 0)) {
-            const name = this.variants.find((v) => String(v.color).trim().toLowerCase() === key).color;
+            const name = this.variants.find(
+                (v) => String(v.color).trim().toLowerCase() === key,
+            ).color;
             this.invalidate('colorImages', `Please add at least one image for ${name}`);
         }
     });

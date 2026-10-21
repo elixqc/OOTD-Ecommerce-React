@@ -1,6 +1,14 @@
+// TTL · Transactions + U1-B · Validation — region/city fields.
+// Reusable Formik-connected selects fed by Utils/locations.js; used by the shipping address form.
 import { useEffect, useState } from 'react';
 import { Autocomplete, TextField } from '@mui/material';
-import { countryHasRegions, getCityNames, getCountryNames, getRegionNames, loadLocations } from '../../Utils/locations';
+import {
+    countryHasRegions,
+    getCityNames,
+    getCountryNames,
+    getRegionNames,
+    loadLocations,
+} from '../../Utils/locations';
 
 // Country > Region > City dropdowns. Picking a higher level clears the ones below it.
 // formik is the form's useFormik() result with country, region and city values.
@@ -22,15 +30,17 @@ export default function LocationFields({ formik, rowClassName = 'checkout-row' }
 
     const pick = (changes) => formik.setValues({ ...formik.values, ...changes }, false);
 
-    const input = (name, label, extra = {}) => (params) => (
-        <TextField
-            {...params}
-            label={label}
-            error={Boolean(formik.errors[name])}
-            helperText={formik.errors[name]}
-            {...extra}
-        />
-    );
+    const input =
+        (name, label, extra = {}) =>
+        (params) => (
+            <TextField
+                {...params}
+                label={label}
+                error={Boolean(formik.errors[name])}
+                helperText={formik.errors[name]}
+                {...extra}
+            />
+        );
 
     return (
         <>

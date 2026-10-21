@@ -1,7 +1,17 @@
+// MP3 · Review ratings — "My reviews" page.
+// Lists the customer's reviews and opens ReviewForm to edit them.
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
-import { Button, Dialog, DialogContent, IconButton, Rating, Skeleton, Typography } from '@mui/material';
+import {
+    Button,
+    Dialog,
+    DialogContent,
+    IconButton,
+    Rating,
+    Skeleton,
+    Typography,
+} from '@mui/material';
 import DeleteOutlinedIcon from '@mui/icons-material/DeleteOutlined';
 import RateReviewOutlinedIcon from '@mui/icons-material/RateReviewOutlined';
 import ReviewForm from './ReviewForm';
@@ -47,7 +57,9 @@ export default function MyReviews() {
         setConfirm({
             open: true,
             title: 'Delete this review?',
-            text: `Your review of "${review.product?.name || 'this product'}" will be removed. This can't be undone.`,
+            text:
+                `Your review of "${review.product?.name || 'this product'}" will be removed. ` +
+                "This can't be undone.",
             confirmText: 'Yes, delete',
             onConfirm: async () => {
                 const message = await dispatch(deleteReview(review._id));
@@ -95,7 +107,12 @@ export default function MyReviews() {
                 <Typography color="text.secondary" className="cart-empty-text">
                     Once an order has been delivered, you can review what you bought from My orders.
                 </Typography>
-                <Button variant="contained" component={Link} to="/orders/me" className="cart-empty-btn">
+                <Button
+                    variant="contained"
+                    component={Link}
+                    to="/orders/me"
+                    className="cart-empty-btn"
+                >
                     View my orders
                 </Button>
             </div>
@@ -129,7 +146,10 @@ export default function MyReviews() {
                     return (
                         <div className="cart-row my-review-row" key={review._id}>
                             {available ? (
-                                <Link to={`/product/${product._id}`} className="cart-row-image-link">
+                                <Link
+                                    to={`/product/${product._id}`}
+                                    className="cart-row-image-link"
+                                >
                                     {picture}
                                 </Link>
                             ) : (
@@ -142,13 +162,23 @@ export default function MyReviews() {
                                         {product.name}
                                     </Link>
                                 ) : (
-                                    <span className="cart-row-name">{product?.name || 'Product no longer available'}</span>
+                                    <span className="cart-row-name">
+                                        {product?.name || 'Product no longer available'}
+                                    </span>
                                 )}
 
                                 <div className="cart-row-tags">
-                                    {review.size && <span className="cart-tag">Size: {review.size}</span>}
-                                    {review.color && <span className="cart-tag">Color: {review.color}</span>}
-                                    {product && !available && <span className="cart-tag wishlist-tag-out">Unavailable</span>}
+                                    {review.size && (
+                                        <span className="cart-tag">Size: {review.size}</span>
+                                    )}
+                                    {review.color && (
+                                        <span className="cart-tag">Color: {review.color}</span>
+                                    )}
+                                    {product && !available && (
+                                        <span className="cart-tag wishlist-tag-out">
+                                            Unavailable
+                                        </span>
+                                    )}
                                 </div>
 
                                 <div className="my-review-meta">
@@ -159,16 +189,26 @@ export default function MyReviews() {
                                     </Typography>
                                 </div>
 
-                                {review.comment && <Typography className="my-review-comment">{review.comment}</Typography>}
+                                {review.comment && (
+                                    <Typography className="my-review-comment">
+                                        {review.comment}
+                                    </Typography>
+                                )}
                             </div>
 
-                            <Button variant="outlined" className="wishlist-view-btn" onClick={() => setEditing(review)}>
+                            <Button
+                                variant="outlined"
+                                className="wishlist-view-btn"
+                                onClick={() => setEditing(review)}
+                            >
                                 Edit review
                             </Button>
 
                             <IconButton
                                 className="cart-row-remove"
-                                aria-label={`Delete your review of ${product?.name || 'this product'}`}
+                                aria-label={`Delete your review of ${
+                                    product?.name || 'this product'
+                                }`}
                                 onClick={() => handleDelete(review)}
                             >
                                 <DeleteOutlinedIcon />
@@ -178,7 +218,12 @@ export default function MyReviews() {
                 })}
             </div>
 
-            <Dialog open={Boolean(editing)} onClose={() => setEditing(null)} fullWidth maxWidth="sm">
+            <Dialog
+                open={Boolean(editing)}
+                onClose={() => setEditing(null)}
+                fullWidth
+                maxWidth="sm"
+            >
                 <DialogContent>
                     {editing && (
                         <>

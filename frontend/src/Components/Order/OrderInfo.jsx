@@ -1,3 +1,5 @@
+// TTL · Transactions — shared order summary block.
+// Renders items, shipping and totals; reused by the order details and admin process-order screens.
 import { Link } from 'react-router-dom';
 import { Typography } from '@mui/material';
 import OrderStatusChip from './OrderStatusChip';
@@ -16,7 +18,9 @@ export default function OrderInfo({ order, itemAction }) {
                     {order.user?.name && <Typography variant="body2">{order.user.name}</Typography>}
                     <Typography variant="body2">{ship.address}</Typography>
                     <Typography variant="body2">
-                        {[ship.city, ship.region, ship.postalCode, ship.country].filter(Boolean).join(', ')}
+                        {[ship.city, ship.region, ship.postalCode, ship.country]
+                            .filter(Boolean)
+                            .join(', ')}
                     </Typography>
                     <Typography variant="body2">Phone: {ship.phoneNo}</Typography>
                 </section>
@@ -24,7 +28,10 @@ export default function OrderInfo({ order, itemAction }) {
                 <section className="order-card">
                     <Typography variant="h6">Items</Typography>
                     {order.orderItems.map((item) => (
-                        <div className="order-item" key={`${item.product}|${item.size}|${item.color}`}>
+                        <div
+                            className="order-item"
+                            key={`${item.product}|${item.size}|${item.color}`}
+                        >
                             <img src={item.image} alt={item.name} className="order-item-image" />
                             <div>
                                 <Typography
@@ -43,7 +50,9 @@ export default function OrderInfo({ order, itemAction }) {
                                 </Typography>
                                 {itemAction && itemAction(item)}
                             </div>
-                            <Typography variant="subtitle2">{peso(item.price * item.quantity)}</Typography>
+                            <Typography variant="subtitle2">
+                                {peso(item.price * item.quantity)}
+                            </Typography>
                         </div>
                     ))}
                 </section>

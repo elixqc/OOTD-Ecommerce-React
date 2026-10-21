@@ -1,3 +1,5 @@
+// MP2 · Filters + U2 · UI — grid product card.
+// Shows image, name, price and rating; receives one product and links to its details page.
 import { Link } from 'react-router-dom';
 import { Rating } from '@mui/material';
 import WishlistButton from './WishlistButton';
@@ -20,20 +22,44 @@ export default function ProductCard({ product }) {
     const hoverImage = photos[1]?.url;
 
     return (
-        <Link to={`/product/${product._id}`} className={hoverImage ? 'product-card has-hover' : 'product-card'}>
+        <Link
+            to={`/product/${product._id}`}
+            className={hoverImage ? 'product-card has-hover' : 'product-card'}
+        >
             <div className="product-card-media">
-                <img src={mainImage} alt={product.name} className="product-card-img-main" loading="lazy" />
+                <img
+                    src={mainImage}
+                    alt={product.name}
+                    className="product-card-img-main"
+                    loading="lazy"
+                />
                 {hoverImage && (
-                    <img src={hoverImage} alt="" aria-hidden="true" className="product-card-img-hover" loading="lazy" />
+                    <img
+                        src={hoverImage}
+                        alt=""
+                        aria-hidden="true"
+                        className="product-card-img-hover"
+                        loading="lazy"
+                    />
                 )}
                 <WishlistButton product={product} variant="card" />
-                {badge && <span className={badge === 'Sold out' ? 'product-badge sold-out' : 'product-badge'}>{badge}</span>}
+                {badge && (
+                    <span
+                        className={
+                            badge === 'Sold out' ? 'product-badge sold-out' : 'product-badge'
+                        }
+                    >
+                        {badge}
+                    </span>
+                )}
             </div>
 
             <div className="product-card-info">
                 <span className="product-card-name">{product.name}</span>
                 <span className="product-card-price">₱{product.price.toLocaleString()}</span>
-                {product.numOfReviews > 0 && <Rating value={product.ratings} precision={0.5} size="small" readOnly />}
+                {product.numOfReviews > 0 && (
+                    <Rating value={product.ratings} precision={0.5} size="small" readOnly />
+                )}
             </div>
         </Link>
     );

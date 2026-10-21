@@ -1,3 +1,5 @@
+// EXTRA · Wishlist — saved-products page.
+// Lists the customer's wishlist and links to each product; fed by the wishlist reducer.
 import { useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
@@ -96,7 +98,11 @@ export default function Wishlist() {
                 {items.map((product) => (
                     <div className="cart-row wishlist-row" key={product._id}>
                         <Link to={`/product/${product._id}`} className="cart-row-image-link">
-                            <img src={getCardImages(product).cover} alt={product.name} className="cart-row-image" />
+                            <img
+                                src={getCardImages(product).cover}
+                                alt={product.name}
+                                className="cart-row-image"
+                            />
                         </Link>
 
                         <div className="cart-row-info">
@@ -105,9 +111,13 @@ export default function Wishlist() {
                             </Link>
                             <div className="cart-row-tags">
                                 <span className="cart-tag">{product.category}</span>
-                                {product.totalStock === 0 && <span className="cart-tag wishlist-tag-out">Sold out</span>}
+                                {product.totalStock === 0 && (
+                                    <span className="cart-tag wishlist-tag-out">Sold out</span>
+                                )}
                             </div>
-                            <Typography className="wishlist-row-price">{peso(product.price)}</Typography>
+                            <Typography className="wishlist-row-price">
+                                {peso(product.price)}
+                            </Typography>
                         </div>
 
                         <Button
@@ -129,7 +139,12 @@ export default function Wishlist() {
                     </div>
                 ))}
 
-                <Button component={Link} to="/" startIcon={<ArrowBackRoundedIcon />} className="cart-continue">
+                <Button
+                    component={Link}
+                    to="/"
+                    startIcon={<ArrowBackRoundedIcon />}
+                    className="cart-continue"
+                >
                     Continue shopping
                 </Button>
             </div>

@@ -1,3 +1,5 @@
+// Q4 · Clerk login + U1-B · Validation — password input.
+// Formik-connected field with a show/hide toggle, reused across the auth and password forms.
 import { useState } from 'react';
 import { IconButton, InputAdornment, TextField } from '@mui/material';
 import LockOutlinedIcon from '@mui/icons-material/LockOutlined';
@@ -26,7 +28,11 @@ export default function PasswordField(props) {
                                 onClick={() => setShow((s) => !s)}
                                 edge="end"
                             >
-                                {show ? <VisibilityOffIcon fontSize="small" /> : <VisibilityIcon fontSize="small" />}
+                                {show ? (
+                                    <VisibilityOffIcon fontSize="small" />
+                                ) : (
+                                    <VisibilityIcon fontSize="small" />
+                                )}
                             </IconButton>
                         </InputAdornment>
                     ),

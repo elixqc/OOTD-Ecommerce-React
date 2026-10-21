@@ -1,3 +1,5 @@
+// U2 · UI design (MUI) — the app's MUI theme (colors, typography, shape).
+// Passed to ThemeProvider in main.jsx so every MUI component shares the same tokens.
 import { createTheme } from '@mui/material/styles';
 
 const theme = createTheme({

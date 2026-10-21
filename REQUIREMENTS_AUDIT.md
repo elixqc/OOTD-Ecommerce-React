@@ -245,7 +245,40 @@ None of these stop the app from running, but all six were cleaned up so `npm run
 
 ---
 
-## 14. Bottom line
+## 14. Code-search keywords per requirement (Ctrl+F cheatsheet)
+
+**Tip:** every source file now starts with a requirement tag — `MP1`, `MP2`, `MP3`, `TTL`, `U1-A`, `U1-B`, `U2`, `Q2`, `Q3`, `Q4`, `EXTRA`, `CORE`. Searching a tag (e.g. `// MP1` or `// Q3`) instantly lists every file involved in that requirement. The identifiers below are for when the instructor points at a specific sub-feature.
+
+| Requirement | Search these strings | Where it lives |
+| --- | --- | --- |
+| **MP1 — Product CRUD** | `// MP1`, `newProduct`, `updateProduct`, `deleteProduct`, `deleteProducts`, `setProductActive`, `DataGrid`, `checkboxSelection`, `deleteMany` | `Admin/ProductsList.jsx`, `Admin/ProductForm.jsx`, `Admin/NewProduct.jsx`, `Admin/UpdateProduct.jsx`, `controllers/product.js` |
+| **MP1 — Multiple photos** | `ColorImageUploader`, `MAX_IMAGES_PER_COLOR`, `type="file" multiple`, `drag to reorder` | `Admin/ColorImageUploader.jsx`, `constants/productConstants.js`, `controllers/product.js` |
+| **MP2 — Price filter** | `// MP2`, `minPrice`, `maxPrice`, `getMaxPrice`, `max-price`, `$gte`, `$lte`, `Slider` | `Product/FilterDrawer.jsx`, `controllers/product.js` |
+| **MP2 — Category filter** | `CATEGORIES`, `categoryFromUrl`, `?category=` | `constants/productConstants.js`, `Product/FilterDrawer.jsx`, `Layout/Footer.jsx`, `controllers/product.js` |
+| **MP2 — Ratings filter** | `rating`, `minRating`, `filter.ratings` | `Product/FilterDrawer.jsx`, `controllers/product.js` |
+| **MP2 — Review filter** | `minReviews`, `filter.numOfReviews` | `Product/FilterDrawer.jsx`, `controllers/product.js` |
+| **MP3 — Buyer-only review** | `// MP3`, `findPurchase`, `Delivered`, `review-status`, `getReviewStatus`, `createReview`, `reviewSchema.index` | `controllers/review.js`, `models/review.js`, `Review/ReviewForm.jsx` |
+| **MP3 — Update own review** | `updateReview`, `/review/:id` | `controllers/review.js`, `Review/MyReviews.jsx` |
+| **MP3 — Admin delete review** | `deleteReview`, `ReviewsList` | `controllers/review.js`, `Admin/ReviewsList.jsx` |
+| **TTL — Completed transaction** | `// TTL`, `newOrder`, `checkCartStock`, `itemsPrice`, `shippingPrice`, `totalPrice`, `order/new` | `controllers/order.js`, `Cart/Cart.jsx`, `Cart/Shipping.jsx`, `Cart/Payment.jsx`, `Cart/ConfirmOrder.jsx` |
+| **TTL — Admin updates status** | `NEXT_STATUSES`, `updateOrder`, `restoreStock` | `controllers/order.js`, `Admin/ProcessOrder.jsx` |
+| **TTL — Order email** | `sendOrderStatusEmail`, `Grand total`, `Subtotal` | `utils/email.js`, `controllers/order.js` |
+| **TTL — PDF receipt** | `PDFDocument`, `OOTD-receipt`, `downloadReceipt`, `/order/:id/receipt` | `utils/receipt.js`, `utils/email.js`, `Order/OrderDetails.jsx` |
+| **U1-A — Bad words** | `// U1-A`, `bad-words`, `maskBadWords`, `maskedComment`, `putangina`, `flagged` | `utils/profanity.js`, `controllers/review.js` |
+| **U1-B — Validation** | `// U1-B`, `Yup.object`, `validationSchema`, `Formik`, `.required(` | `Admin/ProductForm.jsx`, `User/Login.jsx`, `User/UpdateProfile.jsx`, `User/Register.jsx`, `Cart/Shipping.jsx`, `Cart/Payment.jsx`, `Review/ReviewForm.jsx`, `User/ForgotPassword.jsx` |
+| **U2 — UI (CSS + MUI)** | `// U2`, `style.css`, `@mui/material`, `sx=`, `ThemeProvider`, `theme.jsx`, `CssBaseline`, `sonner` | `style.css`, `theme.jsx`, `main.jsx`, every file under `Components/*` |
+| **Q2 — Sales chart** | `// Q2`, `ComposedChart`, `recharts`, `chartType`, `ToggleButtonGroup`, `buildBuckets`, `Asia/Manila`, `dashboardStats`, `type="date"` | `Admin/Dashboard.jsx`, `controllers/order.js` |
+| **Q3 — Infinite scroll** | `// Q3`, `IntersectionObserver`, `sentinel`, `loadMoreProducts`, `hasMore`, `rootMargin`, `PAGE_SIZE`, `.skip((page - 1) * limit)` | `Product/Catalog.jsx`, `actions/productActions.js`, `controllers/product.js` |
+| **Q4 — Clerk login** | `// Q4`, `@clerk/react`, `@clerk/express`, `ClerkProvider`, `oauth_google`, `signIn.sso`, `SSOCallback`, `getAuth(req)`, `clerkId` | `User/Login.jsx`, `User/Register.jsx`, `User/SocialButtons.jsx`, `middlewares/auth.js` |
+| **LEC — Completeness / extras** | `// EXTRA`, `getWishlist`, `SearchOverlay` | wishlist, search overlay, support pages |
+| **LEC — Program execution** | `npm run lint`, `npm run build` | both run clean (0 lint problems) |
+| **LEC — Contribution** | `git log --oneline`, `git shortlog -sne` | 69 commits across 2 authors |
+
+> **Grep equivalent:** `rg "// MP1"` (or the tag you need) lists the files; `rg "findPurchase|NEXT_STATUSES"` finds the exact identifiers.
+
+---
+
+## 15. Bottom line
 
 The project covers **every functional requirement in the checklist**, and several items exceed the rubric (product variants with per-color galleries, stock reservation/restore, downloadable receipts, admin filtering, support pages).
 

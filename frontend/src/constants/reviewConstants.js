@@ -1,3 +1,5 @@
+// MP3 · Review ratings — review action type constants.
+// Consumed by reducers/reviewReducers.js to track review list/detail/create/update state.
 export const PRODUCT_REVIEWS_REQUEST = 'PRODUCT_REVIEWS_REQUEST';
 export const PRODUCT_REVIEWS_SUCCESS = 'PRODUCT_REVIEWS_SUCCESS';
 export const PRODUCT_REVIEWS_FAIL = 'PRODUCT_REVIEWS_FAIL';

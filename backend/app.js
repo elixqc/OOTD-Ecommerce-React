@@ -1,20 +1,24 @@
+// CORE · Express app — CORS, JSON parsing, Clerk middleware and every /api/v1 route group.
+// Mounts auth/product/order/review/wishlist routers plus the global error handler; exported to server.js.
 const express = require('express');
 const cors = require('cors');
+const { clerkMiddleware } = require('@clerk/express');
 
 const auth = require('./routes/auth');
 const products = require('./routes/product');
 const orders = require('./routes/order');
 const reviews = require('./routes/review');
-const wishlist = require('./routes/wishlist');   
+const wishlist = require('./routes/wishlist');
 
 const app = express();
-const { clerkMiddleware } = require('@clerk/express');
 
-app.use(cors({
-    origin: process.env.CLIENT_URL
-        ? process.env.CLIENT_URL.split(',')
-        : 'http://localhost:5173',
-}));
+app.use(
+    cors({
+        origin: process.env.CLIENT_URL
+            ? process.env.CLIENT_URL.split(',')
+            : 'http://localhost:5173',
+    }),
+);
 app.use(express.json({ limit: '25mb' }));
 app.use(express.urlencoded({ limit: '25mb', extended: true }));
 app.use(clerkMiddleware());
@@ -27,7 +31,7 @@ app.use('/api/v1', auth);
 app.use('/api/v1', products);
 app.use('/api/v1', orders);
 app.use('/api/v1', reviews);
-app.use('/api/v1', wishlist); 
+app.use('/api/v1', wishlist);
 
 // Unknown route
 app.use((req, res) => {
@@ -39,17 +43,28 @@ app.use((err, req, res, next) => {
     console.error(err);
 
     if (err.name === 'ValidationError') {
-        const message = Object.values(err.errors).map((e) => e.message).join(', ');
+        const message = Object.values(err.errors)
+            .map((e) => e.message)
+            .join(', ');
         return res.status(400).json({ success: false, message });
     }
     if (err.name === 'CastError') {
-        return res.status(400).json({ success: false, message: `Invalid ${err.path}: ${err.value}` });
+        return res.status(400).json({
+            success: false,
+            message: `Invalid ${err.path}: ${err.value}`,
+        });
     }
     if (err.code === 11000) {
-        return res.status(400).json({ success: false, message: 'Duplicate value: that record already exists' });
+        return res.status(400).json({
+            success: false,
+            message: 'Duplicate value: that record already exists',
+        });
     }
 
-    res.status(err.statusCode || 500).json({ success: false, message: err.message || 'Server error' });
+    res.status(err.statusCode || 500).json({
+        success: false,
+        message: err.message || 'Server error',
+    });
 });
 
 module.exports = app;

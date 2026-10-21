@@ -1,3 +1,5 @@
+// TTL · Transactions + U1-B · Validation — shipping address step.
+// Formik + Yup validated address form; on submit it saves shipping info to the cart and moves to review.
 import { useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
@@ -8,7 +10,11 @@ import { saveShippingInfo } from '../../actions/cartActions';
 import LocationFields from '../Common/LocationFields';
 
 const validationSchema = Yup.object({
-    address: Yup.string().trim().min(5, 'Enter your full address').max(200, 'Address is too long').required('Address is required'),
+    address: Yup.string()
+        .trim()
+        .min(5, 'Enter your full address')
+        .max(200, 'Address is too long')
+        .required('Address is required'),
     region: Yup.string().trim().max(80, 'Region is too long').required('Region is required'),
     city: Yup.string().trim().max(60, 'City is too long').required('City is required'),
     phoneNo: Yup.string()
@@ -33,8 +39,9 @@ export default function Shipping() {
         if (cartItems.length === 0) navigate('/cart', { replace: true });
     }, [cartItems.length, navigate]);
 
-    // Start from the address typed earlier in this session (e.g. after clicking "Change" on the review page).
-    // Otherwise use the profile's address and phone, but only when both are saved. If not, the form starts empty.
+    // Start from the address typed earlier in this session (e.g. after clicking
+    // "Change" on the review page). Otherwise use the profile's address and phone,
+    // but only when both are saved. If not, the form starts empty.
     const saved = user?.shippingAddress || {};
     const useProfile = Boolean(saved.address && user?.phone);
     const start = shippingInfo || (useProfile ? { ...saved, phoneNo: user.phone } : {});
@@ -51,7 +58,9 @@ export default function Shipping() {
         validateOnChange: false,
         validateOnBlur: false,
         onSubmit: (values) => {
-            const cleaned = Object.fromEntries(Object.entries(values).map(([k, v]) => [k, v.trim()]));
+            const cleaned = Object.fromEntries(
+                Object.entries(values).map(([k, v]) => [k, v.trim()]),
+            );
             dispatch(saveShippingInfo(cleaned));
             navigate('/confirm');
         },
@@ -86,7 +95,10 @@ export default function Shipping() {
             <form onSubmit={formik.handleSubmit} noValidate>
                 <section className="checkout-section">
                     <h2 className="checkout-heading">Delivery</h2>
-                    <div className="checkout-fields" style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                    <div
+                        className="checkout-fields"
+                        style={{ display: 'flex', flexDirection: 'column', gap: 12 }}
+                    >
                         <LocationFields formik={formik} />
                         {field('address', 'Address', { autoComplete: 'street-address' })}
                         <div className="checkout-row">

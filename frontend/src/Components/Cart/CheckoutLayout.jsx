@@ -1,3 +1,5 @@
+// TTL · Transactions + U2 · UI — checkout shell.
+// Slim header + two-column layout wrapping the shipping/confirm/payment steps.
 import { Link, Outlet, useLocation } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import { Breadcrumbs, Typography } from '@mui/material';
@@ -35,7 +37,12 @@ export default function CheckoutLayout() {
                             {STEPS.map((step, index) => {
                                 if (index === current) {
                                     return (
-                                        <Typography key={step.path} fontSize="inherit" fontWeight={600} color="text.primary">
+                                        <Typography
+                                            key={step.path}
+                                            fontSize="inherit"
+                                            fontWeight={600}
+                                            color="text.primary"
+                                        >
                                             {step.label}
                                         </Typography>
                                     );

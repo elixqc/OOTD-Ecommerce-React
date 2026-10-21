@@ -1,3 +1,5 @@
+// MP2 · Filters — the four filters UI.
+// Price slider + category/rating/reviews radios; passes the chosen values up to Catalog as params.
 import { useEffect, useState } from 'react';
 import {
     Accordion,
@@ -83,7 +85,9 @@ function FilterPanel({ onClose, applied, onApply, emptyFilters, maxPrice }) {
 
     const set = (name, value) => setDraft((prev) => ({ ...prev, [name]: value }));
     const toggleSection = (id) =>
-        setOpenSections((prev) => (prev.includes(id) ? prev.filter((s) => s !== id) : [...prev, id]));
+        setOpenSections((prev) =>
+            prev.includes(id) ? prev.filter((s) => s !== id) : [...prev, id],
+        );
 
     // Empty price means "no limit": 0 in the field, highest price on the slider
     const minValue = draft.minPrice === '' ? 0 : Number(draft.minPrice);
@@ -107,7 +111,9 @@ function FilterPanel({ onClose, applied, onApply, emptyFilters, maxPrice }) {
         let ignore = false;
         const timer = setTimeout(async () => {
             try {
-                const { data } = await api.get('/products', { params: { ...JSON.parse(filterKey), limit: 1 } });
+                const { data } = await api.get('/products', {
+                    params: { ...JSON.parse(filterKey), limit: 1 },
+                });
                 if (!ignore) setResult({ key: filterKey, total: data.total });
             } catch {
                 if (!ignore) setResult({ key: '', total: null });
@@ -119,7 +125,8 @@ function FilterPanel({ onClose, applied, onApply, emptyFilters, maxPrice }) {
         };
     }, [filterKey, priceError]);
 
-    const handleClearAll = () => setDraft({ ...emptyFilters, keyword: applied.keyword, sort: applied.sort });
+    const handleClearAll = () =>
+        setDraft({ ...emptyFilters, keyword: applied.keyword, sort: applied.sort });
 
     const handleApply = () => {
         // Slider ends are not filters, so drop them
@@ -135,8 +142,8 @@ function FilterPanel({ onClose, applied, onApply, emptyFilters, maxPrice }) {
         count === null
             ? 'Show items'
             : count === 0
-            ? 'No items found'
-            : `Show ${count} item${count === 1 ? '' : 's'}`;
+              ? 'No items found'
+              : `Show ${count} item${count === 1 ? '' : 's'}`;
 
     const priceField = (label, value, onChange) => (
         <TextField
@@ -236,7 +243,11 @@ function FilterPanel({ onClose, applied, onApply, emptyFilters, maxPrice }) {
                         {priceField('Max', maxValue, (e) => set('maxPrice', e.target.value))}
                     </Stack>
                     {priceError && (
-                        <Typography variant="caption" color="error" sx={{ display: 'block', mt: 1 }}>
+                        <Typography
+                            variant="caption"
+                            color="error"
+                            sx={{ display: 'block', mt: 1 }}
+                        >
                             Min price is higher than max price
                         </Typography>
                     )}
@@ -248,7 +259,10 @@ function FilterPanel({ onClose, applied, onApply, emptyFilters, maxPrice }) {
                     open={openSections.includes('rating')}
                     onToggle={toggleSection}
                 >
-                    <RadioGroup value={draft.rating} onChange={(e) => set('rating', e.target.value)}>
+                    <RadioGroup
+                        value={draft.rating}
+                        onChange={(e) => set('rating', e.target.value)}
+                    >
                         <FormControlLabel
                             value="All"
                             control={<Radio size="small" color="default" />}
@@ -265,7 +279,9 @@ function FilterPanel({ onClose, applied, onApply, emptyFilters, maxPrice }) {
                                             <StarRoundedIcon
                                                 key={i}
                                                 fontSize="small"
-                                                sx={{ color: i < stars ? 'secondary.main' : 'divider' }}
+                                                sx={{
+                                                    color: i < stars ? 'secondary.main' : 'divider',
+                                                }}
                                             />
                                         ))}
                                         <Typography variant="body2" color="text.secondary">
@@ -284,7 +300,10 @@ function FilterPanel({ onClose, applied, onApply, emptyFilters, maxPrice }) {
                     open={openSections.includes('reviews')}
                     onToggle={toggleSection}
                 >
-                    <RadioGroup value={draft.minReviews} onChange={(e) => set('minReviews', e.target.value)}>
+                    <RadioGroup
+                        value={draft.minReviews}
+                        onChange={(e) => set('minReviews', e.target.value)}
+                    >
                         {REVIEW_OPTIONS.map((option) => (
                             <FormControlLabel
                                 key={option.value}

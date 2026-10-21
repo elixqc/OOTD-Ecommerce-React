@@ -1,3 +1,5 @@
+// TTL · Transactions — builds the A4 PDF receipt with PDFKit.
+// Called by utils/email.js (attachment) and the /order/:id/receipt download; renders items, totals, status.
 const PDFDocument = require('pdfkit');
 const { shortOrderId, money, formatDate } = require('./orderFormat');
 
@@ -30,11 +32,17 @@ exports.buildReceiptPdf = (order, user) =>
 
             // Header
             doc.font('Helvetica-Bold').fontSize(26).fillColor('#1f1f1f').text('OOTD', LEFT, 50);
-            doc.font('Helvetica').fontSize(9).fillColor('#666666').text('Own. Outfit. Today.', LEFT, 80);
-            doc.font('Helvetica-Bold').fontSize(16).fillColor('#1f1f1f').text('RECEIPT', LEFT, 50, {
-                width: RIGHT - LEFT,
-                align: 'right',
-            });
+            doc.font('Helvetica')
+                .fontSize(9)
+                .fillColor('#666666')
+                .text('Own. Outfit. Today.', LEFT, 80);
+            doc.font('Helvetica-Bold')
+                .fontSize(16)
+                .fillColor('#1f1f1f')
+                .text('RECEIPT', LEFT, 50, {
+                    width: RIGHT - LEFT,
+                    align: 'right',
+                });
 
             // Customer and order details, side by side
             const shipLines = [
@@ -73,7 +81,13 @@ exports.buildReceiptPdf = (order, user) =>
             // Items table
             const drawTableHeader = () => {
                 doc.font('Helvetica-Bold').fontSize(9).fillColor('#1f1f1f');
-                const labels = { item: 'Item', variant: 'Size / Color', qty: 'Qty', price: 'Price', subtotal: 'Subtotal' };
+                const labels = {
+                    item: 'Item',
+                    variant: 'Size / Color',
+                    qty: 'Qty',
+                    price: 'Price',
+                    subtotal: 'Subtotal',
+                };
                 Object.entries(COLUMNS).forEach(([key, [x, width, align]]) => {
                     doc.text(labels[key], x, y, { width, align });
                 });
@@ -96,7 +110,9 @@ exports.buildReceiptPdf = (order, user) =>
                 // Row height follows whichever cell wraps the most
                 const rowHeight =
                     Math.max(
-                        ...Object.entries(COLUMNS).map(([key, [, width]]) => doc.heightOfString(cells[key], { width }))
+                        ...Object.entries(COLUMNS).map(([key, [, width]]) =>
+                            doc.heightOfString(cells[key], { width }),
+                        ),
                     ) + 10;
 
                 if (y + rowHeight > PAGE_BOTTOM) {
@@ -110,7 +126,11 @@ exports.buildReceiptPdf = (order, user) =>
                     doc.text(cells[key], x, y, { width, align });
                 });
                 y += rowHeight;
-                doc.moveTo(LEFT, y - 4).lineTo(RIGHT, y - 4).strokeColor('#e5e0d8').lineWidth(0.5).stroke();
+                doc.moveTo(LEFT, y - 4)
+                    .lineTo(RIGHT, y - 4)
+                    .strokeColor('#e5e0d8')
+                    .lineWidth(0.5)
+                    .stroke();
             });
 
             // Totals
@@ -120,19 +140,28 @@ exports.buildReceiptPdf = (order, user) =>
             }
             y += 12;
             const totalRow = (label, value, bold) => {
-                doc.font(bold ? 'Helvetica-Bold' : 'Helvetica').fontSize(bold ? 12 : 10).fillColor('#1f1f1f');
+                doc.font(bold ? 'Helvetica-Bold' : 'Helvetica')
+                    .fontSize(bold ? 12 : 10)
+                    .fillColor('#1f1f1f');
                 doc.text(label, 330, y, { width: 120 });
                 doc.text(`PHP ${money(value)}`, 400, y, { width: RIGHT - 400, align: 'right' });
                 y += bold ? 22 : 18;
             };
             totalRow('Items', order.itemsPrice, false);
             totalRow('Shipping', order.shippingPrice, false);
-            doc.moveTo(330, y - 4).lineTo(RIGHT, y - 4).strokeColor('#1f1f1f').lineWidth(1).stroke();
+            doc.moveTo(330, y - 4)
+                .lineTo(RIGHT, y - 4)
+                .strokeColor('#1f1f1f')
+                .lineWidth(1)
+                .stroke();
             y += 4;
             totalRow('Total', order.totalPrice, true);
 
             doc.font('Helvetica').fontSize(9).fillColor('#666666');
-            doc.text('Thank you for shopping with OOTD!', LEFT, y + 30, { width: RIGHT - LEFT, align: 'center' });
+            doc.text('Thank you for shopping with OOTD!', LEFT, y + 30, {
+                width: RIGHT - LEFT,
+                align: 'center',
+            });
 
             doc.end();
         } catch (error) {

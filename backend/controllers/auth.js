@@ -1,10 +1,11 @@
+// Q4 · Clerk login + U1-B · Validation — register/sync, profile update and admin user management.
+// Called by routes/auth.js; reads the Clerk session from middlewares/auth.js and re-validates every payload.
 const mongoose = require('mongoose');
 const { clerkClient } = require('@clerk/express');
 const Order = require('../models/order');
 const cloudinary = require('../config/cloudinary');
 const User = require('../models/user');
 
-// POST /api/v1/register
 // Safe to call after every login: returns the existing user if already registered.
 exports.registerUser = async (req, res) => {
     const clerkId = req.clerkUserId;
@@ -15,10 +16,15 @@ exports.registerUser = async (req, res) => {
     }
 
     const clerkUser = await clerkClient.users.getUser(clerkId);
-    const email = clerkUser.emailAddresses.find((e) => e.id === clerkUser.primaryEmailAddressId)?.emailAddress;
+    const email = clerkUser.emailAddresses.find(
+        (e) => e.id === clerkUser.primaryEmailAddressId,
+    )?.emailAddress;
 
     if (!email) {
-        return res.status(400).json({ success: false, message: 'Your account has no email address' });
+        return res.status(400).json({
+            success: false,
+            message: 'Your account has no email address',
+        });
     }
 
     // Old account from before Clerk (same email): link it instead of making a duplicate
@@ -37,7 +43,10 @@ exports.registerUser = async (req, res) => {
             return res.status(400).json({ success: false, message: 'Avatar must be an image' });
         }
         if (avatar.length > 3000000) {
-            return res.status(400).json({ success: false, message: 'Avatar is too large (max about 2 MB)' });
+            return res.status(400).json({
+                success: false,
+                message: 'Avatar is too large (max about 2 MB)',
+            });
         }
 
         const result = await cloudinary.uploader.upload(avatar, {
@@ -68,16 +77,14 @@ exports.registerUser = async (req, res) => {
         }
         throw err;
     }
-
 };
 
-// GET /api/v1/me
 exports.getMe = async (req, res) => {
     return res.status(200).json({ success: true, user: req.user });
 };
 
-// PUT /api/v1/me/update
-// Only name, phone, shipping address, and avatar can be changed here (not role, email, or isActive)
+// Only name, phone, shipping address, and avatar can be changed here
+// (not role, email, or isActive).
 exports.updateProfile = async (req, res) => {
     const { name, phone, shippingAddress, avatar } = req.body;
     const user = req.user;
@@ -103,7 +110,10 @@ exports.updateProfile = async (req, res) => {
             return res.status(400).json({ success: false, message: 'Avatar must be an image' });
         }
         if (avatar.length > 3000000) {
-            return res.status(400).json({ success: false, message: 'Avatar is too large (max about 2 MB)' });
+            return res.status(400).json({
+                success: false,
+                message: 'Avatar is too large (max about 2 MB)',
+            });
         }
 
         const result = await cloudinary.uploader.upload(avatar, {
@@ -139,7 +149,6 @@ exports.updateProfile = async (req, res) => {
 
 const userNotFound = (res) => res.status(404).json({ success: false, message: 'User not found' });
 
-// GET /api/v1/admin/users
 exports.allUsers = async (req, res) => {
     const [found, orderStats] = await Promise.all([
         User.find().select('-clerkId -wishlist').sort({ createdAt: -1 }).lean(),
@@ -149,7 +158,11 @@ exports.allUsers = async (req, res) => {
                 $group: {
                     _id: '$user',
                     orderCount: { $sum: 1 },
-                    totalSpent: { $sum: { $cond: [{ $ne: ['$orderStatus', 'Cancelled'] }, '$totalPrice', 0] } },
+                    totalSpent: {
+                        $sum: {
+                            $cond: [{ $ne: ['$orderStatus', 'Cancelled'] }, '$totalPrice', 0],
+                        },
+                    },
                 },
             },
         ]),
@@ -164,7 +177,6 @@ exports.allUsers = async (req, res) => {
     return res.status(200).json({ success: true, count: users.length, users });
 };
 
-// GET /api/v1/admin/user/:id
 exports.getUserDetails = async (req, res) => {
     if (!mongoose.isValidObjectId(req.params.id)) return userNotFound(res);
 
@@ -178,7 +190,11 @@ exports.getUserDetails = async (req, res) => {
                 $group: {
                     _id: null,
                     orderCount: { $sum: 1 },
-                    totalSpent: { $sum: { $cond: [{ $ne: ['$orderStatus', 'Cancelled'] }, '$totalPrice', 0] } },
+                    totalSpent: {
+                        $sum: {
+                            $cond: [{ $ne: ['$orderStatus', 'Cancelled'] }, '$totalPrice', 0],
+                        },
+                    },
                 },
             },
         ]),
@@ -193,9 +209,6 @@ exports.getUserDetails = async (req, res) => {
     return res.status(200).json({ success: true, user, orderCount, totalSpent, recentOrders });
 };
 
-// PUT /api/v1/admin/user/:id   body: { isActive: true | false }
-// Only the active status can be changed here, not the role, email, or name.
-// PUT /api/v1/admin/user/:id   body: { isActive: true | false } or { role: 'customer' | 'admin' }
 // Email and name can't be changed here.
 exports.updateUser = async (req, res) => {
     if (!mongoose.isValidObjectId(req.params.id)) return userNotFound(res);
@@ -205,7 +218,10 @@ exports.updateUser = async (req, res) => {
         return res.status(400).json({ success: false, message: 'Role must be customer or admin' });
     }
     if (role === undefined && typeof isActive !== 'boolean') {
-        return res.status(400).json({ success: false, message: 'Send isActive (true or false) or role (customer or admin)' });
+        return res.status(400).json({
+            success: false,
+            message: 'Send isActive (true or false) or role (customer or admin)',
+        });
     }
 
     const user = await User.findById(req.params.id);
@@ -214,11 +230,17 @@ exports.updateUser = async (req, res) => {
     // Role change. It lives in MongoDB only, and the API reads it on every request
     if (role !== undefined) {
         if (String(user._id) === String(req.user._id)) {
-            return res.status(400).json({ success: false, message: "You can't change your own role" });
+            return res.status(400).json({
+                success: false,
+                message: "You can't change your own role",
+            });
         }
         if (user.role === role) return res.status(200).json({ success: true, user });
         if (role === 'admin' && !user.isActive) {
-            return res.status(400).json({ success: false, message: 'Activate this account before making it an admin' });
+            return res.status(400).json({
+                success: false,
+                message: 'Activate this account before making it an admin',
+            });
         }
         user.role = role;
         await user.save();
@@ -226,7 +248,10 @@ exports.updateUser = async (req, res) => {
     }
 
     if (user.role === 'admin') {
-        return res.status(400).json({ success: false, message: "Admin accounts can't be deactivated here" });
+        return res.status(400).json({
+            success: false,
+            message: "Admin accounts can't be deactivated here",
+        });
     }
     if (user.isActive === isActive) {
         return res.status(200).json({ success: true, user });

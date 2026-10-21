@@ -1,3 +1,5 @@
+// MP1 · Product CRUD + MP2 · Filters + Q3 · Infinite scroll — product/catalog thunks.
+// buildProductParams() turns filters into query params; getProducts/loadMoreProducts hit /products.
 import api from '../api';
 import { getErrorMessage } from '../Utils/helpers';
 import {
@@ -35,15 +37,21 @@ export const getAdminProducts = () => async (dispatch) => {
 };
 
 // silent = refresh the data without showing the loading spinner (e.g. after a new review)
-export const getProductDetails = (id, silent = false, admin = false) => async (dispatch) => {
-    try {
-        if (!silent) dispatch({ type: PRODUCT_DETAILS_REQUEST });
-        const { data } = await api.get(admin ? `/admin/product/${id}` : `/product/${id}`);
-        dispatch({ type: PRODUCT_DETAILS_SUCCESS, payload: data.product });
-    } catch (error) {
-        dispatch({ type: PRODUCT_DETAILS_FAIL, payload: getErrorMessage(error), status: error.response?.status });
-    }
-};
+export const getProductDetails =
+    (id, silent = false, admin = false) =>
+    async (dispatch) => {
+        try {
+            if (!silent) dispatch({ type: PRODUCT_DETAILS_REQUEST });
+            const { data } = await api.get(admin ? `/admin/product/${id}` : `/product/${id}`);
+            dispatch({ type: PRODUCT_DETAILS_SUCCESS, payload: data.product });
+        } catch (error) {
+            dispatch({
+                type: PRODUCT_DETAILS_FAIL,
+                payload: getErrorMessage(error),
+                status: error.response?.status,
+            });
+        }
+    };
 
 export const newProduct = (productData) => async (dispatch) => {
     try {
@@ -110,7 +118,12 @@ export const getProducts = (filters, page) => async (dispatch) => {
         if (requestId !== latestRequest) return;
         dispatch({
             type: PRODUCTS_SUCCESS,
-            payload: { products: data.products, page: data.page, hasMore: data.hasMore, total: data.total },
+            payload: {
+                products: data.products,
+                page: data.page,
+                hasMore: data.hasMore,
+                total: data.total,
+            },
         });
     } catch (error) {
         if (requestId !== latestRequest) return;
@@ -118,7 +131,8 @@ export const getProducts = (filters, page) => async (dispatch) => {
     }
 };
 
-// Called when the bottom of the list scrolls into view. Reads the latest state, so it can't double-load.
+// Called when the bottom of the list scrolls into view. Reads the latest state,
+// so it can't double-load.
 export const loadMoreProducts = (filters) => (dispatch, getState) => {
     const { loading, hasMore, page } = getState().catalog;
     if (loading || !hasMore || page === 0) return;
@@ -148,7 +162,10 @@ export const uploadProductImage = async (image, onProgress) => {
     const { data } = await api.post(
         '/admin/product/image',
         { image },
-        { onUploadProgress: (e) => e.total && onProgress?.(Math.round((e.loaded / e.total) * 100)) }
+        {
+            onUploadProgress: (e) =>
+                e.total && onProgress?.(Math.round((e.loaded / e.total) * 100)),
+        },
     );
     return data.image;
 };

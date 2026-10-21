@@ -1,4 +1,11 @@
-import { ADD_TO_CART, REMOVE_FROM_CART, CLEAR_CART, SAVE_SHIPPING_INFO } from '../constants/cartConstants';
+// TTL · Transactions — cart state.
+// Holds cartItems and shippingInfo; persisted to localStorage by cartActions.
+import {
+    ADD_TO_CART,
+    REMOVE_FROM_CART,
+    CLEAR_CART,
+    SAVE_SHIPPING_INFO,
+} from '../constants/cartConstants';
 import { LOGOUT_SUCCESS } from '../constants/userConstants';
 
 export const cartReducer = (state = { cartItems: [], shippingInfo: null }, action) => {
@@ -25,7 +32,7 @@ export const cartReducer = (state = { cartItems: [], shippingInfo: null }, actio
 
         case LOGOUT_SUCCESS:
             return { ...state, shippingInfo: null };
-            
+
         default:
             return state;
     }

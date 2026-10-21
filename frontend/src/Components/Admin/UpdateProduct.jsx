@@ -1,3 +1,5 @@
+// MP1 · Product CRUD — edit-product page.
+// Loads the product then renders ProductForm; dispatches updateProduct on submit.
 import { useEffect } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
@@ -14,8 +16,16 @@ export default function UpdateProduct() {
     const { id } = useParams();
     const dispatch = useDispatch();
     const navigate = useNavigate();
-    const { loading: loadingDetails, product, error: detailsError } = useSelector((state) => state.productDetails);
-    const { loading: updating, isUpdated, error: updateError } = useSelector((state) => state.product);
+    const {
+        loading: loadingDetails,
+        product,
+        error: detailsError,
+    } = useSelector((state) => state.productDetails);
+    const {
+        loading: updating,
+        isUpdated,
+        error: updateError,
+    } = useSelector((state) => state.product);
 
     useEffect(() => {
         dispatch(getProductDetails(id, false, true));
@@ -81,7 +91,13 @@ export default function UpdateProduct() {
                 )}
             </Box>
             {loadingDetails || !product ? (
-                <Box sx={{ display: 'grid', gap: 3, gridTemplateColumns: { xs: '1fr', lg: '1fr 340px' } }}>
+                <Box
+                    sx={{
+                        display: 'grid',
+                        gap: 3,
+                        gridTemplateColumns: { xs: '1fr', lg: '1fr 340px' },
+                    }}
+                >
                     <Skeleton variant="rounded" height={420} sx={{ borderRadius: '16px' }} />
                     <Skeleton variant="rounded" height={420} sx={{ borderRadius: '16px' }} />
                 </Box>
