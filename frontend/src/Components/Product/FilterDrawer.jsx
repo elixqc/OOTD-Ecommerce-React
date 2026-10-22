@@ -321,6 +321,7 @@ function FilterPanel({ onClose, applied, onApply, emptyFilters, maxPrice }) {
                     fullWidth
                     size="large"
                     variant="contained"
+                    className="filter-apply-btn"
                     disabled={priceError || count === 0}
                     onClick={handleApply}
                 >
