@@ -321,7 +321,7 @@ function ProductImage({ src, name }) {
     );
 }
 
-const SLIDE_SHIFT = 100; // px between the center tile and the ones beside it
+const SLIDE_SHIFT = 166; // px between the center tile and the ones beside it
 
 // Top sellers carousel. Tiles glide into place when you move through the list.
 function TopSellers({ items, loading }) {
@@ -351,9 +351,9 @@ function TopSellers({ items, loading }) {
             </Typography>
 
             {loading ? (
-                <Skeleton variant="rounded" height={210} sx={{ mt: 3 }} />
+                <Skeleton variant="rounded" height={264} sx={{ mt: 3 }} />
             ) : count === 0 ? (
-                <Box sx={{ height: 210, display: 'grid', placeItems: 'center', mt: 3 }}>
+                <Box sx={{ height: 264, display: 'grid', placeItems: 'center', mt: 3 }}>
                     <Typography color="text.secondary">No sales in this period</Typography>
                 </Box>
             ) : (
@@ -383,7 +383,7 @@ function TopSellers({ items, loading }) {
                                             transform:
                                                 `translate(calc(-50% + ` +
                                                 `${offset * SLIDE_SHIFT}px), -50%) ` +
-                                                `scale(${offset === 0 ? 1 : 0.7})`,
+                                                `scale(${offset === 0 ? 1 : 0.78})`,
                                             opacity: visible ? (offset === 0 ? 1 : 0.75) : 0,
                                             zIndex: offset === 0 ? 2 : 1,
                                         }}
@@ -821,7 +821,7 @@ export default function Dashboard() {
 
             {/* Last transactions + top sellers */}
             <Box className="dash-bottom">
-                <Box sx={{ minWidth: 0 }}>
+                <Box sx={{ minWidth: 0, display: 'flex', flexDirection: 'column' }}>
                     <Box
                         sx={{
                             display: 'flex',
@@ -851,8 +851,8 @@ export default function Dashboard() {
                             No orders in this period
                         </Typography>
                     ) : (
-                        <TableContainer>
-                            <Table size="medium" className="dash-table">
+                        <TableContainer sx={{ flex: 1 }}>
+                            <Table size="medium" className="dash-table" sx={{ height: '100%' }}>
                                 <TableHead>
                                     <TableRow>
                                         <TableCell>Order ID</TableCell>
