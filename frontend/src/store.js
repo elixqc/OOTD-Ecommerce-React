@@ -26,6 +26,8 @@ import {
     adminReviewsReducer,
     myReviewsReducer,
     myReviewListReducer,
+    newReviewReducer,
+    reviewReducer,
 } from './reducers/reviewReducers';
 import {
     newOrderReducer,
@@ -61,6 +63,8 @@ const reducer = combineReducers({
     myReviews: myReviewsReducer,
     wishlist: wishlistReducer,
     myReviewList: myReviewListReducer,
+    newReview: newReviewReducer,
+    review: reviewReducer,
 });
 
 // Restore the saved cart, ignoring anything that doesn't look like a cart line

@@ -19,6 +19,15 @@ import {
     MY_REVIEW_LIST_REQUEST,
     MY_REVIEW_LIST_SUCCESS,
     MY_REVIEW_LIST_FAIL,
+    NEW_REVIEW_REQUEST,
+    NEW_REVIEW_SUCCESS,
+    NEW_REVIEW_FAIL,
+    UPDATE_REVIEW_REQUEST,
+    UPDATE_REVIEW_SUCCESS,
+    UPDATE_REVIEW_FAIL,
+    DELETE_REVIEW_REQUEST,
+    DELETE_REVIEW_SUCCESS,
+    DELETE_REVIEW_FAIL,
 } from '../constants/reviewConstants';
 
 let latestReviewsRequest = 0;
@@ -78,30 +87,42 @@ export const refreshProductReviews = (productId, filters) => (dispatch) => {
 };
 
 // The three actions below return an error message, or null when it worked
-export const submitReview = (productId, reviewData) => async () => {
+export const submitReview = (productId, reviewData) => async (dispatch) => {
     try {
+        dispatch({ type: NEW_REVIEW_REQUEST });
         await api.post(`/product/${productId}/review`, reviewData);
+        dispatch({ type: NEW_REVIEW_SUCCESS });
         return null;
     } catch (error) {
-        return getErrorMessage(error);
+        const message = getErrorMessage(error);
+        dispatch({ type: NEW_REVIEW_FAIL, payload: message });
+        return message;
     }
 };
 
-export const updateReview = (reviewId, reviewData) => async () => {
+export const updateReview = (reviewId, reviewData) => async (dispatch) => {
     try {
+        dispatch({ type: UPDATE_REVIEW_REQUEST });
         await api.put(`/review/${reviewId}`, reviewData);
+        dispatch({ type: UPDATE_REVIEW_SUCCESS });
         return null;
     } catch (error) {
-        return getErrorMessage(error);
+        const message = getErrorMessage(error);
+        dispatch({ type: UPDATE_REVIEW_FAIL, payload: message });
+        return message;
     }
 };
 
-export const deleteReview = (reviewId) => async () => {
+export const deleteReview = (reviewId) => async (dispatch) => {
     try {
+        dispatch({ type: DELETE_REVIEW_REQUEST });
         await api.delete(`/review/${reviewId}`);
+        dispatch({ type: DELETE_REVIEW_SUCCESS });
         return null;
     } catch (error) {
-        return getErrorMessage(error);
+        const message = getErrorMessage(error);
+        dispatch({ type: DELETE_REVIEW_FAIL, payload: message });
+        return message;
     }
 };
 
