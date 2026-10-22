@@ -2,7 +2,7 @@
 // Sidebar + content frame for every /admin route; links to dashboard, products, orders, users and reviews.
 import { useEffect, useState } from 'react';
 import { Link, NavLink, Outlet, useLocation } from 'react-router-dom';
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { IconButton, Tooltip } from '@mui/material';
 import ChevronLeftRoundedIcon from '@mui/icons-material/ChevronLeftRounded';
 import DashboardOutlinedIcon from '@mui/icons-material/DashboardOutlined';
@@ -11,7 +11,7 @@ import PeopleOutlinedIcon from '@mui/icons-material/PeopleOutlined';
 import RateReviewOutlinedIcon from '@mui/icons-material/RateReviewOutlined';
 import ShoppingCartOutlinedIcon from '@mui/icons-material/ShoppingCartOutlined';
 import StorefrontOutlinedIcon from '@mui/icons-material/StorefrontOutlined';
-import api from '../../api';
+import { getProcessingCount } from '../../actions/orderActions';
 
 const STORAGE_KEY = 'adminSidebarCollapsed';
 
@@ -40,27 +40,18 @@ const readCollapsed = () => {
 };
 
 export default function AdminLayout() {
+    const dispatch = useDispatch();
     const { user } = useSelector((state) => state.auth);
+    const processing = useSelector((state) => state.adminOrders.processingCount);
     const [collapsed, setCollapsed] = useState(readCollapsed);
 
-    const [processing, setProcessing] = useState(0);
     const { pathname } = useLocation();
 
     // Orders still in Processing; refreshed on every page change so it updates
     // after the admin handles one
     useEffect(() => {
-        let active = true;
-        api.get('/admin/orders/processing-count')
-            .then(({ data }) => {
-                if (active) setProcessing(data.count);
-            })
-            .catch(() => {
-                // The badge is optional: if this fails it just stays as it was
-            });
-        return () => {
-            active = false;
-        };
-    }, [pathname]);
+        dispatch(getProcessingCount());
+    }, [dispatch, pathname]);
 
     const badges = { processing };
 

@@ -25,7 +25,12 @@ import LocalShippingOutlinedIcon from '@mui/icons-material/LocalShippingOutlined
 import LocationOnOutlinedIcon from '@mui/icons-material/LocationOnOutlined';
 import PhoneOutlinedIcon from '@mui/icons-material/PhoneOutlined';
 import ReceiptLongOutlinedIcon from '@mui/icons-material/ReceiptLongOutlined';
-import { downloadReceipt, getOrderDetails, updateOrder } from '../../actions/orderActions';
+import {
+    downloadReceipt,
+    getOrderDetails,
+    getProcessingCount,
+    updateOrder,
+} from '../../actions/orderActions';
 import { clearErrors } from '../../actions/userActions';
 import { NEXT_ORDER_STATUSES, UPDATE_ORDER_RESET } from '../../constants/orderConstants';
 import { formatDate, notifyError, notifySuccess, peso, shortOrderId } from '../../Utils/helpers';
@@ -108,6 +113,8 @@ export default function ProcessOrder() {
             notifySuccess('Order status updated');
             dispatch({ type: UPDATE_ORDER_RESET });
             dispatch(getOrderDetails(id));
+            // Keep the sidebar badge in sync without waiting for a navigation
+            dispatch(getProcessingCount());
         }
     }, [isUpdated, id, dispatch]);
 

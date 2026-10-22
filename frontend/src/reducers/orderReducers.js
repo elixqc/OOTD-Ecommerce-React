@@ -14,6 +14,9 @@ import {
     ADMIN_ORDERS_REQUEST,
     ADMIN_ORDERS_SUCCESS,
     ADMIN_ORDERS_FAIL,
+    PROCESSING_COUNT_REQUEST,
+    PROCESSING_COUNT_SUCCESS,
+    PROCESSING_COUNT_FAIL,
     UPDATE_ORDER_REQUEST,
     UPDATE_ORDER_SUCCESS,
     UPDATE_ORDER_FAIL,
@@ -68,18 +71,29 @@ export const orderDetailsReducer = (state = { order: null }, action) => {
     }
 };
 
-export const adminOrdersReducer = (state = { orders: [], totalAmount: 0 }, action) => {
+export const adminOrdersReducer = (
+    state = { orders: [], totalAmount: 0, processingCount: 0 },
+    action,
+) => {
     switch (action.type) {
         case ADMIN_ORDERS_REQUEST:
             return { ...state, loading: true };
         case ADMIN_ORDERS_SUCCESS:
             return {
+                ...state,
                 loading: false,
                 orders: action.payload.orders,
                 totalAmount: action.payload.totalAmount,
             };
         case ADMIN_ORDERS_FAIL:
             return { ...state, loading: false, error: action.payload };
+        case PROCESSING_COUNT_REQUEST:
+            return { ...state, processingLoading: true };
+        case PROCESSING_COUNT_SUCCESS:
+            return { ...state, processingLoading: false, processingCount: action.payload };
+        case PROCESSING_COUNT_FAIL:
+            // Silent: the badge keeps its last value instead of showing an error
+            return { ...state, processingLoading: false };
         case CLEAR_ERRORS:
             return { ...state, error: null };
         default:

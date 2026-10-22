@@ -15,6 +15,9 @@ import {
     ADMIN_ORDERS_REQUEST,
     ADMIN_ORDERS_SUCCESS,
     ADMIN_ORDERS_FAIL,
+    PROCESSING_COUNT_REQUEST,
+    PROCESSING_COUNT_SUCCESS,
+    PROCESSING_COUNT_FAIL,
     UPDATE_ORDER_REQUEST,
     UPDATE_ORDER_SUCCESS,
     UPDATE_ORDER_FAIL,
@@ -65,6 +68,17 @@ export const getAdminOrders = () => async (dispatch) => {
         });
     } catch (error) {
         dispatch({ type: ADMIN_ORDERS_FAIL, payload: getErrorMessage(error) });
+    }
+};
+
+// Badge count: orders still in Processing. Failures are silent because the badge is optional.
+export const getProcessingCount = () => async (dispatch) => {
+    try {
+        dispatch({ type: PROCESSING_COUNT_REQUEST });
+        const { data } = await api.get('/admin/orders/processing-count');
+        dispatch({ type: PROCESSING_COUNT_SUCCESS, payload: data.count });
+    } catch (error) {
+        dispatch({ type: PROCESSING_COUNT_FAIL, payload: getErrorMessage(error) });
     }
 };
 
