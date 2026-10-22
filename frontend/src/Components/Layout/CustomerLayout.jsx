@@ -10,8 +10,8 @@ export default function CustomerLayout() {
     // The shop page (home) uses the full width of the screen
     const wide = pathname === '/';
 
-    // The login/register page is a focused screen, so it has no footer
-    const hideFooter = /^\/(login|register)(\/|$)/.test(pathname);
+    // The login/register and password-reset pages are focused screens, so they have no footer
+    const hideFooter = /^\/(login|register|forgot-password)(\/|$)/.test(pathname);
 
     return (
         <div className="customer-shell">

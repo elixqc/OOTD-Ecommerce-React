@@ -134,35 +134,6 @@ body {
     margin: 16px 0 24px;
 }
 
-/* Login and register */
-.auth-wrapper {
-    display: flex;
-    justify-content: center;
-    padding: 24px 0;
-}
-
-.auth-card {
-    width: 100%;
-    max-width: 420px;
-    padding: 32px;
-}
-
-.auth-title {
-    margin-bottom: 24px;
-    text-align: center;
-}
-
-.form-stack {
-    display: flex;
-    flex-direction: column;
-    gap: 16px;
-}
-
-.auth-footer {
-    margin-top: 16px;
-    text-align: center;
-}
-
 /* Admin layout */
 .admin-shell {
     display: flex;

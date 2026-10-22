@@ -16,10 +16,6 @@ import {
     UPDATE_PROFILE_FAIL,
     UPDATE_PROFILE_RESET,
     CLEAR_ERRORS,
-    FORGOT_PASSWORD_REQUEST,
-    FORGOT_PASSWORD_SUCCESS,
-    FORGOT_PASSWORD_FAIL,
-    FORGOT_PASSWORD_RESET,
     ALL_USERS_REQUEST,
     ALL_USERS_SUCCESS,
     ALL_USERS_FAIL,
@@ -89,23 +85,6 @@ export const userReducer = (state = {}, action) => {
             return { ...state, loading: false, error: action.payload };
         case UPDATE_PROFILE_RESET:
             return { ...state, isUpdated: false };
-        case CLEAR_ERRORS:
-            return { ...state, error: null };
-        default:
-            return state;
-    }
-};
-
-export const forgotPasswordReducer = (state = {}, action) => {
-    switch (action.type) {
-        case FORGOT_PASSWORD_REQUEST:
-            return { loading: true, error: null, message: null };
-        case FORGOT_PASSWORD_SUCCESS:
-            return { loading: false, message: action.payload };
-        case FORGOT_PASSWORD_FAIL:
-            return { loading: false, error: action.payload };
-        case FORGOT_PASSWORD_RESET:
-            return {};
         case CLEAR_ERRORS:
             return { ...state, error: null };
         default:

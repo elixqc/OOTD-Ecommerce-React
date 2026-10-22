@@ -1,93 +1,250 @@
-// U1-B · Validation — password-reset request.
-// Formik + Yup validated email form that starts the Clerk reset flow.
-import { useEffect } from 'react';
-import { Link } from 'react-router-dom';
-import { useDispatch, useSelector } from 'react-redux';
+// Q4 · Clerk login + U1-B · Validation — password-reset flow.
+// Three steps, all handled by Clerk: email, the code sent to that email, then the new password.
+// Formik + Yup validated, like the login and register forms.
+import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useSignIn } from '@clerk/react';
 import { useFormik } from 'formik';
 import * as Yup from 'yup';
-import { Button, Card, TextField, Typography } from '@mui/material';
-import { clearErrors, forgotPassword } from '../../actions/userActions';
-import { FORGOT_PASSWORD_RESET } from '../../constants/userConstants';
-import { notifyError } from '../../Utils/helpers';
+import { Box, Button, InputAdornment, TextField } from '@mui/material';
+import EmailOutlinedIcon from '@mui/icons-material/EmailOutlined';
+import AuthHeading from './AuthHeading';
+import AuthSwitch from './AuthSwitch';
+import PasswordField from './PasswordField';
+import { staggerFields } from './authMotion';
+import { notifyError, notifySuccess } from '../../Utils/helpers';
 
-const validationSchema = Yup.object({
+const emailSchema = Yup.object({
     email: Yup.string().trim().email('Enter a valid email').required('Email is required'),
 });
 
-export default function ForgotPassword() {
-    const dispatch = useDispatch();
-    const { loading, error, message } = useSelector((state) => state.forgotPassword);
+const codeSchema = Yup.object({
+    code: Yup.string()
+        .trim()
+        .matches(/^[0-9]{6}$/, 'Enter the 6-digit code')
+        .required('Enter the code we emailed you'),
+});
 
-    // Start fresh, so an old confirmation isn't shown
-    useEffect(() => {
-        dispatch({ type: FORGOT_PASSWORD_RESET });
-    }, [dispatch]);
+const passwordSchema = Yup.object({
+    password: Yup.string()
+        .min(8, 'Password must be at least 8 characters')
+        .required('Password is required'),
+    confirmPassword: Yup.string()
+        .oneOf([Yup.ref('password')], 'Passwords do not match')
+        .required('Please confirm your password'),
+});
 
-    useEffect(() => {
-        if (error) {
-            notifyError(error);
-            dispatch(clearErrors());
-        }
-    }, [error, dispatch]);
+const errorText = (error) => error.longMessage || error.message;
 
-    const formik = useFormik({
+const stack = { display: 'flex', flexDirection: 'column', gap: 2 };
+
+export default function ForgotPassword({ active = true }) {
+    const navigate = useNavigate();
+    const { signIn, fetchStatus } = useSignIn();
+    const loading = fetchStatus === 'fetching';
+    const [step, setStep] = useState('email'); // 'email' -> 'code' -> 'password'
+    const [email, setEmail] = useState('');
+
+    // Step 1: find the account and email it a reset code
+    const emailFormik = useFormik({
         initialValues: { email: '' },
-        validationSchema,
+        validationSchema: emailSchema,
         validateOnChange: false,
         validateOnBlur: false,
-        onSubmit: (values) => dispatch(forgotPassword(values.email.trim())),
+        onSubmit: async (values) => {
+            const address = values.email.trim();
+            const created = await signIn.create({ identifier: address });
+            if (created.error) {
+                notifyError(errorText(created.error));
+                return;
+            }
+            const sent = await signIn.resetPasswordEmailCode.sendCode();
+            if (sent.error) {
+                notifyError(errorText(sent.error));
+                return;
+            }
+            setEmail(address);
+            setStep('code');
+        },
     });
 
-    return (
-        <div className="auth-wrapper">
-            <Card className="auth-card">
-                <Typography variant="h5" component="h1" className="auth-title">
-                    Forgot password
-                </Typography>
+    // Step 2: check the code
+    const codeFormik = useFormik({
+        initialValues: { code: '' },
+        validationSchema: codeSchema,
+        validateOnChange: false,
+        validateOnBlur: false,
+        onSubmit: async (values) => {
+            const { error } = await signIn.resetPasswordEmailCode.verifyCode({
+                code: values.code.trim(),
+            });
+            if (error) {
+                notifyError(errorText(error));
+                return;
+            }
+            if (signIn.status === 'needs_new_password') {
+                setStep('password');
+            } else {
+                notifyError(`Reset not complete (${signIn.status})`);
+            }
+        },
+    });
 
-                {message ? (
-                    <div className="form-stack">
-                        <Typography>{message}</Typography>
-                        <Typography variant="body2" color="text.secondary">
-                            Check your inbox and spam folder. The link opens a page where you can
-                            choose a new password.
-                        </Typography>
-                        <Button variant="contained" component={Link} to="/login">
-                            Back to login
-                        </Button>
-                        <Button onClick={() => dispatch({ type: FORGOT_PASSWORD_RESET })}>
-                            Use a different email
-                        </Button>
-                    </div>
-                ) : (
-                    <>
-                        <form onSubmit={formik.handleSubmit} noValidate className="form-stack">
-                            <Typography variant="body2" color="text.secondary">
-                                Enter your email and we'll send you a link to reset your password.
-                            </Typography>
-                            <TextField
-                                label="Email"
-                                name="email"
-                                type="text"
-                                inputMode="email"
-                                autoComplete="email"
-                                fullWidth
-                                value={formik.values.email}
-                                onChange={formik.handleChange}
-                                error={Boolean(formik.errors.email)}
-                                helperText={formik.errors.email}
-                            />
-                            <Button type="submit" variant="contained" disabled={loading}>
-                                {loading ? 'Sending...' : 'Send reset link'}
-                            </Button>
-                        </form>
+    // Step 3: set the new password, which also signs the user in
+    const passwordFormik = useFormik({
+        initialValues: { password: '', confirmPassword: '' },
+        validationSchema: passwordSchema,
+        validateOnChange: false,
+        validateOnBlur: false,
+        onSubmit: async (values) => {
+            const { error } = await signIn.resetPasswordEmailCode.submitPassword({
+                password: values.password,
+                signOutOfOtherSessions: true,
+            });
+            if (error) {
+                notifyError(errorText(error));
+                return;
+            }
+            if (signIn.status === 'complete') {
+                await signIn.finalize({
+                    navigate: () => {
+                        notifySuccess('Password updated. Welcome back!');
+                        navigate('/', { replace: true });
+                    },
+                });
+            } else if (signIn.status === 'needs_second_factor') {
+                // The password change itself worked; only the sign-in is waiting on a
+                // second factor, which this page doesn't collect
+                notifySuccess('Password updated.');
+                notifyError('Your account needs two-factor authentication. Sign in to continue.');
+                navigate('/login', { replace: true });
+            } else {
+                notifyError(`Reset not complete (${signIn.status})`);
+            }
+        },
+    });
 
-                        <Typography variant="body2" className="auth-footer">
-                            <Link to="/login">Back to login</Link>
-                        </Typography>
-                    </>
-                )}
-            </Card>
-        </div>
-    );
+    const resendCode = async () => {
+        const { error } = await signIn.resetPasswordEmailCode.sendCode();
+        if (error) notifyError(errorText(error));
+        else notifySuccess('A new code was sent');
+    };
+
+    let content;
+
+    if (step === 'code') {
+        content = (
+            <>
+                <AuthHeading title="Check your email" subtitle={`We sent a 6-digit code to ${email}`} />
+                <Box
+                    key="code"
+                    component="form"
+                    onSubmit={codeFormik.handleSubmit}
+                    noValidate
+                    sx={{ ...stack, ...staggerFields(active) }}
+                >
+                    <TextField
+                        label="Verification code"
+                        name="code"
+                        inputMode="numeric"
+                        autoComplete="one-time-code"
+                        fullWidth
+                        slotProps={{ htmlInput: { maxLength: 6 } }}
+                        value={codeFormik.values.code}
+                        onChange={codeFormik.handleChange}
+                        error={Boolean(codeFormik.errors.code)}
+                        helperText={codeFormik.errors.code}
+                    />
+                    <Button type="submit" variant="contained" size="large" fullWidth disabled={loading}>
+                        {loading ? 'Please wait...' : 'Verify code'}
+                    </Button>
+                    <Button onClick={resendCode} disabled={loading}>
+                        Resend code
+                    </Button>
+                    <Button onClick={() => setStep('email')} disabled={loading}>
+                        Use a different email
+                    </Button>
+                </Box>
+            </>
+        );
+    } else if (step === 'password') {
+        content = (
+            <>
+                <AuthHeading title="Choose a new password" subtitle="You'll be signed in right after." />
+                <Box
+                    key="password"
+                    component="form"
+                    onSubmit={passwordFormik.handleSubmit}
+                    noValidate
+                    sx={{ ...stack, ...staggerFields(active) }}
+                >
+                    <PasswordField
+                        label="New password"
+                        name="password"
+                        autoComplete="new-password"
+                        value={passwordFormik.values.password}
+                        onChange={passwordFormik.handleChange}
+                        error={Boolean(passwordFormik.errors.password)}
+                        helperText={passwordFormik.errors.password}
+                    />
+                    <PasswordField
+                        label="Confirm new password"
+                        name="confirmPassword"
+                        autoComplete="new-password"
+                        value={passwordFormik.values.confirmPassword}
+                        onChange={passwordFormik.handleChange}
+                        error={Boolean(passwordFormik.errors.confirmPassword)}
+                        helperText={passwordFormik.errors.confirmPassword}
+                    />
+                    <Button type="submit" variant="contained" size="large" fullWidth disabled={loading}>
+                        {loading ? 'Please wait...' : 'Update password'}
+                    </Button>
+                </Box>
+            </>
+        );
+    } else {
+        content = (
+            <>
+                <AuthHeading
+                    title="Forgot password?"
+                    subtitle="Enter your email and we'll send you a code to reset it."
+                />
+                <Box
+                    key="email"
+                    component="form"
+                    onSubmit={emailFormik.handleSubmit}
+                    noValidate
+                    sx={{ ...stack, ...staggerFields(active) }}
+                >
+                    <TextField
+                        label="Email"
+                        name="email"
+                        type="text"
+                        inputMode="email"
+                        autoComplete="email"
+                        fullWidth
+                        value={emailFormik.values.email}
+                        onChange={emailFormik.handleChange}
+                        error={Boolean(emailFormik.errors.email)}
+                        helperText={emailFormik.errors.email}
+                        slotProps={{
+                            input: {
+                                startAdornment: (
+                                    <InputAdornment position="start">
+                                        <EmailOutlinedIcon fontSize="small" />
+                                    </InputAdornment>
+                                ),
+                            },
+                        }}
+                    />
+                    <Button type="submit" variant="contained" size="large" fullWidth disabled={loading}>
+                        {loading ? 'Please wait...' : 'Send code'}
+                    </Button>
+                    <AuthSwitch prompt="Remembered it?" cta="Back to login" to="/login" />
+                </Box>
+            </>
+        );
+    }
+
+    return content;
 }

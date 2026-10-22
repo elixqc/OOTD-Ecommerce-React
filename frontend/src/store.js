@@ -9,7 +9,6 @@ import {
     adminUserReducer,
     updatePasswordReducer,
 } from './reducers/userReducers';
-import { forgotPasswordReducer } from './reducers/userReducers';
 import {
     adminProductsReducer,
     productDetailsReducer,
@@ -39,7 +38,6 @@ import {
 
 const reducer = combineReducers({
     auth: authReducer,
-    forgotPassword: forgotPasswordReducer,
     user: userReducer,
     allUsers: allUsersReducer,
     userDetails: userDetailsReducer,

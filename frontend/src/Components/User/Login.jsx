@@ -1,10 +1,10 @@
 // Q4 · Clerk login + U1-B · Validation — sign-in form.
 // Formik + Yup validated; signs in via Clerk and offers the Google social button.
-import { useLocation, useNavigate } from 'react-router-dom';
+import { Link as RouterLink, useLocation, useNavigate } from 'react-router-dom';
 import { useSignIn } from '@clerk/react';
 import { useFormik } from 'formik';
 import * as Yup from 'yup';
-import { Box, Button, Divider, InputAdornment, TextField } from '@mui/material';
+import { Box, Button, Divider, InputAdornment, Link, TextField } from '@mui/material';
 import EmailOutlinedIcon from '@mui/icons-material/EmailOutlined';
 import AuthHeading from './AuthHeading';
 import AuthSwitch from './AuthSwitch';
@@ -100,6 +100,11 @@ export default function Login({ active = true }) {
                     error={Boolean(formik.errors.password)}
                     helperText={formik.errors.password}
                 />
+                <Box sx={{ textAlign: 'right', mt: -1 }}>
+                    <Link component={RouterLink} to="/forgot-password" variant="body2" underline="hover">
+                        Forgot password?
+                    </Link>
+                </Box>
                 <Button type="submit" variant="contained" size="large" fullWidth disabled={loading}>
                     {loading ? 'Please wait...' : 'Login'}
                 </Button>

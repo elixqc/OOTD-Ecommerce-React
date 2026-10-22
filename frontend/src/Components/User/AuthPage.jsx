@@ -1,11 +1,12 @@
-// Q4 · Clerk login + U2 · UI — shared login/register shell.
-// Hosts Login and Register in one sliding card with the hero photo panel.
+// Q4 · Clerk login + U2 · UI — shared auth shell.
+// Hosts Login, Register and ForgotPassword in one sliding card with the hero photo panel.
 import { useLocation } from 'react-router-dom';
 import { Box, Paper, Typography } from '@mui/material';
 import heroImage from '../../assets/ootd-hero.jpg';
 import MetaData from '../Layout/MetaData';
 import Login from './Login';
 import Register from './Register';
+import ForgotPassword from './ForgotPassword';
 import { EASE, fadeIn, floatA, floatB, riseIn, slowZoom } from './authMotion';
 
 const COPY = {
@@ -19,12 +20,17 @@ const COPY = {
         accent: 'Start here.',
         text: 'Make an account to save your bag and check out in a few taps.',
     },
+    forgot: {
+        lines: ['Forgot your', 'password?'],
+        accent: 'Reset it.',
+        text: "We'll email you a code, then you pick a new one. It takes a minute.",
+    },
 };
 
 const reducedMotion = '@media (prefers-reduced-motion: reduce)';
 
-// Both forms sit in the same grid row, so the card is always as tall as the taller form
-// and never needs a scrollbar. The inactive form fades and slides away from the photo.
+// The forms sit in the same grid row, so the card is always as tall as the tallest form
+// and never needs a scrollbar. The inactive forms fade and slide away from the photo.
 const panelSx = (active, side) => ({
     gridRow: 1,
     gridColumn: { xs: 1, md: side === 'left' ? 1 : 2 },
@@ -48,8 +54,16 @@ const panelSx = (active, side) => ({
 
 export default function AuthPage() {
     const { pathname } = useLocation();
-    const mode = pathname.startsWith('/register') ? 'register' : 'login';
+    const mode = pathname.startsWith('/register')
+        ? 'register'
+        : pathname.startsWith('/forgot-password')
+          ? 'forgot'
+          : 'login';
     const isLogin = mode === 'login';
+    const isRegister = mode === 'register';
+    const isForgot = mode === 'forgot';
+    // The photo covers the half without a form: right for login/forgot, left for register
+    const photoRight = !isRegister;
     const copy = COPY[mode];
 
     return (
@@ -86,7 +100,7 @@ export default function AuthPage() {
                 },
             }}
         >
-            <MetaData title={isLogin ? 'Login' : 'Register'} />
+            <MetaData title={isLogin ? 'Login' : isRegister ? 'Register' : 'Forgot password'} />
 
             {/* Drifting colour blobs */}
             <Box
@@ -146,8 +160,11 @@ export default function AuthPage() {
                 <Box sx={panelSx(isLogin, 'left')}>
                     <Login active={isLogin} />
                 </Box>
-                <Box sx={panelSx(!isLogin, 'right')}>
-                    <Register active={!isLogin} />
+                <Box sx={panelSx(isRegister, 'right')}>
+                    <Register active={isRegister} />
+                </Box>
+                <Box sx={panelSx(isForgot, 'left')}>
+                    <ForgotPassword active={isForgot} />
                 </Box>
 
                 {/* Photo panel: covers the half that isn't in use and glides across
@@ -164,7 +181,7 @@ export default function AuthPage() {
                         overflow: 'hidden',
                         bgcolor: 'primary.main',
                         color: '#faf8f5',
-                        transform: isLogin ? 'translateX(100%)' : 'translateX(0)',
+                        transform: photoRight ? 'translateX(100%)' : 'translateX(0)',
                         transition: `transform 0.8s ${EASE}`,
                         [reducedMotion]: { transition: 'none' },
                     }}

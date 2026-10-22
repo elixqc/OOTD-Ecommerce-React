@@ -98,10 +98,11 @@ function App() {
                             </>
                         }
                     />
-                    {/* Login and register share one page so the card can slide between them */}
+                    {/* Login, register and password reset share one page so the card can slide between them */}
                     <Route element={<AuthPage />}>
                         <Route path="/login/*" element={null} />
                         <Route path="/register/*" element={null} />
+                        <Route path="/forgot-password/*" element={null} />
                     </Route>
                     <Route path="/sso-callback" element={<SSOCallback />} />
                     <Route
