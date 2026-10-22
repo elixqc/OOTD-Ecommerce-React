@@ -48,17 +48,21 @@ const fetchProfile = () => {
 export const syncUser = (isSignedIn) => async (dispatch) => {
     if (!isSignedIn) {
         dispatch({ type: LOGOUT_SUCCESS });
-        return;
+        return null;
     }
     try {
         dispatch({ type: LOGIN_REQUEST });
         const user = await fetchProfile();
         dispatch({ type: LOGIN_SUCCESS, payload: user });
         dispatch(loadUserCart(user));
+        return user;
     } catch (error) {
         dispatch({ type: LOGIN_FAIL, payload: getErrorMessage(error) });
+        return null;
     }
 };
+
+export const getPostLoginPath = (user, from = '/') => (user?.role === 'admin' ? '/admin' : from);
 
 export const logout = () => async (dispatch) => {
     try {

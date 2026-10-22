@@ -1,6 +1,7 @@
 // Q4 · Clerk login + U2 · UI — shared auth shell.
 // Hosts Login, Register and ForgotPassword in one sliding card with the hero photo panel.
-import { useLocation } from 'react-router-dom';
+import { Navigate, useLocation } from 'react-router-dom';
+import { useSelector } from 'react-redux';
 import { Box, Paper, Typography } from '@mui/material';
 import heroImage from '../../assets/ootd-hero.jpg';
 import MetaData from '../Layout/MetaData';
@@ -54,6 +55,10 @@ const panelSx = (active, side) => ({
 
 export default function AuthPage() {
     const { pathname } = useLocation();
+    const { user } = useSelector((state) => state.auth);
+    if (user?.role === 'admin') {
+        return <Navigate to="/admin" replace />;
+    }
     const mode = pathname.startsWith('/register')
         ? 'register'
         : pathname.startsWith('/forgot-password')

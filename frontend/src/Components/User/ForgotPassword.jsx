@@ -3,6 +3,7 @@
 // Formik + Yup validated, like the login and register forms.
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useDispatch } from 'react-redux';
 import { useSignIn } from '@clerk/react';
 import { useFormik } from 'formik';
 import * as Yup from 'yup';
@@ -12,6 +13,7 @@ import AuthHeading from './AuthHeading';
 import AuthSwitch from './AuthSwitch';
 import PasswordField from './PasswordField';
 import { staggerFields } from './authMotion';
+import { getPostLoginPath, syncUser } from '../../actions/userActions';
 import { notifyError, notifySuccess } from '../../Utils/helpers';
 
 const emailSchema = Yup.object({
@@ -40,6 +42,7 @@ const stack = { display: 'flex', flexDirection: 'column', gap: 2 };
 
 export default function ForgotPassword({ active = true }) {
     const navigate = useNavigate();
+    const dispatch = useDispatch();
     const { signIn, fetchStatus } = useSignIn();
     const loading = fetchStatus === 'fetching';
     const [step, setStep] = useState('email'); // 'email' -> 'code' -> 'password'
@@ -106,12 +109,22 @@ export default function ForgotPassword({ active = true }) {
                 return;
             }
             if (signIn.status === 'complete') {
-                await signIn.finalize({
-                    navigate: () => {
-                        notifySuccess('Password updated. Welcome back!');
-                        navigate('/', { replace: true });
+                // Same as login: finalize first so the session/token exists, then sync
+                let decorate = (url) => url;
+                const finalized = await signIn.finalize({
+                    navigate: ({ decorateUrl }) => {
+                        decorate = decorateUrl;
                     },
                 });
+                if (finalized.error) {
+                    notifyError(errorText(finalized.error));
+                    return;
+                }
+                const user = await dispatch(syncUser(true));
+                notifySuccess('Password updated. Welcome back!');
+                const target = decorate(getPostLoginPath(user));
+                if (target.startsWith('http')) window.location.href = target;
+                else navigate(target, { replace: true });
             } else if (signIn.status === 'needs_second_factor') {
                 // The password change itself worked; only the sign-in is waiting on a
                 // second factor, which this page doesn't collect
