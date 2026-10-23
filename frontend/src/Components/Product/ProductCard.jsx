@@ -4,9 +4,9 @@ import { Link } from 'react-router-dom';
 import { Rating } from '@mui/material';
 import WishlistButton from './WishlistButton';
 
-const NEW_FOR_DAYS = 30;
+const NEW_FOR_DAYS = 7;
 
-// Products added in the last 30 days get the "New Arrivals" pill
+// Products added in the last 7 days get the "New Arrivals" pill
 const isNew = (createdAt) => (new Date() - new Date(createdAt)) / 86400000 <= NEW_FOR_DAYS;
 
 export default function ProductCard({ product }) {
