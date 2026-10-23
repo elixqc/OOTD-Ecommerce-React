@@ -26,8 +26,7 @@
 | **Term test lab** | PDF receipt attached to email | 10 | **10** | ✅ Code complete |
 | **Unit 1** | Bad-word filtering (`bad-words`) | 10 | **10** | ✅ |
 | **Unit 1** | Form validation (product, login, profile) | 10 | **10** | ✅ |
-| **Unit 2** | UI design with CSS | 10 | **10** | ✅ |
-| **Unit 2** | UI design with CSS + MUI | 20 | **20** | ✅ |
+| **Unit 2** | UI design with CSS + MUI (highest tier) | 20 | **20** | ✅ |
 | **Quiz 2** | Sales chart + date range | 15 | **15** | ✅ |
 | **Quiz 3** | Infinite scroll (higher tier) | 15 | **15** | ✅ |
 | **Quiz 4** | Google/Facebook login via Clerk | 15 | **15** | ✅ Google works |
@@ -143,7 +142,7 @@ Minor note: the **admin** `UpdateUser.jsx` is a status/role screen and does not 
 ## 7. Unit 2 — UI (20/20)
 
 - **MUI v9** (`@mui/material`, `@mui/icons-material`, `@mui/x-data-grid`) is used for every screen: buttons, dialogs, drawers, DataGrid, TextFields, radio groups, charts container, skeletons, chips, toasts via `sonner`.
-- Custom CSS in `src/style.css` (3,682 lines) handles layout, animations, product grid, hover effects, hero banner, and responsive breakpoints.
+- Custom CSS in `src/style.css` (3,749 lines) handles layout, animations, product grid, hover effects, hero banner, and responsive breakpoints.
 - CSS is consistent 4-space and uses MUI's `sx` alongside classes.
 
 **Judge:** The rubric awards the highest tier (20) for "Material UI or similar". Full marks. (If asked: no Bootstrap — MUI is the chosen library, which is explicitly allowed.)
@@ -189,7 +188,7 @@ Both are implemented, so the higher tier applies:
 
 ---
 
-## 11. Term test LEC (29/30)
+## 11. Term test LEC (30/30)
 
 | Item | Est. | Comment |
 | --- | ---: | --- |

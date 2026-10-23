@@ -1,5 +1,5 @@
 // U1-A · Bad words — bad-words filter plus a Filipino word list.
-// mask()/isProfane() are used by controllers/review.js to mask public comments and flag the admin view.
+// maskBadWords() is used by controllers/review.js to mask public comments and flag the admin view.
 const Filter = require('bad-words');
 
 const filter = new Filter();
