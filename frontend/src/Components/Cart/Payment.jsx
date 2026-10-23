@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
-import { useFormik } from 'formik';
+import { getIn, useFormik } from 'formik';
 import * as Yup from 'yup';
 import { Button, Radio, TextField } from '@mui/material';
 import { applyStockIssues, clearCart } from '../../actions/cartActions';
@@ -99,10 +99,15 @@ export default function Payment() {
     const formik = useFormik({
         initialValues: { cardName: '', cardNumber: '', expiry: '', cvc: '' },
         validationSchema: method === CARD ? cardSchema : undefined,
-        validateOnChange: false,
-        validateOnBlur: false,
+        validateOnChange: true,
+        validateOnBlur: true,
         onSubmit: placeOrder,
     });
+
+    // Reveal a field's error once it was blurred, or after any submit attempt
+    const showError = (name) =>
+        formik.submitCount > 0 || getIn(formik.touched, name) === true;
+    const errorText = (name) => (showError(name) ? getIn(formik.errors, name) : undefined);
 
     const field = (name, label, extra = {}) => ({
         name,
@@ -110,8 +115,9 @@ export default function Payment() {
         fullWidth: true,
         value: formik.values[name],
         onChange: formik.handleChange,
-        error: Boolean(formik.errors[name]),
-        helperText: formik.errors[name],
+        onBlur: formik.handleBlur,
+        error: Boolean(errorText(name)),
+        helperText: errorText(name),
         ...extra,
     });
 

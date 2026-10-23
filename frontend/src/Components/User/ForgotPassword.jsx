@@ -5,7 +5,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
 import { useSignIn } from '@clerk/react';
-import { useFormik } from 'formik';
+import { getIn, useFormik } from 'formik';
 import * as Yup from 'yup';
 import { Box, Button, InputAdornment, TextField } from '@mui/material';
 import EmailOutlinedIcon from '@mui/icons-material/EmailOutlined';
@@ -52,8 +52,8 @@ export default function ForgotPassword({ active = true }) {
     const emailFormik = useFormik({
         initialValues: { email: '' },
         validationSchema: emailSchema,
-        validateOnChange: false,
-        validateOnBlur: false,
+        validateOnChange: true,
+        validateOnBlur: true,
         onSubmit: async (values) => {
             const address = values.email.trim();
             const created = await signIn.create({ identifier: address });
@@ -75,8 +75,8 @@ export default function ForgotPassword({ active = true }) {
     const codeFormik = useFormik({
         initialValues: { code: '' },
         validationSchema: codeSchema,
-        validateOnChange: false,
-        validateOnBlur: false,
+        validateOnChange: true,
+        validateOnBlur: true,
         onSubmit: async (values) => {
             const { error } = await signIn.resetPasswordEmailCode.verifyCode({
                 code: values.code.trim(),
@@ -97,8 +97,8 @@ export default function ForgotPassword({ active = true }) {
     const passwordFormik = useFormik({
         initialValues: { password: '', confirmPassword: '' },
         validationSchema: passwordSchema,
-        validateOnChange: false,
-        validateOnBlur: false,
+        validateOnChange: true,
+        validateOnBlur: true,
         onSubmit: async (values) => {
             const { error } = await signIn.resetPasswordEmailCode.submitPassword({
                 password: values.password,
@@ -137,6 +137,12 @@ export default function ForgotPassword({ active = true }) {
         },
     });
 
+    // Reveal a field's error once it was blurred, or after any submit attempt.
+    // Named `fieldError` because `errorText` already normalises Clerk errors above.
+    const showError = (name, f) =>
+        f.submitCount > 0 || getIn(f.touched, name) === true;
+    const fieldError = (name, f) => (showError(name, f) ? getIn(f.errors, name) : undefined);
+
     const resendCode = async () => {
         const { error } = await signIn.resetPasswordEmailCode.sendCode();
         if (error) notifyError(errorText(error));
@@ -165,8 +171,9 @@ export default function ForgotPassword({ active = true }) {
                         slotProps={{ htmlInput: { maxLength: 6 } }}
                         value={codeFormik.values.code}
                         onChange={codeFormik.handleChange}
-                        error={Boolean(codeFormik.errors.code)}
-                        helperText={codeFormik.errors.code}
+                        onBlur={codeFormik.handleBlur}
+                        error={Boolean(fieldError('code', codeFormik))}
+                        helperText={fieldError('code', codeFormik)}
                     />
                     <Button type="submit" variant="contained" size="large" fullWidth disabled={loading}>
                         {loading ? 'Please wait...' : 'Verify code'}
@@ -197,8 +204,9 @@ export default function ForgotPassword({ active = true }) {
                         autoComplete="new-password"
                         value={passwordFormik.values.password}
                         onChange={passwordFormik.handleChange}
-                        error={Boolean(passwordFormik.errors.password)}
-                        helperText={passwordFormik.errors.password}
+                        onBlur={passwordFormik.handleBlur}
+                        error={Boolean(fieldError('password', passwordFormik))}
+                        helperText={fieldError('password', passwordFormik)}
                     />
                     <PasswordField
                         label="Confirm new password"
@@ -206,8 +214,9 @@ export default function ForgotPassword({ active = true }) {
                         autoComplete="new-password"
                         value={passwordFormik.values.confirmPassword}
                         onChange={passwordFormik.handleChange}
-                        error={Boolean(passwordFormik.errors.confirmPassword)}
-                        helperText={passwordFormik.errors.confirmPassword}
+                        onBlur={passwordFormik.handleBlur}
+                        error={Boolean(fieldError('confirmPassword', passwordFormik))}
+                        helperText={fieldError('confirmPassword', passwordFormik)}
                     />
                     <Button type="submit" variant="contained" size="large" fullWidth disabled={loading}>
                         {loading ? 'Please wait...' : 'Update password'}
@@ -238,8 +247,9 @@ export default function ForgotPassword({ active = true }) {
                         fullWidth
                         value={emailFormik.values.email}
                         onChange={emailFormik.handleChange}
-                        error={Boolean(emailFormik.errors.email)}
-                        helperText={emailFormik.errors.email}
+                        onBlur={emailFormik.handleBlur}
+                        error={Boolean(fieldError('email', emailFormik))}
+                        helperText={fieldError('email', emailFormik)}
                         slotProps={{
                             input: {
                                 startAdornment: (

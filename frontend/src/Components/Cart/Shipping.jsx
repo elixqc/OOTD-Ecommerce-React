@@ -3,7 +3,7 @@
 import { useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
-import { useFormik } from 'formik';
+import { getIn, useFormik } from 'formik';
 import * as Yup from 'yup';
 import { Button, TextField } from '@mui/material';
 import { saveShippingInfo } from '../../actions/cartActions';
@@ -55,8 +55,8 @@ export default function Shipping() {
             phoneNo: start.phoneNo ?? '',
         },
         validationSchema,
-        validateOnChange: false,
-        validateOnBlur: false,
+        validateOnChange: true,
+        validateOnBlur: true,
         onSubmit: (values) => {
             const cleaned = Object.fromEntries(
                 Object.entries(values).map(([k, v]) => [k, v.trim()]),
@@ -66,6 +66,11 @@ export default function Shipping() {
         },
     });
 
+    // Reveal a field's error once it was blurred, or after any submit attempt
+    const showError = (name) =>
+        formik.submitCount > 0 || getIn(formik.touched, name) === true;
+    const errorText = (name) => (showError(name) ? getIn(formik.errors, name) : undefined);
+
     const field = (name, label, extra = {}) => (
         <TextField
             label={label}
@@ -73,8 +78,9 @@ export default function Shipping() {
             fullWidth
             value={formik.values[name]}
             onChange={formik.handleChange}
-            error={Boolean(formik.errors[name])}
-            helperText={formik.errors[name]}
+            onBlur={formik.handleBlur}
+            error={Boolean(errorText(name))}
+            helperText={errorText(name)}
             {...extra}
         />
     );

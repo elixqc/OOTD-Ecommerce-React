@@ -2,7 +2,7 @@
 // Formik + Yup validated; signs in via Clerk and offers the Google social button.
 import { Link as RouterLink, useLocation, useNavigate } from 'react-router-dom';
 import { useSignIn } from '@clerk/react';
-import { useFormik } from 'formik';
+import { getIn, useFormik } from 'formik';
 import * as Yup from 'yup';
 import { Box, Button, Divider, InputAdornment, Link, TextField } from '@mui/material';
 import EmailOutlinedIcon from '@mui/icons-material/EmailOutlined';
@@ -31,8 +31,8 @@ export default function Login({ active = true }) {
     const formik = useFormik({
         initialValues: { email: '', password: '' },
         validationSchema,
-        validateOnChange: false,
-        validateOnBlur: false,
+        validateOnChange: true,
+        validateOnBlur: true,
         onSubmit: async (values) => {
             const { error } = await signIn.password({
                 emailAddress: values.email.trim(),
@@ -68,6 +68,11 @@ export default function Login({ active = true }) {
         },
     });
 
+    // Reveal a field's error once it was blurred, or after any submit attempt
+    const showError = (name) =>
+        formik.submitCount > 0 || getIn(formik.touched, name) === true;
+    const errorText = (name) => (showError(name) ? getIn(formik.errors, name) : undefined);
+
     const handleGoogle = async () => {
         const { error } = await signIn.sso({
             strategy: 'oauth_google',
@@ -95,8 +100,9 @@ export default function Login({ active = true }) {
                     fullWidth
                     value={formik.values.email}
                     onChange={formik.handleChange}
-                    error={Boolean(formik.errors.email)}
-                    helperText={formik.errors.email}
+                    onBlur={formik.handleBlur}
+                    error={Boolean(errorText('email'))}
+                    helperText={errorText('email')}
                     slotProps={{
                         input: {
                             startAdornment: (
@@ -113,8 +119,9 @@ export default function Login({ active = true }) {
                     autoComplete="current-password"
                     value={formik.values.password}
                     onChange={formik.handleChange}
-                    error={Boolean(formik.errors.password)}
-                    helperText={formik.errors.password}
+                    onBlur={formik.handleBlur}
+                    error={Boolean(errorText('password'))}
+                    helperText={errorText('password')}
                 />
                 <Box sx={{ textAlign: 'right', mt: -1 }}>
                     <Link component={RouterLink} to="/forgot-password" variant="body2" underline="hover">

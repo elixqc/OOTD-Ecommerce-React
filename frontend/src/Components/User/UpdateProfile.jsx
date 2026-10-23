@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
-import { useFormik } from 'formik';
+import { getIn, useFormik } from 'formik';
 import * as Yup from 'yup';
 import { Avatar, Button, Card, TextField, Typography } from '@mui/material';
 import PhotoCameraOutlinedIcon from '@mui/icons-material/PhotoCameraOutlined';
@@ -69,8 +69,8 @@ export default function UpdateProfile() {
             country: saved.country || '',
         },
         validationSchema,
-        validateOnChange: false,
-        validateOnBlur: false,
+        validateOnChange: true,
+        validateOnBlur: true,
         onSubmit: async (values) => {
             const payload = {
                 name: values.name.trim(),
@@ -114,6 +114,11 @@ export default function UpdateProfile() {
         reader.readAsDataURL(file);
     };
 
+    // Reveal a field's error once it was blurred, or after any submit attempt
+    const showError = (name) =>
+        formik.submitCount > 0 || getIn(formik.touched, name) === true;
+    const errorText = (name) => (showError(name) ? getIn(formik.errors, name) : undefined);
+
     const field = (name, label, extra = {}) => (
         <TextField
             label={label}
@@ -121,8 +126,9 @@ export default function UpdateProfile() {
             fullWidth
             value={formik.values[name]}
             onChange={formik.handleChange}
-            error={Boolean(formik.errors[name])}
-            helperText={formik.errors[name]}
+            onBlur={formik.handleBlur}
+            error={Boolean(errorText(name))}
+            helperText={errorText(name)}
             {...extra}
         />
     );

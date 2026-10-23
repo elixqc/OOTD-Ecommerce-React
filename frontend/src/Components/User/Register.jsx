@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useSignUp } from '@clerk/react';
-import { useFormik } from 'formik';
+import { getIn, useFormik } from 'formik';
 import * as Yup from 'yup';
 import { Box, Button, Divider, InputAdornment, TextField } from '@mui/material';
 import EmailOutlinedIcon from '@mui/icons-material/EmailOutlined';
@@ -61,8 +61,8 @@ export default function Register({ active = true }) {
             confirmPassword: '',
         },
         validationSchema,
-        validateOnChange: false,
-        validateOnBlur: false,
+        validateOnChange: true,
+        validateOnBlur: true,
         onSubmit: async (values) => {
             const created = await signUp.password({
                 emailAddress: values.email.trim(),
@@ -86,8 +86,8 @@ export default function Register({ active = true }) {
     const codeFormik = useFormik({
         initialValues: { code: '' },
         validationSchema: codeSchema,
-        validateOnChange: false,
-        validateOnBlur: false,
+        validateOnChange: true,
+        validateOnBlur: true,
         onSubmit: async (values) => {
             const { error } = await signUp.verifications.verifyEmailCode({
                 code: values.code.trim(),
@@ -108,6 +108,13 @@ export default function Register({ active = true }) {
             }
         },
     });
+
+    // Reveal a field's error once it was blurred, or after any submit attempt.
+    // Named `fieldError` because `errorText` already normalises Clerk errors above.
+    const showError = (name, f = formik) =>
+        f.submitCount > 0 || getIn(f.touched, name) === true;
+    const fieldError = (name, f = formik) =>
+        showError(name, f) ? getIn(f.errors, name) : undefined;
 
     const resendCode = async () => {
         const { error } = await signUp.verifications.sendEmailCode();
@@ -142,8 +149,9 @@ export default function Register({ active = true }) {
                         fullWidth
                         value={codeFormik.values.code}
                         onChange={codeFormik.handleChange}
-                        error={Boolean(codeFormik.errors.code)}
-                        helperText={codeFormik.errors.code}
+                        onBlur={codeFormik.handleBlur}
+                        error={Boolean(fieldError('code', codeFormik))}
+                        helperText={fieldError('code', codeFormik)}
                     />
                     <Button
                         type="submit"
@@ -174,8 +182,9 @@ export default function Register({ active = true }) {
                         fullWidth
                         value={formik.values.firstName}
                         onChange={formik.handleChange}
-                        error={Boolean(formik.errors.firstName)}
-                        helperText={formik.errors.firstName}
+                        onBlur={formik.handleBlur}
+                        error={Boolean(fieldError('firstName'))}
+                        helperText={fieldError('firstName')}
                         slotProps={nameSlotProps}
                     />
                     <TextField
@@ -185,8 +194,9 @@ export default function Register({ active = true }) {
                         fullWidth
                         value={formik.values.lastName}
                         onChange={formik.handleChange}
-                        error={Boolean(formik.errors.lastName)}
-                        helperText={formik.errors.lastName}
+                        onBlur={formik.handleBlur}
+                        error={Boolean(fieldError('lastName'))}
+                        helperText={fieldError('lastName')}
                         slotProps={nameSlotProps}
                     />
                 </Box>
@@ -199,8 +209,9 @@ export default function Register({ active = true }) {
                     fullWidth
                     value={formik.values.email}
                     onChange={formik.handleChange}
-                    error={Boolean(formik.errors.email)}
-                    helperText={formik.errors.email}
+                    onBlur={formik.handleBlur}
+                    error={Boolean(fieldError('email'))}
+                    helperText={fieldError('email')}
                     slotProps={{
                         input: {
                             startAdornment: (
@@ -217,8 +228,9 @@ export default function Register({ active = true }) {
                     autoComplete="new-password"
                     value={formik.values.password}
                     onChange={formik.handleChange}
-                    error={Boolean(formik.errors.password)}
-                    helperText={formik.errors.password}
+                    onBlur={formik.handleBlur}
+                    error={Boolean(fieldError('password'))}
+                    helperText={fieldError('password')}
                 />
                 <PasswordField
                     label="Confirm password"
@@ -226,8 +238,9 @@ export default function Register({ active = true }) {
                     autoComplete="new-password"
                     value={formik.values.confirmPassword}
                     onChange={formik.handleChange}
-                    error={Boolean(formik.errors.confirmPassword)}
-                    helperText={formik.errors.confirmPassword}
+                    onBlur={formik.handleBlur}
+                    error={Boolean(fieldError('confirmPassword'))}
+                    helperText={fieldError('confirmPassword')}
                 />
                 {/* Clerk's bot protection renders its captcha here when it is turned on */}
                 <div id="clerk-captcha" />

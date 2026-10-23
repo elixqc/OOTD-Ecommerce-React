@@ -1,7 +1,7 @@
 // MP3 · Review ratings + U1-B · Validation — write/edit review form.
 // Formik + Yup validated; submits to POST/PUT review and is opened from ProductDetails or MyReviews.
 import { useDispatch } from 'react-redux';
-import { useFormik } from 'formik';
+import { getIn, useFormik } from 'formik';
 import * as Yup from 'yup';
 import { Button, FormHelperText, Paper, Rating, Stack, TextField, Typography } from '@mui/material';
 import { submitReview, updateReview } from '../../actions/reviewActions';
@@ -29,8 +29,8 @@ export default function ReviewForm({ productId, existing, onDone, onCancel }) {
     const formik = useFormik({
         initialValues: { rating: existing?.rating ?? 0, comment: existing?.comment ?? '' },
         validationSchema,
-        validateOnChange: false,
-        validateOnBlur: false,
+        validateOnChange: true,
+        validateOnBlur: true,
         onSubmit: async (values) => {
             const data = { rating: values.rating, comment: values.comment.trim() };
             const message = existing
@@ -45,6 +45,12 @@ export default function ReviewForm({ productId, existing, onDone, onCancel }) {
             onDone();
         },
     });
+
+    // Reveal a field's error once it was blurred, or after any submit attempt.
+    // The rating has no blur target, so it only appears after a submit attempt.
+    const showError = (name) =>
+        formik.submitCount > 0 || getIn(formik.touched, name) === true;
+    const errorText = (name) => (showError(name) ? getIn(formik.errors, name) : undefined);
 
     return (
         <Paper
@@ -67,7 +73,7 @@ export default function ReviewForm({ productId, existing, onDone, onCancel }) {
                         value={formik.values.rating}
                         onChange={(e, value) => formik.setFieldValue('rating', value ?? 0)}
                     />
-                    {formik.errors.rating && (
+                    {showError('rating') && formik.errors.rating && (
                         <FormHelperText error>{formik.errors.rating}</FormHelperText>
                     )}
                 </div>
@@ -80,8 +86,9 @@ export default function ReviewForm({ productId, existing, onDone, onCancel }) {
                     fullWidth
                     value={formik.values.comment}
                     onChange={formik.handleChange}
-                    error={Boolean(formik.errors.comment)}
-                    helperText={formik.errors.comment}
+                    onBlur={formik.handleBlur}
+                    error={Boolean(errorText('comment'))}
+                    helperText={errorText('comment')}
                 />
 
                 <Stack direction="row" spacing={1.5} sx={{ pt: 0.5 }}>

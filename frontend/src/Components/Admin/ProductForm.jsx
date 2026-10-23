@@ -2,7 +2,7 @@
 // Formik + Yup validated; collects basics, variants and photos, then posts/puts to the admin product API.
 import { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { useFormik } from 'formik';
+import { getIn, useFormik } from 'formik';
 import * as Yup from 'yup';
 import {
     Alert,
@@ -171,6 +171,7 @@ export default function ProductForm({ product, onSubmit, submitLabel, loading })
     const [colors, setColors] = useState(() => getInitialColors(product));
     const [initialValues] = useState(() => getInitialValues(product, colors));
     const [colorErrors, setColorErrors] = useState({});
+    const [submitAttempted, setSubmitAttempted] = useState(false);
     // Always holds the latest colors, for code that runs later (uploads, submit)
     const colorsRef = useRef(colors);
     useEffect(() => {
@@ -198,8 +199,8 @@ export default function ProductForm({ product, onSubmit, submitLabel, loading })
     const formik = useFormik({
         initialValues,
         validationSchema,
-        validateOnChange: false,
-        validateOnBlur: false,
+        validateOnChange: true,
+        validateOnBlur: true,
         onSubmit: (values) => {
             const nameOf = (id) => colorsRef.current.find((c) => c.id === id).name.trim();
             const used = new Set(values.variants.map((v) => v.colorId));
@@ -227,10 +228,19 @@ export default function ProductForm({ product, onSubmit, submitLabel, loading })
         },
     });
 
-    const { values, errors } = formik;
+    const { values, errors, touched, submitCount } = formik;
 
-    const variantError = (index, field) =>
-        Array.isArray(errors.variants) ? errors.variants[index]?.[field] : undefined;
+    // Reveal a field's error once it was blurred, or after any submit attempt.
+    // `submitCount` alone is not enough here because handleSubmit validates
+    // manually and returns before ever calling formik.submitForm().
+    const showError = (name) =>
+        submitAttempted || submitCount > 0 || getIn(touched, name) === true;
+    const errorText = (name) => (showError(name) ? getIn(errors, name) : undefined);
+
+    const variantError = (index, field) => {
+        if (!showError(`variants[${index}].${field}`)) return undefined;
+        return Array.isArray(errors.variants) ? errors.variants[index]?.[field] : undefined;
+    };
 
     // ---- colors ----
     const updateColor = (id, change) =>
@@ -382,6 +392,7 @@ export default function ProductForm({ product, onSubmit, submitLabel, loading })
 
     const handleSubmit = async (event) => {
         event.preventDefault();
+        setSubmitAttempted(true);
 
         if (uploading) {
             notifyError('Please wait for the photos to finish uploading');
@@ -427,8 +438,9 @@ export default function ProductForm({ product, onSubmit, submitLabel, loading })
                                 sx={fieldSx}
                                 value={values.name}
                                 onChange={formik.handleChange}
-                                error={Boolean(errors.name)}
-                                helperText={errors.name}
+                                onBlur={formik.handleBlur}
+                                error={Boolean(errorText('name'))}
+                                helperText={errorText('name')}
                             />
                             <TextField
                                 label="Description"
@@ -438,8 +450,9 @@ export default function ProductForm({ product, onSubmit, submitLabel, loading })
                                 sx={fieldSx}
                                 value={values.description}
                                 onChange={formik.handleChange}
-                                error={Boolean(errors.description)}
-                                helperText={errors.description}
+                                onBlur={formik.handleBlur}
+                                error={Boolean(errorText('description'))}
+                                helperText={errorText('description')}
                             />
                         </Box>
                     </Section>
@@ -582,6 +595,7 @@ export default function ProductForm({ product, onSubmit, submitLabel, loading })
                                         sx={fieldSx}
                                         value={variant.size}
                                         onChange={formik.handleChange}
+                                        onBlur={formik.handleBlur}
                                         error={Boolean(variantError(index, 'size'))}
                                         helperText={variantError(index, 'size')}
                                     />
@@ -597,6 +611,7 @@ export default function ProductForm({ product, onSubmit, submitLabel, loading })
                                                 : ''
                                         }
                                         onChange={formik.handleChange}
+                                        onBlur={formik.handleBlur}
                                         error={Boolean(variantError(index, 'colorId'))}
                                         helperText={variantError(index, 'colorId')}
                                     >
@@ -614,6 +629,7 @@ export default function ProductForm({ product, onSubmit, submitLabel, loading })
                                         sx={fieldSx}
                                         value={variant.stock}
                                         onChange={formik.handleChange}
+                                        onBlur={formik.handleBlur}
                                         error={Boolean(variantError(index, 'stock'))}
                                         helperText={variantError(index, 'stock')}
                                     />
@@ -676,8 +692,9 @@ export default function ProductForm({ product, onSubmit, submitLabel, loading })
                                 sx={fieldSx}
                                 value={values.price}
                                 onChange={formik.handleChange}
-                                error={Boolean(errors.price)}
-                                helperText={errors.price}
+                                onBlur={formik.handleBlur}
+                                error={Boolean(errorText('price'))}
+                                helperText={errorText('price')}
                                 slotProps={{
                                     input: {
                                         startAdornment: (
@@ -693,8 +710,9 @@ export default function ProductForm({ product, onSubmit, submitLabel, loading })
                                 sx={fieldSx}
                                 value={values.category}
                                 onChange={formik.handleChange}
-                                error={Boolean(errors.category)}
-                                helperText={errors.category}
+                                onBlur={formik.handleBlur}
+                                error={Boolean(errorText('category'))}
+                                helperText={errorText('category')}
                             >
                                 {CATEGORIES.map((category) => (
                                     <MenuItem key={category} value={category}>
@@ -739,7 +757,7 @@ export default function ProductForm({ product, onSubmit, submitLabel, loading })
                                         </ToggleButton>
                                     ))}
                                 </ToggleButtonGroup>
-                                {errors.gender && (
+                                {showError('gender') && errors.gender && (
                                     <Typography
                                         variant="caption"
                                         color="error"
@@ -757,8 +775,9 @@ export default function ProductForm({ product, onSubmit, submitLabel, loading })
                                 sx={fieldSx}
                                 value={values.brand}
                                 onChange={formik.handleChange}
-                                error={Boolean(errors.brand)}
-                                helperText={errors.brand}
+                                onBlur={formik.handleBlur}
+                                error={Boolean(errorText('brand'))}
+                                helperText={errorText('brand')}
                             />
                             <TextField
                                 label="Material"
@@ -766,8 +785,9 @@ export default function ProductForm({ product, onSubmit, submitLabel, loading })
                                 sx={fieldSx}
                                 value={values.material}
                                 onChange={formik.handleChange}
-                                error={Boolean(errors.material)}
-                                helperText={errors.material}
+                                onBlur={formik.handleBlur}
+                                error={Boolean(errorText('material'))}
+                                helperText={errorText('material')}
                             />
                         </Box>
                     </Section>

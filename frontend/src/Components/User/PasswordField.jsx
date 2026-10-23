@@ -26,6 +26,7 @@ export default function PasswordField(props) {
                             <IconButton
                                 aria-label={show ? 'Hide password' : 'Show password'}
                                 onClick={() => setShow((s) => !s)}
+                                onMouseDown={(event) => event.preventDefault()}
                                 edge="end"
                             >
                                 {show ? (

@@ -1,6 +1,7 @@
 // TTL · Transactions + U1-B · Validation — region/city fields.
 // Reusable Formik-connected selects fed by Utils/locations.js; used by the shipping address form.
 import { useEffect, useState } from 'react';
+import { getIn } from 'formik';
 import { Autocomplete, TextField } from '@mui/material';
 import {
     countryHasRegions,
@@ -14,6 +15,11 @@ import {
 // formik is the form's useFormik() result with country, region and city values.
 export default function LocationFields({ formik, rowClassName = 'checkout-row' }) {
     const [ready, setReady] = useState(false);
+
+    // Reveal a field's error once it was blurred, or after any submit attempt
+    const showError = (name) =>
+        formik.submitCount > 0 || getIn(formik.touched, name) === true;
+    const errorText = (name) => (showError(name) ? getIn(formik.errors, name) : undefined);
 
     useEffect(() => {
         let active = true;
@@ -30,17 +36,32 @@ export default function LocationFields({ formik, rowClassName = 'checkout-row' }
 
     const pick = (changes) => formik.setValues({ ...formik.values, ...changes }, false);
 
+    // Autocomplete passes its own htmlInput.onBlur, so chain ours onto it rather
+    // than replacing it, otherwise the popup's blur handling breaks.
     const input =
         (name, label, extra = {}) =>
-        (params) => (
-            <TextField
-                {...params}
-                label={label}
-                error={Boolean(formik.errors[name])}
-                helperText={formik.errors[name]}
-                {...extra}
-            />
-        );
+        (params) => {
+            const htmlInput = params.slotProps?.htmlInput || {};
+            return (
+                <TextField
+                    {...params}
+                    label={label}
+                    slotProps={{
+                        ...params.slotProps,
+                        htmlInput: {
+                            ...htmlInput,
+                            onBlur: (event) => {
+                                htmlInput.onBlur?.(event);
+                                formik.setFieldTouched(name, true);
+                            },
+                        },
+                    }}
+                    error={Boolean(errorText(name))}
+                    helperText={errorText(name)}
+                    {...extra}
+                />
+            );
+        };
 
     return (
         <>
@@ -78,8 +99,9 @@ export default function LocationFields({ formik, rowClassName = 'checkout-row' }
                         value={city}
                         disabled={!country}
                         onChange={formik.handleChange}
-                        error={Boolean(formik.errors.city)}
-                        helperText={formik.errors.city}
+                        onBlur={formik.handleBlur}
+                        error={Boolean(errorText('city'))}
+                        helperText={errorText('city')}
                     />
                 )}
             </div>

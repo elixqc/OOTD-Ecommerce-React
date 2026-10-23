@@ -2,7 +2,7 @@
 // Formik + Yup validated; updates the password through Clerk.
 import { Link, useNavigate } from 'react-router-dom';
 import { useUser, useReverification } from '@clerk/react';
-import { useFormik } from 'formik';
+import { getIn, useFormik } from 'formik';
 import * as Yup from 'yup';
 import { Button, Card, Typography } from '@mui/material';
 import ArrowBackRoundedIcon from '@mui/icons-material/ArrowBackRounded';
@@ -28,8 +28,8 @@ export default function UpdatePassword() {
     const formik = useFormik({
         initialValues: { currentPassword: '', newPassword: '', confirmPassword: '' },
         validationSchema,
-        validateOnChange: false,
-        validateOnBlur: false,
+        validateOnChange: true,
+        validateOnBlur: true,
         onSubmit: async (values, { setFieldError, resetForm }) => {
             try {
                 await updatePassword({
@@ -51,6 +51,11 @@ export default function UpdatePassword() {
             }
         },
     });
+
+    // Reveal a field's error once it was blurred, or after any submit attempt
+    const showError = (name) =>
+        formik.submitCount > 0 || getIn(formik.touched, name) === true;
+    const errorText = (name) => (showError(name) ? getIn(formik.errors, name) : undefined);
 
     const noPassword = isLoaded && user && !user.passwordEnabled;
     const busy = !isLoaded || formik.isSubmitting;
@@ -95,8 +100,9 @@ export default function UpdatePassword() {
                                 autoComplete="current-password"
                                 value={formik.values.currentPassword}
                                 onChange={formik.handleChange}
-                                error={Boolean(formik.errors.currentPassword)}
-                                helperText={formik.errors.currentPassword}
+                                onBlur={formik.handleBlur}
+                                error={Boolean(errorText('currentPassword'))}
+                                helperText={errorText('currentPassword')}
                             />
                         </div>
                     </Card>
@@ -112,8 +118,9 @@ export default function UpdatePassword() {
                                 autoComplete="new-password"
                                 value={formik.values.newPassword}
                                 onChange={formik.handleChange}
-                                error={Boolean(formik.errors.newPassword)}
-                                helperText={formik.errors.newPassword || 'At least 8 characters'}
+                                onBlur={formik.handleBlur}
+                                error={Boolean(errorText('newPassword'))}
+                                helperText={errorText('newPassword') || 'At least 8 characters'}
                             />
                             <PasswordField
                                 name="confirmPassword"
@@ -121,8 +128,9 @@ export default function UpdatePassword() {
                                 autoComplete="new-password"
                                 value={formik.values.confirmPassword}
                                 onChange={formik.handleChange}
-                                error={Boolean(formik.errors.confirmPassword)}
-                                helperText={formik.errors.confirmPassword}
+                                onBlur={formik.handleBlur}
+                                error={Boolean(errorText('confirmPassword'))}
+                                helperText={errorText('confirmPassword')}
                             />
                         </div>
                     </Card>
