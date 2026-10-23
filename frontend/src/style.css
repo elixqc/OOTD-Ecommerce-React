@@ -449,16 +449,39 @@ body {
     width: 26px;
     height: 26px;
     border-radius: 50%;
-    background: #e8e4de;
-    color: var(--brand-dark);
+    background: #fff;
+    border: 1px solid #000;
+    box-sizing: border-box;
+    color: #000;
     transition:
         background 0.2s ease,
         color 0.2s ease;
 }
 
+.filter-accordion .MuiAccordionSummary-root:hover .filter-chevron {
+    background: #f0f0f0;
+}
+
 .filter-accordion .MuiAccordionSummary-expandIconWrapper.Mui-expanded .filter-chevron {
-    background: var(--brand-dark);
+    background: #000;
     color: #fff;
+}
+
+.filter-apply-btn.MuiButton-root {
+    background: #000;
+    color: #fff;
+    border-radius: 10px;
+    box-shadow: none;
+}
+
+.filter-apply-btn.MuiButton-root:hover {
+    background: #262626;
+    box-shadow: none;
+}
+
+.filter-apply-btn.MuiButton-root.Mui-disabled {
+    background: #e5e5e5;
+    color: #9a9a9a;
 }
 
 .filter-drawer-footer {
