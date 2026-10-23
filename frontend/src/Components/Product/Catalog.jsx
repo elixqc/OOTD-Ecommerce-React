@@ -73,15 +73,17 @@ export default function Catalog() {
         );
     }
 
-    const clearKeyword = () =>
+    const removeUrlParams = (...names) =>
         setSearchParams(
             (prev) => {
                 const next = new URLSearchParams(prev);
-                next.delete('q');
+                names.forEach((name) => next.delete(name));
                 return next;
             },
             { replace: true },
         );
+
+    const clearKeyword = () => removeUrlParams('q', 'category');
 
     const [drawerOpen, setDrawerOpen] = useState(false);
     const [maxPrice, setMaxPrice] = useState(0);
@@ -151,10 +153,13 @@ export default function Catalog() {
         return chips;
     }, [filters]);
 
-    const removeChip = (reset) => setFilters((prev) => ({ ...prev, ...reset }));
+    const removeChip = (reset) => {
+        setFilters((prev) => ({ ...prev, ...reset }));
+        if ('category' in reset) removeUrlParams('category');
+    };
 
     const clearAll = () => {
-        clearKeyword();
+        removeUrlParams('q', 'category');
         setFilters({ ...emptyFilters, sort: filters.sort });
     };
 
